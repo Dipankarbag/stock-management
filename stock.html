@@ -227,6 +227,27 @@
                         </div>
                     </div>
 
+                    <!-- Category & Date Filters -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Filter By Category</label>
+                            <select id="ledgerCategoryFilter" onchange="applyLedgerFilter()" class="w-full border rounded p-2 text-xs font-semibold">
+                                <option value="ALL">-- All Categories --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">From Date</label>
+                            <input type="date" id="ledgerStartDate" onchange="applyLedgerFilter()" class="w-full border rounded p-2 text-xs" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">To Date</label>
+                            <input type="date" id="ledgerEndDate" onchange="applyLedgerFilter()" class="w-full border rounded p-2 text-xs" />
+                        </div>
+                        <div>
+                            <button onclick="applyLedgerFilter()" class="w-full bg-blue-600 text-white p-2 rounded text-xs font-bold shadow">Apply Date Filter</button>
+                        </div>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -250,7 +271,29 @@
                 <div id="tabUserOrders" class="bg-white p-6 rounded-xl shadow-md border border-gray-200 hidden space-y-4">
                     <div class="flex justify-between items-center border-b pb-3">
                         <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-file-invoice text-blue-600 mr-2"></i> User-wise Order History</h2>
+                        <button onclick="exportUserOrdersCSV()" class="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-bold">Export CSV</button>
                     </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Select User</label>
+                            <select id="userFilterSelect" class="w-full border rounded p-2 text-xs">
+                                <option value="ALL">-- All Users --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">From Date</label>
+                            <input type="date" id="userOrderStartDate" class="w-full border rounded p-2 text-xs" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">To Date</label>
+                            <input type="date" id="userOrderEndDate" class="w-full border rounded p-2 text-xs" />
+                        </div>
+                        <div>
+                            <button onclick="applyUserHistoryFilter()" class="w-full bg-blue-600 text-white p-2 rounded text-xs font-bold shadow">Filter History</button>
+                        </div>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -311,7 +354,74 @@
         </div>
     </div>
 
-    <!-- MODALS -->
+    <!-- MODAL 1: ISSUED STOCK DETAILS POPUP -->
+    <div id="issuedDetailsModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-3xl border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div>
+                    <h3 class="font-bold text-gray-800 text-lg"><i class="fa-solid fa-receipt text-amber-600 mr-2"></i> Issued Stock Details Breakdown</h3>
+                    <p class="text-xs text-gray-500">Item Name: <span id="issuedItemTitle" class="font-bold text-blue-600">---</span></p>
+                </div>
+                <button onclick="closeIssuedDetailsModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="overflow-x-auto max-h-80">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-gray-700 text-xs uppercase border-b">
+                            <th class="p-3">Issued To (User)</th>
+                            <th class="p-3">Issued By (Issuer Name)</th>
+                            <th class="p-3 text-center">Issued Quantity</th>
+                            <th class="p-3">Issue Date & Time</th>
+                            <th class="p-3 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="issuedDetailsTable" class="text-sm divide-y"></tbody>
+                </table>
+            </div>
+            <div class="flex justify-between items-center pt-3 border-t">
+                <div class="flex space-x-2">
+                    <button onclick="exportIssuedModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center"><i class="fa-solid fa-file-excel mr-1.5"></i> Export CSV</button>
+                    <button onclick="printIssuedModalReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center"><i class="fa-solid fa-print mr-1.5"></i> Print</button>
+                </div>
+                <button onclick="closeIssuedDetailsModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-lg text-xs shadow">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: RECEIVED STOCK DETAILS POPUP -->
+    <div id="receivedDetailsModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div>
+                    <h3 class="font-bold text-gray-800 text-lg"><i class="fa-solid fa-truck-ramp-box text-blue-600 mr-2"></i> Stock Received Logs Breakdown</h3>
+                    <p class="text-xs text-gray-500">Item Name: <span id="receivedItemTitle" class="font-bold text-blue-600">---</span></p>
+                </div>
+                <button onclick="closeReceivedDetailsModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="overflow-x-auto max-h-80">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-gray-700 text-xs uppercase border-b">
+                            <th class="p-3">Received By (Receiver Name)</th>
+                            <th class="p-3 text-center">Received Quantity</th>
+                            <th class="p-3">Stock In Date & Time</th>
+                            <th class="p-3 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receivedDetailsTable" class="text-sm divide-y"></tbody>
+                </table>
+            </div>
+            <div class="flex justify-between items-center pt-3 border-t">
+                <div class="flex space-x-2">
+                    <button onclick="exportReceivedModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center"><i class="fa-solid fa-file-excel mr-1.5"></i> Export CSV</button>
+                    <button onclick="printReceivedModalReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center"><i class="fa-solid fa-print mr-1.5"></i> Print</button>
+                </div>
+                <button onclick="closeReceivedDetailsModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-lg text-xs shadow">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: STOCK IN -->
     <div id="stockInModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 space-y-4">
             <div class="flex justify-between items-center border-b pb-3">
@@ -342,16 +452,48 @@
         </div>
     </div>
 
+    <!-- MODAL 4: ADD ITEM -->
+    <div id="addItemModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-gray-800 text-lg">Add New Inventory Item</h3>
+                <button onclick="closeAddItemModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Item Name</label>
+                <input type="text" id="newItemName" placeholder="e.g. Router" class="w-full border rounded p-2 text-xs" />
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Category</label>
+                <input type="text" id="newItemCategory" placeholder="e.g. IT Hardware" class="w-full border rounded p-2 text-xs" />
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Opening Stock</label>
+                <input type="number" id="newItemOpening" min="0" placeholder="50" class="w-full border rounded p-2 text-xs" />
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="saveNewItem()" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-xs shadow">Save Item</button>
+                <button onclick="closeAddItemModal()" class="bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded text-xs">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- JAVASCRIPT CORE -->
     <script>
         let currentUser = null;
+        let activeIssuedItemId = null;
+        let activeReceivedItemId = null;
+        let currentFilteredLedger = [];
+        const securityPassword = "admin123";
+
         let usersList = [
             { id: "USR-001", name: "System Admin", email: "dipankardag1987@gmail.com", password: "123", dept: "IT & Admin", phone: "+91 9876543210", role: "ADMIN", status: "ACTIVE" },
             { id: "USR-002", name: "Rahul Sharma", email: "rahul@company.com", password: "123", dept: "Operations", phone: "+91 9123456789", role: "USER", status: "ACTIVE" }
         ];
         let inventory = [
             { id: "1", name: "A4 Paper Rim", category: "Stationery", opening: 150, received: 10, issued: 30, current: 130, lastDate: "2026-10-05" },
-            { id: "2", name: "Ball Pens Box", category: "Stationery", opening: 20, received: 5, issued: 10, current: 15, lastDate: "2026-10-08" }
+            { id: "2", name: "Ball Pens Box", category: "Stationery", opening: 20, received: 5, issued: 10, current: 15, lastDate: "2026-10-08" },
+            { id: "3", name: "Dell USB Mouse", category: "IT Hardware", opening: 10, received: 0, issued: 5, current: 5, lastDate: "2026-10-01" }
         ];
         let orders = [];
         let receivedLogs = [];
@@ -380,6 +522,8 @@
                 const switcher = document.getElementById('panelSwitcherContainer');
                 if (currentUser.role === 'ADMIN') {
                     switcher.classList.remove('hidden');
+                    populateUserDropdown();
+                    populateCategoriesDropdown();
                     switchPanel('admin');
                 } else {
                     switcher.classList.add('hidden');
@@ -514,19 +658,133 @@
             renderAll();
         }
 
+        function populateCategoriesDropdown() {
+            const select = document.getElementById('ledgerCategoryFilter');
+            if(!select) return;
+            select.innerHTML = '<option value="ALL">-- All Categories --</option>';
+            const cats = [...new Set(inventory.map(i => i.category))];
+            cats.forEach(c => {
+                select.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+        }
+
+        function applyLedgerFilter() {
+            const catVal = document.getElementById('ledgerCategoryFilter').value;
+            const start = document.getElementById('ledgerStartDate').value;
+            const end = document.getElementById('ledgerEndDate').value;
+
+            const filtered = inventory.filter(i => {
+                if(catVal !== 'ALL' && i.category !== catVal) return false;
+                if(start && end && i.lastDate) {
+                    if(i.lastDate < start || i.lastDate > end) return false;
+                }
+                return true;
+            });
+            renderLedgerTableCustom(filtered);
+        }
+
+        function resetLedgerFilters() {
+            document.getElementById('ledgerCategoryFilter').value = 'ALL';
+            document.getElementById('ledgerStartDate').value = '';
+            document.getElementById('ledgerEndDate').value = '';
+            renderLedgerTableCustom(inventory);
+        }
+
+        function editOpeningQuantity(itemId) {
+            const pwd = prompt("Enter Security Password to edit Opening Quantity:");
+            if (pwd === null) return;
+            if (pwd === securityPassword) {
+                const item = inventory.find(i => i.id === itemId);
+                const newOpeningStr = prompt(`Enter New Opening Quantity for '${item.name}':`, item.opening);
+                const newOpening = parseInt(newOpeningStr);
+                if (!isNaN(newOpening) && newOpening >= 0) {
+                    item.opening = newOpening;
+                    item.current = item.opening + item.received - item.issued;
+                    renderAll();
+                    alert("Opening Quantity updated successfully!");
+                }
+            } else {
+                alert("Incorrect Password!");
+            }
+        }
+
+        function renderLedgerTableCustom(list) {
+            currentFilteredLedger = list;
+            const t = document.getElementById('adminStockTable');
+            if(!t) return;
+            t.innerHTML = list.map(i => `
+                <tr>
+                    <td class="p-3 font-bold">${i.name}</td>
+                    <td class="p-3 text-xs">${i.category}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="editOpeningQuantity('${i.id}')" class="bg-gray-100 px-2 py-1 rounded text-xs font-bold border">${i.opening} <i class="fa-solid fa-lock text-[10px] text-amber-600"></i></button>
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="showReceivedBreakdown('${i.id}')" class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-bold">+${i.received}</button>
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="showIssuedBreakdown('${i.id}')" class="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs font-bold">-${i.issued}</button>
+                    </td>
+                    <td class="p-3 text-center text-emerald-700 font-extrabold">${i.current}</td>
+                    <td class="p-3 text-center text-xs text-gray-500">${i.lastDate || 'N/A'}</td>
+                    <td class="p-3 text-center space-x-1">
+                        <button onclick="openStockInModal('${i.id}')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold">+ Stock In</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function exportLedgerCSV() {
+            if(currentFilteredLedger.length === 0) { alert("No data!"); return; }
+            let csv = "Item Name,Category,Opening,Received,Issued,Closing,Last Date\n";
+            currentFilteredLedger.forEach(i => { csv += `"${i.name}","${i.category}","${i.opening}","${i.received}","${i.issued}","${i.current}","${i.lastDate || 'N/A'}"\n`; });
+            const link = document.createElement("a");
+            link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
+            link.download = `Ledger_Report.csv`;
+            link.click();
+        }
+
+        function printLedgerReport() {
+            if(currentFilteredLedger.length === 0) { alert("No data!"); return; }
+            const printWin = window.open('', '_blank');
+            printWin.document.write(`<html><body><h2>Inventory Ledger</h2><table><tr><th>Name</th><th>Category</th><th>Current</th></tr>${currentFilteredLedger.map(i => `<tr><td>${i.name}</td><td>${i.category}</td><td>${i.current}</td></tr>`).join('')}</table></body></html>`);
+            printWin.document.close(); printWin.print();
+        }
+
+        function showReceivedBreakdown(itemId) {
+            activeReceivedItemId = itemId;
+            const item = inventory.find(i => i.id === itemId);
+            document.getElementById('receivedItemTitle').innerText = item.name;
+            const logsForNext = receivedLogs.filter(l => l.itemId === itemId);
+            document.getElementById('receivedDetailsTable').innerHTML = logsForNext.length === 0 ? `<tr><td colspan="4" class="p-3 text-center text-gray-400">No records found</td></tr>` : logsForNext.map(l => `<tr><td>${l.user}</td><td>+${l.qty}</td><td>${l.dateOnly}</td><td>RECEIVED</td></tr>`).join('');
+            document.getElementById('receivedDetailsModal').classList.remove('hidden');
+        }
+        function closeReceivedDetailsModal() { document.getElementById('receivedDetailsModal').classList.add('hidden'); }
+        function exportReceivedModalCSV() { exportLedgerCSV(); }
+        function printReceivedModalReport() { printLedgerReport(); }
+
+        function showIssuedBreakdown(itemId) {
+            activeIssuedItemId = itemId;
+            const item = inventory.find(i => i.id === itemId);
+            document.getElementById('issuedItemTitle').innerText = item.name;
+            const itemIssuedOrders = orders.filter(o => o.itemId === itemId && o.status === 'ISSUED');
+            document.getElementById('issuedDetailsTable').innerHTML = itemIssuedOrders.length === 0 ? `<tr><td colspan="5" class="p-3 text-center text-gray-400">No records found</td></tr>` : itemIssuedOrders.map(o => `<tr><td>${o.user}</td><td>${o.issuer}</td><td>${o.qty}</td><td>${o.dateOnly}</td><td>ISSUED</td></tr>`).join('');
+            document.getElementById('issuedDetailsModal').classList.remove('hidden');
+        }
+        function closeIssuedDetailsModal() { document.getElementById('issuedDetailsModal').classList.add('hidden'); }
+        function exportIssuedModalCSV() { exportLedgerCSV(); }
+        function printIssuedModalReport() { printLedgerReport(); }
+
         function openStockInModal(itemId) {
             const item = inventory.find(i => i.id === itemId);
             document.getElementById('stockInItemId').value = item.id;
-            document.getElementById('stockInItemName').value = `${item.name} (${item.category})`;
+            document.getElementById('stockInItemName').value = item.name;
             document.getElementById('stockInQty').value = '';
             document.getElementById('stockInDate').value = new Date().toISOString().split('T')[0];
             document.getElementById('stockInReceiverName').value = currentUser.name;
             document.getElementById('stockInModal').classList.remove('hidden');
         }
-
-        function closeStockInModal() {
-            document.getElementById('stockInModal').classList.add('hidden');
-        }
+        function closeStockInModal() { document.getElementById('stockInModal').classList.add('hidden'); }
 
         function saveStockInEntry() {
             const itemId = document.getElementById('stockInItemId').value;
@@ -534,19 +792,33 @@
             const dateStr = document.getElementById('stockInDate').value;
             const receiver = document.getElementById('stockInReceiverName').value.trim();
 
-            if (!qty || qty <= 0 || !dateStr || !receiver) {
-                alert("Please fill all required fields!");
-                return;
-            }
-
+            if (!qty || !dateStr || !receiver) { alert("Fill all fields!"); return; }
             const item = inventory.find(i => i.id === itemId);
             item.received += qty;
             item.current += qty;
             item.lastDate = dateStr;
+            receivedLogs.unshift({ itemId, user: receiver, qty, dateOnly: dateStr, time: new Date().toLocaleTimeString() });
 
             closeStockInModal();
             renderAll();
-            alert("Stock Received Successfully!");
+            alert("Stock In Saved!");
+        }
+
+        function openAddItemModal() { document.getElementById('addItemModal').classList.remove('hidden'); }
+        function closeAddItemModal() { document.getElementById('addItemModal').classList.add('hidden'); }
+
+        function saveNewItem() {
+            const name = document.getElementById('newItemName').value.trim();
+            const category = document.getElementById('newItemCategory').value.trim();
+            const opening = parseInt(document.getElementById('newItemOpening').value) || 0;
+
+            if(!name || !category) { alert("Enter name and category!"); return; }
+            inventory.push({ id: (inventory.length + 1).toString(), name, category, opening, received: 0, issued: 0, current: opening, lastDate: new Date().toISOString().split('T')[0] });
+            closeAddItemModal();
+            populateUserItemDropdown();
+            populateCategoriesDropdown();
+            renderAll();
+            alert("Item Added!");
         }
 
         function toggleUserStatus(userId) {
@@ -555,8 +827,39 @@
         }
 
         function deleteUserAccount(userId) {
-            if(confirm("Are you sure?")) { usersList = usersList.filter(x => x.id !== userId); renderAll(); }
+            if(confirm("Delete user?")) { usersList = usersList.filter(x => x.id !== userId); renderAll(); }
         }
+
+        function populateUserDropdown() {
+            const select = document.getElementById('userFilterSelect');
+            if(!select) return;
+            select.innerHTML = '<option value="ALL">-- All Users --</option>';
+            usersList.forEach(u => { if(u.role !== 'ADMIN') select.innerHTML += `<option value="${u.name}">${u.name}</option>`; });
+        }
+
+        function applyUserHistoryFilter() {
+            const selectedUser = document.getElementById('userFilterSelect').value;
+            const filtered = orders.filter(o => selectedUser === 'ALL' || o.user === selectedUser);
+            renderUserHistoryTableCustom(filtered);
+        }
+
+        function renderUserHistoryTableCustom(list) {
+            const t = document.getElementById('adminUserOrdersHistoryTable');
+            if(!t) return;
+            t.innerHTML = list.map(o => `
+                <tr>
+                    <td class="p-3 text-blue-600">${o.id}</td>
+                    <td class="p-3 font-bold">${o.user}</td>
+                    <td class="p-3">${o.itemName}</td>
+                    <td class="p-3">${o.category}</td>
+                    <td class="p-3 text-center font-bold">${o.qty}</td>
+                    <td class="p-3 text-xs text-gray-400">${o.time}</td>
+                    <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800">${o.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function exportUserOrdersCSV() { exportLedgerCSV(); }
 
         function renderAll() {
             const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => o.user === currentUser.name) : orders;
@@ -596,38 +899,8 @@
                 `).join('');
             }
 
-            const stockTable = document.getElementById('adminStockTable');
-            if(stockTable) {
-                stockTable.innerHTML = inventory.map(i => `
-                    <tr>
-                        <td class="p-3 font-bold">${i.name}</td>
-                        <td class="p-3 text-xs">${i.category}</td>
-                        <td class="p-3 text-center">${i.opening}</td>
-                        <td class="p-3 text-center text-blue-700 font-bold">+${i.received}</td>
-                        <td class="p-3 text-center text-amber-700 font-bold">-${i.issued}</td>
-                        <td class="p-3 text-center text-emerald-700 font-extrabold">${i.current}</td>
-                        <td class="p-3 text-center text-xs text-gray-500">${i.lastDate || 'N/A'}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="openStockInModal('${i.id}')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold shadow">+ Stock In</button>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-
-            const historyTable = document.getElementById('adminUserOrdersHistoryTable');
-            if(historyTable) {
-                historyTable.innerHTML = orders.map(o => `
-                    <tr>
-                        <td class="p-3 text-blue-600">${o.id}</td>
-                        <td class="p-3 font-bold">${o.user}</td>
-                        <td class="p-3">${o.itemName}</td>
-                        <td class="p-3">${o.category}</td>
-                        <td class="p-3 text-center font-bold">${o.qty}</td>
-                        <td class="p-3 text-xs text-gray-400">${o.time}</td>
-                        <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800">${o.status}</span></td>
-                    </tr>
-                `).join('');
-            }
+            renderLedgerTableCustom(inventory);
+            renderUserHistoryTableCustom(orders);
 
             const usersTable = document.getElementById('adminUsersTable');
             if(usersTable) {
