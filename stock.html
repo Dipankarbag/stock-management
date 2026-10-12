@@ -37,9 +37,8 @@
                     <input type="password" id="loginPassword" placeholder="123" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
                 </div>
 
-                <!-- Show Password Checkbox -->
                 <div class="flex items-center space-x-2">
-                    <input type="checkbox" id="showPasswordToggle" onclick="togglePasswordVisibility()" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <input type="checkbox" id="showPasswordToggle" onclick="togglePasswordVisibility()" class="rounded border-gray-300 text-blue-600">
                     <label for="showPasswordToggle" class="text-xs text-gray-600 cursor-pointer">Show Password</label>
                 </div>
 
@@ -61,34 +60,29 @@
             <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-3 hidden">
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Full Name</label>
-                    <input type="text" id="regName" placeholder="e.g. Rahul Sharma" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    <input type="text" id="regName" placeholder="e.g. Rahul Sharma" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800" required />
                 </div>
-
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email Address</label>
-                    <input type="email" id="regEmail" placeholder="rahul@company.com" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    <input type="email" id="regEmail" placeholder="rahul@company.com" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800" required />
                 </div>
-
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Department</label>
-                        <input type="text" id="regDept" placeholder="Operations" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                        <input type="text" id="regDept" placeholder="Operations" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800" required />
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Phone Number</label>
-                        <input type="text" id="regPhone" placeholder="+91 9876543210" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                        <input type="text" id="regPhone" placeholder="+91 9876543210" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800" required />
                     </div>
                 </div>
-
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Password</label>
-                    <input type="password" id="regPassword" placeholder="Create password" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    <input type="password" id="regPassword" placeholder="Create password" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800" required />
                 </div>
-
                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition shadow-lg flex items-center justify-center">
                     <i class="fa-solid fa-user-plus mr-2"></i> Register Account
                 </button>
-
                 <p class="text-center text-xs text-gray-600 pt-2">
                     Already registered? 
                     <button type="button" onclick="toggleAuthMode('login')" class="text-blue-600 font-bold hover:underline">Back to Login</button>
@@ -141,19 +135,16 @@
                                 <option value="" disabled selected>-- Choose Item --</option>
                             </select>
                         </div>
-
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Quantity Needed</label>
                             <input type="number" id="orderQty" min="1" placeholder="Enter Qty" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-gray-800" required />
                         </div>
-
                         <div>
                             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-2.5 rounded-lg transition shadow-md flex items-center justify-center">
                                 <i class="fa-solid fa-paper-plane mr-2"></i> Submit Request
                             </button>
                         </div>
                     </form>
-
                     <div id="stockBadgeContainer" class="mt-4 hidden">
                         <span class="text-xs text-gray-500 font-semibold">Live Availability: </span>
                         <span id="stockBadge" class="text-xs px-2.5 py-1 rounded-full font-bold"></span>
@@ -219,6 +210,8 @@
                             <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-boxes-stacked text-blue-600 mr-2"></i> Inventory Movement Ledger</h2>
                         </div>
                         <div class="flex flex-wrap space-x-2 gap-y-2">
+                            <button onclick="exportLedgerCSV()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">Export CSV</button>
+                            <button onclick="printLedgerReport()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">Print Report</button>
                             <button onclick="openAddItemModal()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">+ Add New Item</button>
                         </div>
                     </div>
@@ -342,7 +335,6 @@
         let orders = [];
         let logs = [{ time: new Date().toLocaleTimeString(), user: "System", action: "App Initialized" }];
 
-        // Show/Hide Password Feature
         function togglePasswordVisibility() {
             const pwdInput = document.getElementById('loginPassword');
             const checkbox = document.getElementById('showPasswordToggle');
@@ -462,7 +454,6 @@
             }
         }
 
-        // FIXED: Order submission instantly pushes to shared 'orders' array so Admin sees it immediately
         function handleOrderSubmit(e) {
             e.preventDefault();
             const itemId = document.getElementById('itemSelect').value;
@@ -474,21 +465,42 @@
                 return;
             }
 
+            const orderId = "ORD-" + Math.floor(100 + Math.random() * 900);
+            const dateOnly = new Date().toISOString().split('T')[0];
+            const timeStr = new Date().toLocaleTimeString();
+
             const newOrder = {
-                id: "ORD-" + Math.floor(100 + Math.random() * 900),
+                id: orderId,
                 user: currentUser.name,
                 issuer: "N/A",
                 itemId: item.id,
                 itemName: item.name,
                 category: item.category,
                 qty: qty,
-                time: new Date().toLocaleTimeString(),
-                dateOnly: new Date().toISOString().split('T')[0],
+                time: timeStr,
+                dateOnly: dateOnly,
                 status: "UNDER PROCESS"
             };
 
             orders.unshift(newOrder);
-            logs.unshift({ time: new Date().toLocaleTimeString(), user: currentUser.name, action: `Submitted order for ${qty}x ${item.name}` });
+
+            // Sync with backend API to save to PostgreSQL database
+            fetch('/api/orders/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId,
+                    userName: currentUser.name,
+                    itemId: item.id,
+                    itemName: item.name,
+                    category: item.category,
+                    qty,
+                    timeStr,
+                    dateOnly
+                })
+            }).catch(e => console.log('Backend sync offline, running locally'));
+
+            logs.unshift({ time: timeStr, user: currentUser.name, action: `Submitted order for ${qty}x ${item.name}` });
             
             renderAll();
             alert("Order Submitted Successfully! Admin can now approve it.");
@@ -508,6 +520,16 @@
                 item.current -= order.qty;
             } else if (action === 'REJECT') order.status = 'REJECTED';
 
+            fetch('/api/orders/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: order.id,
+                    action: action,
+                    issuerName: currentUser.name
+                })
+            }).catch(e => console.log('Backend sync offline'));
+
             logs.unshift({ time: new Date().toLocaleTimeString(), user: currentUser.name, action: `Processed order ${order.id} as ${order.status}` });
             renderAll();
         }
@@ -522,6 +544,13 @@
 
             if(!name || !category) { alert("Enter name and category!"); return; }
             inventory.push({ id: (inventory.length + 1).toString(), name, category, opening, received: 0, issued: 0, current: opening, lastDate: new Date().toISOString().split('T')[0] });
+            
+            fetch('/api/inventory/add', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name, category, opening })
+            }).catch(e => console.log('Backend sync offline'));
+
             closeAddItemModal();
             populateUserItemDropdown();
             renderAll();
@@ -533,8 +562,24 @@
             if(u && u.role !== 'ADMIN') { u.status = u.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE'; renderAll(); }
         }
 
+        function exportLedgerCSV() {
+            if(inventory.length === 0) { alert("No data!"); return; }
+            let csv = "Item Name,Category,Opening,Received,Issued,Closing,Last Date\n";
+            inventory.forEach(i => { csv += `"${i.name}","${i.category}","${i.opening}","${i.received}","${i.issued}","${i.current}","${i.lastDate || 'N/A'}"\n`; });
+            const link = document.createElement("a");
+            link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
+            link.download = `Ledger_Report.csv`;
+            link.click();
+        }
+
+        function printLedgerReport() {
+            if(inventory.length === 0) { alert("No data!"); return; }
+            const printWin = window.open('', '_blank');
+            printWin.document.write(`<html><body><h2>Inventory Ledger</h2><table><tr><th>Name</th><th>Category</th><th>Current</th></tr>${inventory.map(i => `<tr><td>${i.name}</td><td>${i.category}</td><td>${i.current}</td></tr>`).join('')}</table></body></html>`);
+            printWin.document.close(); printWin.print();
+        }
+
         function renderAll() {
-            // User Panel Orders Table
             const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => o.user === currentUser.name) : orders;
             const userTable = document.getElementById('userOrdersTable');
             if(userTable) {
@@ -550,7 +595,6 @@
                 `).join('') || `<tr><td colspan="6" class="p-4 text-center text-gray-400">No orders found.</td></tr>`;
             }
 
-            // Admin Pending Approvals
             const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED');
             const pendingCountEl = document.getElementById('pendingCount');
             if(pendingCountEl) pendingCountEl.innerText = pending.length;
@@ -573,7 +617,6 @@
                 `).join('') || `<tr><td colspan="6" class="p-4 text-center text-gray-400">No pending approvals.</td></tr>`;
             }
 
-            // Inventory Ledger
             const stockTable = document.getElementById('adminStockTable');
             if(stockTable) {
                 stockTable.innerHTML = inventory.map(i => `
@@ -589,7 +632,6 @@
                 `).join('');
             }
 
-            // User Order History
             const historyTable = document.getElementById('adminUserOrdersHistoryTable');
             if(historyTable) {
                 historyTable.innerHTML = orders.map(o => `
@@ -605,7 +647,6 @@
                 `).join('') || `<tr><td colspan="7" class="p-4 text-center text-gray-400">No history available.</td></tr>`;
             }
 
-            // Users Table
             const usersTable = document.getElementById('adminUsersTable');
             if(usersTable) {
                 usersTable.innerHTML = usersList.map(u => `
@@ -622,7 +663,6 @@
                 `).join('');
             }
 
-            // Logs Table
             const logsTable = document.getElementById('adminLogsTable');
             if(logsTable) {
                 logsTable.innerHTML = logs.map(l => `
@@ -634,6 +674,17 @@
                 `).join('');
             }
         }
+
+        // Fetch state on load from server/database
+        fetch('/api/state')
+            .then(res => res.json())
+            .then(data => {
+                if(data.users && data.users.length) usersList = data.users.map(u => ({ id: u.user_id, name: u.name, email: u.email, password: u.password, dept: u.dept, phone: u.phone, role: u.role, status: u.status }));
+                if(data.inventory && data.inventory.length) inventory = data.inventory.map(i => ({ id: i.item_id, name: i.name, category: i.category, opening: i.opening, received: i.received, issued: i.issued, current: i.current, lastDate: i.last_date ? i.last_date.split('T')[0] : '' }));
+                if(data.orders && data.orders.length) orders = data.orders.map(o => ({ id: o.order_id, user: o.user_name, issuer: o.issuer_name, itemId: o.item_id, itemName: o.item_name, category: o.category, qty: o.qty, time: o.time_str, dateOnly: o.date_only ? o.date_only.split('T')[0] : '', status: o.status }));
+                renderAll();
+            })
+            .catch(e => console.log('Running in local fallback mode'));
     </script>
 </body>
 </html>
