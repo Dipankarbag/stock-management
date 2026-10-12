@@ -99,7 +99,7 @@
         <nav class="bg-slate-900 text-white px-6 py-4 flex flex-wrap justify-between items-center shadow-lg gap-4">
             <div class="flex items-center space-x-3">
                 <i class="fa-solid fa-boxes-stacked text-2xl text-blue-400"></i>
-                <h1 class="text-xl font-bold tracking-wide">gmail| Inventory System</h1>
+                <h1 class="text-xl font-bold tracking-wide">StockFlow | Inventory System</h1>
             </div>
             
             <div class="flex items-center space-x-4">
@@ -516,7 +516,7 @@
         const securityPassword = "admin123";
 
         const defaultUsers = [
-            { id: "USR-001", name: "System Admin", email: "dipankardag1987@gmail.com", password: "123", dept: "IT & Admin", phone: "+91 9876543210", role: "ADMIN", status: "ACTIVE" },
+            { id: "USR-001", name: "System Admin", email: "admin@stockflow.com", password: "123", dept: "IT & Admin", phone: "+91 9876543210", role: "ADMIN", status: "ACTIVE" },
             { id: "USR-002", name: "Rahul Sharma", email: "rahul@company.com", password: "123", dept: "Operations", phone: "+91 9123456789", role: "USER", status: "ACTIVE" }
         ];
 
@@ -669,22 +669,43 @@
                 return;
             }
 
+            const orderId = "ORD-" + Math.floor(100 + Math.random() * 900);
+            const dateOnly = new Date().toISOString().split('T')[0];
+            const timeStr = new Date().toLocaleTimeString();
+
             const newOrder = {
-                id: "ORD-" + Math.floor(100 + Math.random() * 900),
+                id: orderId,
                 user: currentUser.name,
                 issuer: "N/A",
                 itemId: item.id,
                 itemName: item.name,
                 category: item.category,
                 qty: qty,
-                time: new Date().toLocaleTimeString(),
-                dateOnly: new Date().toISOString().split('T')[0],
+                time: timeStr,
+                dateOnly: dateOnly,
                 status: "UNDER PROCESS"
             };
 
             orders.unshift(newOrder);
+
+            // Sync with backend API
+            fetch('http://localhost:5000/api/orders/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId,
+                    userName: currentUser.name,
+                    itemId: item.id,
+                    itemName: item.name,
+                    category: item.category,
+                    qty,
+                    timeStr,
+                    dateOnly
+                })
+            }).catch(e => console.log('Backend sync offline, running locally'));
+
             renderAll();
-            alert("Order Submitted!");
+            alert("Order Submitted Successfully!");
         }
 
         function processOrder(orderId, action) {
@@ -799,7 +820,7 @@
                     <td class="p-3 text-center text-emerald-700 font-extrabold">${i.current}</td>
                     <td class="p-3 text-center text-xs text-gray-500">${i.lastDate || 'N/A'}</td>
                     <td class="p-3 text-center space-x-1">
-                        <button onclick="openStockInModal('${i.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold shadow">+ Date Stock In</button>
+                        <button onclick="openStockInModal('${i.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold shadow">+ Stock In</button>
                         <button onclick="editOpeningQuantity('${i.id}')" title="Edit Opening Stock" class="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-xs font-bold shadow"><i class="fa-solid fa-pen"></i></button>
                     </td>
                 </tr>
