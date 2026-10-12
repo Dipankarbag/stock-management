@@ -1,7 +1,7 @@
 {
-  "name": "stockflow-backend",
+  "name": "stock-management-backend",
   "version": "1.0.0",
-  "description": "Stockflow Inventory Management Backend Server",
+  "description": "stock-management Backend Server",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
