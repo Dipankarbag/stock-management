@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
 
 // Helper: Send Automatic Mail Notification to Users
 async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuerName) {
-    if(!process.env.EMAIL_USER || process.env.EMAIL_USER === 'your_gmail_address@gmail.com') {
+    if(!process.env.EMAIL_USER || process.env.EMAIL_USER === 'dipankardag1987@gmail.com') {
         console.log('Skipping email send: EMAIL_USER credentials not configured in .env');
         return;
     }
@@ -30,7 +30,7 @@ async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuer
         subject: `Requisition Order ${status} - ${itemName}`,
         html: `
             <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; border: 1px solid #ddd; border-radius: 8px;">
-                <h2 style="color: #2563eb;">StockFlow Requisition Status Update</h2>
+                <h2 style="color: #2563eb;">stock-management Requisition Status Update</h2>
                 <p>Hello <strong>${userName}</strong>,</p>
                 <p>Your item requisition order has been updated to <strong>${status}</strong>.</p>
                 
@@ -49,7 +49,7 @@ async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuer
                     </tr>
                 </table>
 
-                <p style="margin-top: 20px; font-size: 12px; color: #64748b;">Automated notification from StockFlow Inventory System.</p>
+                <p style="margin-top: 20px; font-size: 12px; color: #64748b;">Automated notification from stock-management Inventory System.</p>
             </div>
         `
     };
