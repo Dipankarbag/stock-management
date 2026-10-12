@@ -594,21 +594,33 @@
         }
 
         function handleRegister(e) {
-            e.preventDefault();
-            const name = document.getElementById('regName').value.trim();
-            const email = document.getElementById('regEmail').value.trim().toLowerCase();
-            const dept = document.getElementById('regDept').value.trim();
-            const phone = document.getElementById('regPhone').value.trim();
-            const password = document.getElementById('regPassword').value.trim();
+    e.preventDefault();
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim().toLowerCase();
+    const dept = document.getElementById('regDept').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const password = document.getElementById('regPassword').value.trim();
 
-            const newUser = {
-                id: "USR-00" + (usersList.length + 1),
-                name, email, password, dept, phone, role: "USER", status: "ACTIVE"
-            };
-
-            usersList.push(newUser);
-            alert("Registration successful! You can now login with: " + email);
+    // Render / Backend API call
+    fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, dept, phone, password })
+    }
+    .then(res => res.json())
+    .then(data => {
+        if(data.error) {
+            alert("Error: " + data.error);
+        } else {
+            alert("Registration successful! You can now login.");
             toggleAuthMode('login');
+            document.getElementById('registerForm').reset();
+        }
+    })
+    .catch(err => {
+        alert("Registration failed! Please check connection.");
+    });
+}
         }
 
         function handleLogout() {
