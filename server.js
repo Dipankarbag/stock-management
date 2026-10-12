@@ -25,7 +25,7 @@ async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuer
     }
 
     const mailOptions = {
-        from: `"StockFlow System" <${process.env.EMAIL_USER}>`,
+        from: `"stock-management" <${process.env.EMAIL_USER}>`,
         to: userEmail,
         subject: `Requisition Order ${status} - ${itemName}`,
         html: `
