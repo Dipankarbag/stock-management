@@ -213,3 +213,16 @@ app.post('/api/register', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+// 4. Create New Order Route (Database Saving Fix)
+app.post('/api/orders/create', async (req, res) => {
+    const { orderId, userName, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
+    try {
+        await db.query(
+            'INSERT INTO orders (order_id, user_name, item_id, item_name, category, qty, time_str, date_only, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+            [orderId, userName, itemId, itemName, category, qty, timeStr, dateOnly, 'UNDER PROCESS']
+        );
+        res.json({ message: 'Order Created Successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
