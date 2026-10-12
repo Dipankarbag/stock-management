@@ -616,7 +616,6 @@
             toggleAuthMode('login');
             document.getElementById('registerForm').reset();
         }
-    })
     .catch(err => {
         alert("Registration failed! Please check connection.");
     });
@@ -1195,3 +1194,24 @@
     </script>
 </body>
 </html>
+// Auto Initial Render & Sync
+        fetch('/api/state')
+            .then(res => res.json())
+            .then(data => {
+                if(data.users && data.users.length) {
+                    usersList = data.users.map(u => ({ id: u.user_id, name: u.name, email: u.email, password: u.password, dept: u.dept, phone: u.phone, role: u.role, status: u.status }));
+                }
+                if(data.inventory && data.inventory.length) {
+                    inventory = data.inventory.map(i => ({ id: i.item_id, name: i.name, category: i.category, opening: i.opening, received: i.received, issued: i.issued, current: i.current, lastDate: i.last_date ? i.last_date.split('T')[0] : '' }));
+                }
+                if(data.orders && data.orders.length) {
+                    orders = data.orders.map(o => ({ id: o.order_id, user: o.user_name, issuer: o.issuer_name, itemId: o.item_id, itemName: o.item_name, category: o.category, qty: o.qty, time: o.time_str, dateOnly: o.date_only ? o.date_only.split('T')[0] : '', status: o.status }));
+                }
+                if(data.receivedLogs && data.receivedLogs.length) {
+                    receivedLogs = data.receivedLogs.map(l => ({ itemId: l.item_id, user: l.receiver_name, qty: l.qty, dateOnly: l.date_only ? l.date_only.split('T')[0] : '', time: l.time_str }));
+                }
+                renderAll();
+            })
+            .catch(e => {
+                renderAll();
+            });
