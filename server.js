@@ -197,3 +197,19 @@ app.post('/api/orders/process', async (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+// Register New User Route
+app.post('/api/register', async (req, res) => {
+    const { name, email, dept, phone, password } = req.body;
+    try {
+        const countRes = await db.query('SELECT COUNT(*) FROM users');
+        const userId = 'USR-00' + (parseInt(countRes.rows[0].count) + 1);
+
+        await db.query(
+            'INSERT INTO users (user_id, name, email, password, dept, phone, role, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+            [userId, name, email, password, dept, phone, 'USER', 'ACTIVE']
+        );
+        res.json({ message: 'User Registered Successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
