@@ -19,18 +19,18 @@ const transporter = nodemailer.createTransport({
 
 // Helper: Send Automatic Mail Notification to Users
 async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuerName) {
-    if(!process.env.EMAIL_USER || process.env.EMAIL_USER === 'dipankardag1987@gmail.com') {
+    if(!process.env.EMAIL_USER || process.env.EMAIL_USER === 'your_gmail_address@gmail.com') {
         console.log('Skipping email send: EMAIL_USER credentials not configured in .env');
         return;
     }
 
     const mailOptions = {
-        from: `"stock-management" <${process.env.EMAIL_USER}>`,
+        from: `"StockFlow System" <${process.env.EMAIL_USER}>`,
         to: userEmail,
         subject: `Requisition Order ${status} - ${itemName}`,
         html: `
             <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; border: 1px solid #ddd; border-radius: 8px;">
-                <h2 style="color: #2563eb;">stock-management Requisition Status Update</h2>
+                <h2 style="color: #2563eb;">StockFlow Requisition Status Update</h2>
                 <p>Hello <strong>${userName}</strong>,</p>
                 <p>Your item requisition order has been updated to <strong>${status}</strong>.</p>
                 
@@ -49,7 +49,7 @@ async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuer
                     </tr>
                 </table>
 
-                <p style="margin-top: 20px; font-size: 12px; color: #64748b;">Automated notification from stock-management Inventory System.</p>
+                <p style="margin-top: 20px; font-size: 12px; color: #64748b;">Automated notification from StockFlow Inventory System.</p>
             </div>
         `
     };
@@ -153,6 +153,14 @@ app.post('/api/orders/process', async (req, res) => {
             'UPDATE orders SET status = $1, issuer_name = $2 WHERE order_id = $3',
             [newStatus, issuerName, orderId]
         );
+
+        // If action is ISSUE, update inventory balances in PostgreSQL database
+        if (action === 'ISSUE') {
+            await db.query(
+                'UPDATE inventory SET issued = issued + $1, current = current - $1 WHERE item_id = $2',
+                [order.qty, order.item_id]
+            );
+        }
 
         // Fetch user email to send notification
         const userRes = await db.query('SELECT email FROM users WHERE name = $1', [order.user_name]);
