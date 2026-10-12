@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
-const path = require('path'); // Added path module
+const path = require('path');
 const db = require('./db');
 require('dotenv').config();
 
@@ -9,10 +9,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve HTML & Static Files
+// Serve Static Frontend Files
 app.use(express.static(__dirname));
 
-// Root route - Load stock.html directly
+// Root route to load stock.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'stock.html'));
 });
@@ -71,7 +71,7 @@ async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuer
     }
 }
 
-// 1. Get System State
+// 1. Get System State[cite: 5]
 app.get('/api/state', async (req, res) => {
     try {
         const users = await db.query('SELECT * FROM users ORDER BY id ASC');
@@ -90,7 +90,7 @@ app.get('/api/state', async (req, res) => {
     }
 });
 
-// 2. Add New Item
+// 2. Add New Item[cite: 5]
 app.post('/api/inventory/add', async (req, res) => {
     const { name, category, opening } = req.body;
     try {
@@ -108,7 +108,7 @@ app.post('/api/inventory/add', async (req, res) => {
     }
 });
 
-// 3. Stock In Entry
+// 3. Stock In Entry[cite: 5]
 app.post('/api/inventory/stock-in', async (req, res) => {
     const { itemId, qty, dateStr, receiver } = req.body;
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -128,7 +128,7 @@ app.post('/api/inventory/stock-in', async (req, res) => {
     }
 });
 
-// 4. Create New Order
+// 4. Create New Order (Saves user orders directly to DB)
 app.post('/api/orders/create', async (req, res) => {
     const { orderId, userName, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
     try {
@@ -142,7 +142,7 @@ app.post('/api/orders/create', async (req, res) => {
     }
 });
 
-// 5. Protected Opening Quantity Update
+// 5. Protected Opening Quantity Update[cite: 5]
 app.post('/api/inventory/update-opening', async (req, res) => {
     const { itemId, newOpening } = req.body;
     try {
@@ -162,7 +162,7 @@ app.post('/api/inventory/update-opening', async (req, res) => {
     }
 });
 
-// 6. Order Status Processing & Automatic Email Notification
+// 6. Order Status Processing & Automatic Email Notification[cite: 5]
 app.post('/api/orders/process', async (req, res) => {
     const { orderId, action, issuerName } = req.body;
     try {
@@ -195,9 +195,7 @@ app.post('/api/orders/process', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
-// Register New User Route
+// 7. Register New User Route
 app.post('/api/register', async (req, res) => {
     const { name, email, dept, phone, password } = req.body;
     try {
@@ -213,16 +211,6 @@ app.post('/api/register', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-// 4. Create New Order Route (Database Saving Fix)
-app.post('/api/orders/create', async (req, res) => {
-    const { orderId, userName, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
-    try {
-        await db.query(
-            'INSERT INTO orders (order_id, user_name, item_id, item_name, category, qty, time_str, date_only, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-            [orderId, userName, itemId, itemName, category, qty, timeStr, dateOnly, 'UNDER PROCESS']
-        );
-        res.json({ message: 'Order Created Successfully' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));[cite: 5]
