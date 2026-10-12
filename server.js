@@ -1,12 +1,21 @@
 const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
+const path = require('path'); // Added path module
 const db = require('./db');
 require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Serve HTML & Static Files
+app.use(express.static(__dirname));
+
+// Root route - Load stock.html directly
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'stock.html'));
+});
 
 // Nodemailer SMTP Transporter
 const transporter = nodemailer.createTransport({
@@ -119,7 +128,21 @@ app.post('/api/inventory/stock-in', async (req, res) => {
     }
 });
 
-// 4. Protected Opening Quantity Update
+// 4. Create New Order
+app.post('/api/orders/create', async (req, res) => {
+    const { orderId, userName, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
+    try {
+        await db.query(
+            'INSERT INTO orders (order_id, user_name, item_id, item_name, category, qty, time_str, date_only, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+            [orderId, userName, itemId, itemName, category, qty, timeStr, dateOnly, 'UNDER PROCESS']
+        );
+        res.json({ message: 'Order Created Successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 5. Protected Opening Quantity Update
 app.post('/api/inventory/update-opening', async (req, res) => {
     const { itemId, newOpening } = req.body;
     try {
@@ -139,7 +162,7 @@ app.post('/api/inventory/update-opening', async (req, res) => {
     }
 });
 
-// 5. Order Status Processing & Automatic Email Notification
+// 6. Order Status Processing & Automatic Email Notification
 app.post('/api/orders/process', async (req, res) => {
     const { orderId, action, issuerName } = req.body;
     try {
@@ -154,7 +177,6 @@ app.post('/api/orders/process', async (req, res) => {
             [newStatus, issuerName, orderId]
         );
 
-        // If action is ISSUE, update inventory balances in PostgreSQL database
         if (action === 'ISSUE') {
             await db.query(
                 'UPDATE inventory SET issued = issued + $1, current = current - $1 WHERE item_id = $2',
@@ -162,7 +184,6 @@ app.post('/api/orders/process', async (req, res) => {
             );
         }
 
-        // Fetch user email to send notification
         const userRes = await db.query('SELECT email FROM users WHERE name = $1', [order.user_name]);
         if (userRes.rows.length > 0) {
             sendOrderEmail(userRes.rows[0].email, order.user_name, order.item_name, order.qty, newStatus, issuerName);
