@@ -609,18 +609,16 @@
             })
             .then(res => res.json())
             .then(data => {
-                usersList.push({
-                    id: newUser.userId,
-                    name: newUser.name,
-                    email: newUser.email,
-                    password: newUser.password,
-                    dept: newUser.dept,
-                    phone: newUser.phone,
-                    role: newUser.role,
-                    status: newUser.status
-                });
                 alert("Registration successful & saved to database! You can now login with: " + email);
+                return fetch('/api/state');
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.users && data.users.length) {
+                    usersList = data.users.map(u => ({ id: u.user_id, name: u.name, email: u.email, password: u.password, dept: u.dept, phone: u.phone, role: u.role, status: u.status }));
+                }
                 toggleAuthMode('login');
+                document.getElementById('registerForm').reset();
             })
             .catch(err => {
                 console.error(err);
@@ -704,22 +702,17 @@
             })
             .then(res => res.json())
             .then(data => {
-                orders.unshift({
-                    id: newOrderData.orderId,
-                    user: newOrderData.user,
-                    issuer: "N/A",
-                    itemId: newOrderData.itemId,
-                    itemName: newOrderData.itemName,
-                    category: newOrderData.category,
-                    qty: newOrderData.qty,
-                    time: newOrderData.timeStr,
-                    dateOnly: newOrderData.dateOnly,
-                    status: "UNDER PROCESS"
-                });
-                renderAll();
                 alert("Order Submitted & Saved to Database Successfully!");
                 document.getElementById('orderForm').reset();
                 document.getElementById('stockBadgeContainer').classList.add('hidden');
+                return fetch('/api/state');
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.orders && data.orders.length) {
+                    orders = data.orders.map(o => ({ id: o.order_id, user: o.user_name, issuer: o.issuer_name, itemId: o.item_id, itemName: o.item_name, category: o.category, qty: o.qty, time: o.time_str, dateOnly: o.date_only ? o.date_only.split('T')[0] : '', status: o.status }));
+                }
+                renderAll();
             })
             .catch(err => {
                 console.error(err);
