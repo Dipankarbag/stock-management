@@ -71,7 +71,7 @@ async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuer
     }
 }
 
-// 1. Get Complete System State (Users, Inventory, Orders, Received Logs)
+// 1. Get Complete System State
 app.get('/api/state', async (req, res) => {
     try {
         const users = await db.query('SELECT * FROM users ORDER BY id ASC');
@@ -90,7 +90,7 @@ app.get('/api/state', async (req, res) => {
     }
 });
 
-// 2. Register New User Route (Saves to DB securely)
+// 2. Register New User Route
 app.post('/api/users/register', async (req, res) => {
     const { userId, name, email, password, dept, phone, role, status } = req.body;
     try {
@@ -98,7 +98,7 @@ app.post('/api/users/register', async (req, res) => {
             `INSERT INTO users (user_id, name, email, password, dept, phone, role, status) 
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
              ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, password = EXCLUDED.password, dept = EXCLUDED.dept, phone = EXCLUDED.phone`,
-            [userId, name, email, password, dept, phone, role || 'USER', status || 'ACTIVE']
+            [userId, name, email.trim().toLowerCase(), password, dept, phone, role || 'USER', status || 'ACTIVE']
         );
         res.json({ message: 'User Registered Successfully' });
     } catch (err) {
@@ -107,13 +107,16 @@ app.post('/api/users/register', async (req, res) => {
     }
 });
 
-// 3. User Login Verification Route
+// 3. User Login Verification Route (Case-Insensitive & Trimmed)
 app.post('/api/users/login', async (req, res) => {
     const { username, password } = req.body;
+    const cleanUsername = username ? username.trim().toLowerCase() : '';
+    const cleanPassword = password ? password.trim() : '';
+
     try {
         const userRes = await db.query(
-            'SELECT * FROM users WHERE (LOWER(email) = LOWER($1) OR LOWER(name) = LOWER($1)) AND password = $2',
-            [username, password]
+            'SELECT * FROM users WHERE (LOWER(TRIM(email)) = $1 OR LOWER(TRIM(name)) = $1) AND password = $2',
+            [cleanUsername, cleanPassword]
         );
 
         if (userRes.rows.length > 0) {
@@ -197,7 +200,7 @@ app.post('/api/inventory/update-opening', async (req, res) => {
     }
 });
 
-// 7. Submit New Requisition Order (SAVED TO POSTGRESQL DATABASE & ADMIN NOTIFIED)
+// 7. Submit New Requisition Order
 app.post('/api/orders/create', async (req, res) => {
     const { orderId, user, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
     try {
@@ -229,7 +232,6 @@ app.post('/api/orders/process', async (req, res) => {
             [newStatus, issuerName, orderId]
         );
 
-        // If order is issued, update inventory current stock count
         if (action === 'ISSUE') {
             await db.query(
                 'UPDATE inventory SET issued = issued + $1, current = current - $1 WHERE item_id = $2',
@@ -237,7 +239,6 @@ app.post('/api/orders/process', async (req, res) => {
             );
         }
 
-        // Fetch user email to send notification
         const userRes = await db.query('SELECT email FROM users WHERE name = $1', [order.user_name]);
         if (userRes.rows.length > 0) {
             sendOrderEmail(userRes.rows[0].email, order.user_name, order.item_name, order.qty, newStatus, issuerName);
