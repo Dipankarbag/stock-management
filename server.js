@@ -1,6 +1,6 @@
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const nodemailer = require('nodemailer');
 const db = require('./db');
 require('dotenv').config();
@@ -9,10 +9,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static frontend files
+// Serve static frontend files from current directory
 app.use(express.static(__dirname));
 
-// Root Route
+// Root Route to serve stock.html directly
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'stock.html'));
 });
@@ -29,7 +29,7 @@ const transporter = nodemailer.createTransport({
 // Helper: Send Automatic Mail Notification to Users
 async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuerName) {
     if(!process.env.EMAIL_USER || process.env.EMAIL_USER === 'your_gmail_address@gmail.com') {
-        console.log('Skipping email send: EMAIL_USER credentials not configured');
+        console.log('Skipping email send: EMAIL_USER credentials not configured in .env');
         return;
     }
 
@@ -57,18 +57,21 @@ async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuer
                         <td style="padding: 10px; border: 1px solid #ddd;">${issuerName}</td>
                     </tr>
                 </table>
+
+                <p style="margin-top: 20px; font-size: 12px; color: #64748b;">Automated notification from StockFlow Inventory System.</p>
             </div>
         `
     };
 
     try {
         await transporter.sendMail(mailOptions);
+        console.log(`Automatic email notification sent to ${userEmail}`);
     } catch (err) {
         console.error('Email Notification Error:', err.message);
     }
 }
 
-// 1. Get Complete System State
+// 1. Get Complete System State (Users, Inventory, Orders, Received Logs)
 app.get('/api/state', async (req, res) => {
     try {
         const users = await db.query('SELECT * FROM users ORDER BY id ASC');
@@ -87,18 +90,19 @@ app.get('/api/state', async (req, res) => {
     }
 });
 
-// 2. Register New User Route (Data Saves to DB)
+// 2. Register New User Route (Saves to DB securely)
 app.post('/api/users/register', async (req, res) => {
     const { userId, name, email, password, dept, phone, role, status } = req.body;
     try {
         await db.query(
             `INSERT INTO users (user_id, name, email, password, dept, phone, role, status) 
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-             ON CONFLICT (email) DO NOTHING`,
+             ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, password = EXCLUDED.password, dept = EXCLUDED.dept, phone = EXCLUDED.phone`,
             [userId, name, email, password, dept, phone, role || 'USER', status || 'ACTIVE']
         );
-        res.json({ message: 'User registered and saved to database successfully' });
+        res.json({ message: 'User Registered Successfully' });
     } catch (err) {
+        console.error('User Registration Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -161,17 +165,19 @@ app.post('/api/inventory/update-opening', async (req, res) => {
     }
 });
 
-// 6. Submit New Requisition Order (SAVED TO POSTGRESQL DATABASE)
+// 6. Submit New Requisition Order (SAVED TO POSTGRESQL DATABASE & ADMIN NOTIFIED)
 app.post('/api/orders/create', async (req, res) => {
     const { orderId, user, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
     try {
         await db.query(
             `INSERT INTO orders (order_id, user_name, issuer_name, item_id, item_name, category, qty, time_str, date_only, status) 
-             VALUES ($1, $2, 'N/A', $3, $4, $5, $6, $7, $8, 'UNDER PROCESS')`,
+             VALUES ($1, $2, 'N/A', $3, $4, $5, $6, $7, $8, 'UNDER PROCESS')
+             ON CONFLICT (order_id) DO NOTHING`,
             [orderId, user, itemId, itemName, category, qty, timeStr, dateOnly]
         );
         res.json({ message: 'Order created and saved to database successfully' });
     } catch (err) {
+        console.error('Order Creation Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -191,6 +197,7 @@ app.post('/api/orders/process', async (req, res) => {
             [newStatus, issuerName, orderId]
         );
 
+        // If order is issued, update inventory current stock count
         if (action === 'ISSUE') {
             await db.query(
                 'UPDATE inventory SET issued = issued + $1, current = current - $1 WHERE item_id = $2',
@@ -198,6 +205,7 @@ app.post('/api/orders/process', async (req, res) => {
             );
         }
 
+        // Fetch user email to send notification
         const userRes = await db.query('SELECT email FROM users WHERE name = $1', [order.user_name]);
         if (userRes.rows.length > 0) {
             sendOrderEmail(userRes.rows[0].email, order.user_name, order.item_name, order.qty, newStatus, issuerName);
