@@ -598,13 +598,34 @@
             const password = document.getElementById('regPassword').value.trim();
 
             const newUser = {
-                id: "USR-00" + (usersList.length + 1),
+                userId: "USR-00" + (usersList.length + 1),
                 name, email, password, dept, phone, role: "USER", status: "ACTIVE"
             };
 
-            usersList.push(newUser);
-            alert("Registration successful! You can now login with: " + email);
-            toggleAuthMode('login');
+            fetch('/api/users/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newUser)
+            })
+            .then(res => res.json())
+            .then(data => {
+                usersList.push({
+                    id: newUser.userId,
+                    name: newUser.name,
+                    email: newUser.email,
+                    password: newUser.password,
+                    dept: newUser.dept,
+                    phone: newUser.phone,
+                    role: newUser.role,
+                    status: newUser.status
+                });
+                alert("Registration successful & saved to database! You can now login with: " + email);
+                toggleAuthMode('login');
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Error registering user to database!");
+            });
         }
 
         function handleLogout() {
@@ -676,7 +697,7 @@
                 dateOnly: new Date().toISOString().split('T')[0]
             };
 
-            fetch('http://localhost:5000/api/orders/create', {
+            fetch('/api/orders/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newOrderData)
@@ -718,7 +739,7 @@
                 item.current -= order.qty;
             } else if (action === 'REJECT') order.status = 'REJECTED';
 
-            fetch('http://localhost:5000/api/orders/process', {
+            fetch('/api/orders/process', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -778,7 +799,7 @@
                     item.opening = newOpening;
                     item.current = item.opening + item.received - item.issued;
                     
-                    fetch('http://localhost:5000/api/inventory/update-opening', {
+                    fetch('/api/inventory/update-opening', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ itemId: item.id, newOpening })
@@ -1006,7 +1027,7 @@
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             });
 
-            fetch('http://localhost:5000/api/inventory/stock-in', {
+            fetch('/api/inventory/stock-in', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ itemId, qty, dateStr, receiver })
@@ -1034,7 +1055,7 @@
 
             inventory.push(newItem);
 
-            fetch('http://localhost:5000/api/inventory/add', {
+            fetch('/api/inventory/add', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ name, category, opening })
@@ -1161,7 +1182,7 @@
         }
 
         // Fetch state from backend database on load
-        fetch('http://localhost:5000/api/state')
+        fetch('/api/state')
             .then(res => res.json())
             .then(data => {
                 if(data.users && data.users.length) usersList = data.users.map(u => ({ id: u.user_id, name: u.name, email: u.email, password: u.password, dept: u.dept, phone: u.phone, role: u.role, status: u.status }));
