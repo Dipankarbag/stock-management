@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const nodemailer = require('nodemailer');
 const path = require('path');
+const nodemailer = require('nodemailer');
 const db = require('./db');
 require('dotenv').config();
 
@@ -9,10 +9,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve Static Frontend Files
+// Serve static frontend files
 app.use(express.static(__dirname));
 
-// Root route to load stock.html
+// Root Route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'stock.html'));
 });
@@ -29,7 +29,7 @@ const transporter = nodemailer.createTransport({
 // Helper: Send Automatic Mail Notification to Users
 async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuerName) {
     if(!process.env.EMAIL_USER || process.env.EMAIL_USER === 'your_gmail_address@gmail.com') {
-        console.log('Skipping email send: EMAIL_USER credentials not configured in .env');
+        console.log('Skipping email send: EMAIL_USER credentials not configured');
         return;
     }
 
@@ -41,7 +41,7 @@ async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuer
             <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; border: 1px solid #ddd; border-radius: 8px;">
                 <h2 style="color: #2563eb;">StockFlow Requisition Status Update</h2>
                 <p>Hello <strong>${userName}</strong>,</p>
-                <p>Your item requisition order has been updated to <strong>${status}</strong>.</p>
+                <p>Your item requisition order status has been updated to <strong>${status}</strong>.</p>
                 
                 <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
                     <tr style="background-color: #f8fafc;">
@@ -57,21 +57,18 @@ async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuer
                         <td style="padding: 10px; border: 1px solid #ddd;">${issuerName}</td>
                     </tr>
                 </table>
-
-                <p style="margin-top: 20px; font-size: 12px; color: #64748b;">Automated notification from StockFlow Inventory System.</p>
             </div>
         `
     };
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Automatic email notification sent to ${userEmail}`);
     } catch (err) {
         console.error('Email Notification Error:', err.message);
     }
 }
 
-// 1. Get System State[cite: 5]
+// 1. Get Complete System State
 app.get('/api/state', async (req, res) => {
     try {
         const users = await db.query('SELECT * FROM users ORDER BY id ASC');
@@ -90,7 +87,23 @@ app.get('/api/state', async (req, res) => {
     }
 });
 
-// 2. Add New Item[cite: 5]
+// 2. Register New User Route (Data Saves to DB)
+app.post('/api/users/register', async (req, res) => {
+    const { userId, name, email, password, dept, phone, role, status } = req.body;
+    try {
+        await db.query(
+            `INSERT INTO users (user_id, name, email, password, dept, phone, role, status) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+             ON CONFLICT (email) DO NOTHING`,
+            [userId, name, email, password, dept, phone, role || 'USER', status || 'ACTIVE']
+        );
+        res.json({ message: 'User registered and saved to database successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 3. Add New Inventory Item
 app.post('/api/inventory/add', async (req, res) => {
     const { name, category, opening } = req.body;
     try {
@@ -108,7 +121,7 @@ app.post('/api/inventory/add', async (req, res) => {
     }
 });
 
-// 3. Stock In Entry[cite: 5]
+// 4. Stock In Entry
 app.post('/api/inventory/stock-in', async (req, res) => {
     const { itemId, qty, dateStr, receiver } = req.body;
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -122,27 +135,13 @@ app.post('/api/inventory/stock-in', async (req, res) => {
             'UPDATE inventory SET received = received + $1, current = current + $1, last_date = $2 WHERE item_id = $3',
             [qty, dateStr, itemId]
         );
-        res.json({ message: 'Stock In Recorded' });
+        res.json({ message: 'Stock In Recorded Successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// 4. Create New Order (Saves user orders directly to DB)
-app.post('/api/orders/create', async (req, res) => {
-    const { orderId, userName, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
-    try {
-        await db.query(
-            'INSERT INTO orders (order_id, user_name, item_id, item_name, category, qty, time_str, date_only, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-            [orderId, userName, itemId, itemName, category, qty, timeStr, dateOnly, 'UNDER PROCESS']
-        );
-        res.json({ message: 'Order Created Successfully' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// 5. Protected Opening Quantity Update[cite: 5]
+// 5. Protected Opening Quantity Update
 app.post('/api/inventory/update-opening', async (req, res) => {
     const { itemId, newOpening } = req.body;
     try {
@@ -156,13 +155,28 @@ app.post('/api/inventory/update-opening', async (req, res) => {
             'UPDATE inventory SET opening = $1, current = $2 WHERE item_id = $3',
             [newOpening, newCurrent, itemId]
         );
-        res.json({ message: 'Opening quantity updated' });
+        res.json({ message: 'Opening quantity updated successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// 6. Order Status Processing & Automatic Email Notification[cite: 5]
+// 6. Submit New Requisition Order (SAVED TO POSTGRESQL DATABASE)
+app.post('/api/orders/create', async (req, res) => {
+    const { orderId, user, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
+    try {
+        await db.query(
+            `INSERT INTO orders (order_id, user_name, issuer_name, item_id, item_name, category, qty, time_str, date_only, status) 
+             VALUES ($1, $2, 'N/A', $3, $4, $5, $6, $7, $8, 'UNDER PROCESS')`,
+            [orderId, user, itemId, itemName, category, qty, timeStr, dateOnly]
+        );
+        res.json({ message: 'Order created and saved to database successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 7. Order Status Processing & Automatic Email Notification
 app.post('/api/orders/process', async (req, res) => {
     const { orderId, action, issuerName } = req.body;
     try {
@@ -195,22 +209,5 @@ app.post('/api/orders/process', async (req, res) => {
     }
 });
 
-// 7. Register New User Route
-app.post('/api/register', async (req, res) => {
-    const { name, email, dept, phone, password } = req.body;
-    try {
-        const countRes = await db.query('SELECT COUNT(*) FROM users');
-        const userId = 'USR-00' + (parseInt(countRes.rows[0].count) + 1);
-
-        await db.query(
-            'INSERT INTO users (user_id, name, email, password, dept, phone, role, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-            [userId, name, email, password, dept, phone, 'USER', 'ACTIVE']
-        );
-        res.json({ message: 'User Registered Successfully' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
