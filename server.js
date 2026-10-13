@@ -107,7 +107,39 @@ app.post('/api/users/register', async (req, res) => {
     }
 });
 
-// 3. Add New Inventory Item
+// 3. User Login Verification Route
+app.post('/api/users/login', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const userRes = await db.query(
+            'SELECT * FROM users WHERE (LOWER(email) = LOWER($1) OR LOWER(name) = LOWER($1)) AND password = $2',
+            [username, password]
+        );
+
+        if (userRes.rows.length > 0) {
+            const u = userRes.rows[0];
+            res.json({
+                success: true,
+                user: {
+                    id: u.user_id,
+                    name: u.name,
+                    email: u.email,
+                    dept: u.dept,
+                    phone: u.phone,
+                    role: u.role,
+                    status: u.status
+                }
+            });
+        } else {
+            res.status(401).json({ success: false, message: 'Invalid Credentials' });
+        }
+    } catch (err) {
+        console.error('Login Query Error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 4. Add New Inventory Item
 app.post('/api/inventory/add', async (req, res) => {
     const { name, category, opening } = req.body;
     try {
@@ -125,7 +157,7 @@ app.post('/api/inventory/add', async (req, res) => {
     }
 });
 
-// 4. Stock In Entry
+// 5. Stock In Entry
 app.post('/api/inventory/stock-in', async (req, res) => {
     const { itemId, qty, dateStr, receiver } = req.body;
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -145,7 +177,7 @@ app.post('/api/inventory/stock-in', async (req, res) => {
     }
 });
 
-// 5. Protected Opening Quantity Update
+// 6. Protected Opening Quantity Update
 app.post('/api/inventory/update-opening', async (req, res) => {
     const { itemId, newOpening } = req.body;
     try {
@@ -165,7 +197,7 @@ app.post('/api/inventory/update-opening', async (req, res) => {
     }
 });
 
-// 6. Submit New Requisition Order (SAVED TO POSTGRESQL DATABASE & ADMIN NOTIFIED)
+// 7. Submit New Requisition Order (SAVED TO POSTGRESQL DATABASE & ADMIN NOTIFIED)
 app.post('/api/orders/create', async (req, res) => {
     const { orderId, user, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
     try {
@@ -182,7 +214,7 @@ app.post('/api/orders/create', async (req, res) => {
     }
 });
 
-// 7. Order Status Processing & Automatic Email Notification
+// 8. Order Status Processing & Automatic Email Notification
 app.post('/api/orders/process', async (req, res) => {
     const { orderId, action, issuerName } = req.body;
     try {
