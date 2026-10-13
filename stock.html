@@ -544,12 +544,41 @@
 
         function handleLogin(e) {
             e.preventDefault();
-            const emailInput = document.getElementById('loginUsername').value.trim().toLowerCase();
+            const emailInput = document.getElementById('loginUsername').value.trim();
             const passwordInput = document.getElementById('loginPassword').value.trim();
             const errorDiv = document.getElementById('loginError');
 
             errorDiv.classList.add('hidden');
-            const matchedUser = usersList.find(u => (u.email.toLowerCase() === emailInput || u.name.toLowerCase() === emailInput) && u.password === passwordInput);
+
+            fetch('/api/users/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: emailInput, password: passwordInput })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.user.status !== 'ACTIVE') {
+                        alert("Your account is disabled by Admin!");
+                        return;
+                    }
+                    currentUser = data.user;
+                    setupDashboardAfterLogin();
+                } else {
+                    localLoginFallback(emailInput, passwordInput, errorDiv);
+                }
+            })
+            .catch(err => {
+                console.log('Using local fallback login check');
+                localLoginFallback(emailInput, passwordInput, errorDiv);
+            });
+        }
+
+        function localLoginFallback(emailInput, passwordInput, errorDiv) {
+            const matchedUser = usersList.find(u => 
+                (u.email.toLowerCase() === emailInput.toLowerCase() || u.name.toLowerCase() === emailInput.toLowerCase()) && 
+                u.password === passwordInput
+            );
 
             if (matchedUser) {
                 if (matchedUser.status !== 'ACTIVE') {
@@ -557,26 +586,30 @@
                     return;
                 }
                 currentUser = matchedUser;
-                document.getElementById('authScreen').classList.add('hidden');
-                document.getElementById('mainDashboard').classList.remove('hidden');
-                document.getElementById('displayUserName').innerText = currentUser.name;
-                document.getElementById('displayUserRole').innerText = currentUser.role;
-
-                const switcher = document.getElementById('panelSwitcherContainer');
-                if (currentUser.role === 'ADMIN') {
-                    switcher.classList.remove('hidden');
-                    populateUserDropdown();
-                    populateCategoriesDropdown();
-                    switchPanel('admin');
-                } else {
-                    switcher.classList.add('hidden');
-                    switchPanel('user');
-                }
-                populateUserItemDropdown();
-                renderAll();
+                setupDashboardAfterLogin();
             } else {
                 errorDiv.classList.remove('hidden');
             }
+        }
+
+        function setupDashboardAfterLogin() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+            document.getElementById('displayUserName').innerText = currentUser.name;
+            document.getElementById('displayUserRole').innerText = currentUser.role;
+
+            const switcher = document.getElementById('panelSwitcherContainer');
+            if (currentUser.role === 'ADMIN') {
+                switcher.classList.remove('hidden');
+                populateUserDropdown();
+                populateCategoriesDropdown();
+                switchPanel('admin');
+            } else {
+                switcher.classList.add('hidden');
+                switchPanel('user');
+            }
+            populateUserItemDropdown();
+            renderAll();
         }
 
         function toggleAuthMode(mode) {
