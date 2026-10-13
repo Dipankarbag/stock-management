@@ -9,10 +9,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static frontend files from current directory
+// Serve static frontend files
 app.use(express.static(__dirname));
 
-// Root Route to serve stock.html directly
+// Root Route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'stock.html'));
 });
@@ -29,7 +29,6 @@ const transporter = nodemailer.createTransport({
 // Helper: Send Automatic Mail Notification to Users
 async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuerName) {
     if(!process.env.EMAIL_USER || process.env.EMAIL_USER === 'your_gmail_address@gmail.com') {
-        console.log('Skipping email send: EMAIL_USER credentials not configured in .env');
         return;
     }
 
@@ -57,21 +56,18 @@ async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuer
                         <td style="padding: 10px; border: 1px solid #ddd;">${issuerName}</td>
                     </tr>
                 </table>
-
-                <p style="margin-top: 20px; font-size: 12px; color: #64748b;">Automated notification from StockFlow Inventory System.</p>
             </div>
         `
     };
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Automatic email notification sent to ${userEmail}`);
     } catch (err) {
         console.error('Email Notification Error:', err.message);
     }
 }
 
-// 1. Get Complete System State
+// 1. Complete System State Fetch
 app.get('/api/state', async (req, res) => {
     try {
         const users = await db.query('SELECT * FROM users ORDER BY id ASC');
@@ -90,24 +86,28 @@ app.get('/api/state', async (req, res) => {
     }
 });
 
-// 2. Register New User Route
+// 2. Direct PostgreSQL User Registration Route (With Synchronous Response)
 app.post('/api/users/register', async (req, res) => {
     const { userId, name, email, password, dept, phone, role, status } = req.body;
+    const cleanEmail = email ? email.trim().toLowerCase() : '';
+    const cleanPassword = password ? password.trim() : '';
+
     try {
-        await db.query(
+        const insertResult = await db.query(
             `INSERT INTO users (user_id, name, email, password, dept, phone, role, status) 
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-             ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, password = EXCLUDED.password, dept = EXCLUDED.dept, phone = EXCLUDED.phone`,
-            [userId, name, email.trim().toLowerCase(), password, dept, phone, role || 'USER', status || 'ACTIVE']
+             ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, password = EXCLUDED.password, dept = EXCLUDED.dept, phone = EXCLUDED.phone
+             RETURNING *`,
+            [userId, name.trim(), cleanEmail, cleanPassword, dept, phone, role || 'USER', status || 'ACTIVE']
         );
-        res.json({ message: 'User Registered Successfully' });
+        res.json({ message: 'User Registered Successfully', user: insertResult.rows[0] });
     } catch (err) {
         console.error('User Registration Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
 
-// 3. User Login Verification Route (Case-Insensitive & Trimmed)
+// 3. Robust Direct PostgreSQL User Login Verification Route
 app.post('/api/users/login', async (req, res) => {
     const { username, password } = req.body;
     const cleanUsername = username ? username.trim().toLowerCase() : '';
@@ -115,7 +115,7 @@ app.post('/api/users/login', async (req, res) => {
 
     try {
         const userRes = await db.query(
-            'SELECT * FROM users WHERE (LOWER(TRIM(email)) = $1 OR LOWER(TRIM(name)) = $1) AND password = $2',
+            'SELECT * FROM users WHERE (LOWER(TRIM(email)) = $1 OR LOWER(TRIM(name)) = $1) AND TRIM(password) = $2',
             [cleanUsername, cleanPassword]
         );
 
@@ -142,7 +142,7 @@ app.post('/api/users/login', async (req, res) => {
     }
 });
 
-// 4. Add New Inventory Item
+// 4. Add Inventory Item
 app.post('/api/inventory/add', async (req, res) => {
     const { name, category, opening } = req.body;
     try {
@@ -180,7 +180,7 @@ app.post('/api/inventory/stock-in', async (req, res) => {
     }
 });
 
-// 6. Protected Opening Quantity Update
+// 6. Update Opening Quantity
 app.post('/api/inventory/update-opening', async (req, res) => {
     const { itemId, newOpening } = req.body;
     try {
@@ -200,7 +200,7 @@ app.post('/api/inventory/update-opening', async (req, res) => {
     }
 });
 
-// 7. Submit New Requisition Order
+// 7. Order Requisition Creation
 app.post('/api/orders/create', async (req, res) => {
     const { orderId, user, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
     try {
@@ -217,7 +217,7 @@ app.post('/api/orders/create', async (req, res) => {
     }
 });
 
-// 8. Order Status Processing & Automatic Email Notification
+// 8. Order Status Processing
 app.post('/api/orders/process', async (req, res) => {
     const { orderId, action, issuerName } = req.body;
     try {
