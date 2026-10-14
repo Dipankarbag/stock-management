@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock & Inventory Management System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .active-tab { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: bold; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+
+    <!-- AUTHENTICATION SCREEN -->
+    <div id="authScreen" class="flex items-center justify-center min-h-screen p-4 bg-slate-900">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200">
+            <div class="text-center mb-6">
+                <div class="inline-flex p-3 bg-blue-100 text-blue-600 rounded-full mb-2">
+                    <i class="fa-solid fa-boxes-stacked text-3xl"></i>
+                </div>
+                <h2 id="authTitle" class="text-2xl font-bold text-gray-800">Inventory Portal Login</h2>
+                <p id="authSubtitle" class="text-xs text-gray-500 mt-1">Enter your credentials to access system</p>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email / Username</label>
+                    <input type="text" id="loginUsername" placeholder="dipankardag1987@gmail.com" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Password</label>
+                    <input type="password" id="loginPassword" placeholder="123" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                </div>
+
+                <div id="loginError" class="hidden text-xs text-red-600 font-semibold text-center bg-red-50 p-2 rounded border border-red-200">
+                    Invalid Email or Password!
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-lg flex items-center justify-center">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i> Login
+                </button>
+
+                <p class="text-center text-xs text-gray-600 pt-3">
+                    Don't have an account? 
+                    <button type="button" onclick="toggleAuthMode('register')" class="text-blue-600 font-bold hover:underline">Register Here</button>
+                </p>
+            </form>
+
+            <!-- REGISTRATION FORM -->
+            <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-3 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Full Name</label>
+                    <input type="text" id="regName" placeholder="e.g. Rahul Sharma" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email Address</label>
+                    <input type="email" id="regEmail" placeholder="rahul@company.com" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Department</label>
+                        <input type="text" id="regDept" placeholder="Operations / IT" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Phone Number</label>
+                        <input type="text" id="regPhone" placeholder="+91 9876543210" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Password</label>
+                    <input type="password" id="regPassword" placeholder="Create password" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition shadow-lg flex items-center justify-center">
+                    <i class="fa-solid fa-user-plus mr-2"></i> Register Account
+                </button>
+
+                <p class="text-center text-xs text-gray-600 pt-2">
+                    Already registered? 
+                    <button type="button" onclick="toggleAuthMode('login')" class="text-blue-600 font-bold hover:underline">Back to Login</button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- MAIN DASHBOARD -->
+    <div id="mainDashboard" class="hidden">
+        
+        <!-- Navbar -->
+        <nav class="bg-slate-900 text-white px-6 py-4 flex flex-wrap justify-between items-center shadow-lg gap-4">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-boxes-stacked text-2xl text-blue-400"></i>
+                <h1 class="text-xl font-bold tracking-wide">StockFlow | Inventory System</h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div id="panelSwitcherContainer" class="bg-slate-800 p-1 rounded-lg flex space-x-1">
+                    <button id="btnUserView" onclick="switchPanel('user')" class="px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white transition">
+                        <i class="fa-solid fa-user-tag mr-2"></i>User Panel
+                    </button>
+                    <button id="btnAdminView" onclick="switchPanel('admin')" class="px-4 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white transition">
+                        <i class="fa-solid fa-user-shield mr-2"></i>Admin Panel
+                    </button>
+                </div>
+
+                <div class="flex items-center space-x-3 border-l border-gray-700 pl-4">
+                    <div class="text-right">
+                        <div id="displayUserName" class="text-sm font-bold text-white">---</div>
+                        <div id="displayUserRole" class="text-xs text-blue-400 uppercase tracking-wider font-semibold">---</div>
+                    </div>
+                    <button onclick="handleLogout()" title="Logout" class="bg-red-600 hover:bg-red-700 text-white p-2.5 rounded-lg transition shadow flex items-center justify-center">
+                        <i class="fa-solid fa-power-off text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Workspace Container -->
+        <div class="max-w-7xl mx-auto p-6">
+
+            <!-- USER PANEL -->
+            <div id="userPanel" class="space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fa-solid fa-cart-plus text-blue-600 mr-2"></i> Submit Item Requisition Order
+                    </h2>
+                    <form id="orderForm" onsubmit="handleOrderSubmit(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Select Item</label>
+                            <select id="itemSelect" onchange="updateStockPreview()" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-gray-800" required>
+                                <option value="" disabled selected>-- Choose Item --</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Quantity Needed</label>
+                            <input type="number" id="orderQty" min="1" placeholder="Enter Qty" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-gray-800" required />
+                        </div>
+
+                        <div>
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-2.5 rounded-lg transition shadow-md flex items-center justify-center">
+                                <i class="fa-solid fa-paper-plane mr-2"></i> Submit Request
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="stockBadgeContainer" class="mt-4 hidden">
+                        <span class="text-xs text-gray-500 font-semibold">Live Availability: </span>
+                        <span id="stockBadge" class="text-xs px-2.5 py-1 rounded-full font-bold"></span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-600 mr-2"></i> My Requisition Status & Orders
+                    </h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
+                                    <th class="p-3">Order ID</th>
+                                    <th class="p-3">Item Name</th>
+                                    <th class="p-3">Category</th>
+                                    <th class="p-3 text-center">Quantity</th>
+                                    <th class="p-3">Date & Time</th>
+                                    <th class="p-3 text-center">Live Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userOrdersTable" class="text-sm text-gray-700 divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN PANEL -->
+            <div id="adminPanel" class="space-y-6 hidden">
+
+                <div class="flex border-b border-gray-300 space-x-6 text-sm font-medium flex-wrap">
+                    <button onclick="switchAdminTab('requests')" id="tabRequestsBtn" class="py-2 active-tab"><i class="fa-solid fa-list-check mr-2"></i>Pending Approvals (<span id="pendingCount">0</span>)</button>
+                    <button onclick="switchAdminTab('stock')" id="tabStockBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-boxes-stacked mr-2"></i>Inventory Movement Ledger</button>
+                    <button onclick="switchAdminTab('userOrders')" id="tabUserOrdersBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-file-invoice mr-2"></i>User Order Details & History</button>
+                    <button onclick="switchAdminTab('users')" id="tabUsersBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-users mr-2"></i>Registered Users Control</button>
+                    <button onclick="switchAdminTab('logs')" id="tabLogsBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-user-clock mr-2"></i>System Activity Logs</button>
+                </div>
+
+                <!-- ADMIN TAB 1: Pending Approvals -->
+                <div id="tabRequests" class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4">Pending Requisition Approvals</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
+                                    <th class="p-3">Order ID</th>
+                                    <th class="p-3">User Name</th>
+                                    <th class="p-3">Item Name</th>
+                                    <th class="p-3 text-center">Requested Qty</th>
+                                    <th class="p-3 text-center">Stock Available</th>
+                                    <th class="p-3 text-center">Approval Control</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminRequestsTable" class="text-sm divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ADMIN TAB 2: Ledger -->
+                <div id="tabStock" class="bg-white p-6 rounded-xl shadow-md border border-gray-200 hidden space-y-4">
+                    <div class="flex justify-between items-center flex-wrap gap-4 border-b pb-3">
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-boxes-stacked text-blue-600 mr-2"></i> Inventory Movement Ledger</h2>
+                            <p class="text-xs text-gray-500">Filter Ledger by Category and Stock Received Date Range</p>
+                        </div>
+                        <div class="flex flex-wrap space-x-2 gap-y-2">
+                            <button onclick="exportLedgerCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow flex items-center">
+                                <i class="fa-solid fa-file-excel mr-1.5"></i> Export Excel (CSV)
+                            </button>
+                            <button onclick="printLedgerReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow flex items-center">
+                                <i class="fa-solid fa-print mr-1.5"></i> Print Ledger Report
+                            </button>
+                            <button onclick="openAddItemModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow flex items-center">
+                                <i class="fa-solid fa-plus mr-1"></i> Add New Item
+                            </button>
+                            <button onclick="resetLedgerFilters()" class="bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold">Reset Filters</button>
+                        </div>
+                    </div>
+
+                    <!-- Category & Date Filters -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Filter By Category</label>
+                            <select id="ledgerCategoryFilter" onchange="applyLedgerFilter()" class="w-full border rounded p-2 text-xs font-semibold">
+                                <option value="ALL">-- All Categories --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">From Date</label>
+                            <input type="date" id="ledgerStartDate" onchange="applyLedgerFilter()" class="w-full border rounded p-2 text-xs" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">To Date</label>
+                            <input type="date" id="ledgerEndDate" onchange="applyLedgerFilter()" class="w-full border rounded p-2 text-xs" />
+                        </div>
+                        <div>
+                            <button onclick="applyLedgerFilter()" class="w-full bg-blue-600 text-white p-2 rounded text-xs font-bold shadow">Apply Date Filter</button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-800 text-white text-xs uppercase">
+                                    <th class="p-3">Item Name</th>
+                                    <th class="p-3">Category</th>
+                                    <th class="p-3 text-center bg-slate-700">Opening Stock</th>
+                                    <th class="p-3 text-center bg-blue-900">Received Stock</th>
+                                    <th class="p-3 text-center bg-amber-800">Issued Stock</th>
+                                    <th class="p-3 text-center bg-green-900">Closing Balance</th>
+                                    <th class="p-3 text-center">Last Received Date</th>
+                                    <th class="p-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminStockTable" class="text-sm divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ADMIN TAB 3: User Order History -->
+                <div id="tabUserOrders" class="bg-white p-6 rounded-xl shadow-md border border-gray-200 hidden space-y-4">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-file-invoice text-blue-600 mr-2"></i> User-wise Order History</h2>
+                        <div class="flex space-x-2">
+                            <button onclick="exportUserOrdersCSV()" class="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-bold">Export CSV</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Select User</label>
+                            <select id="userFilterSelect" class="w-full border rounded p-2 text-xs">
+                                <option value="ALL">-- All Users --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">From Date</label>
+                            <input type="date" id="userOrderStartDate" class="w-full border rounded p-2 text-xs" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">To Date</label>
+                            <input type="date" id="userOrderEndDate" class="w-full border rounded p-2 text-xs" />
+                        </div>
+                        <div>
+                            <button onclick="applyUserHistoryFilter()" class="w-full bg-blue-600 text-white p-2 rounded text-xs font-bold shadow">Filter History</button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-800 text-white text-xs uppercase">
+                                    <th class="p-3">Order ID</th>
+                                    <th class="p-3">User Name</th>
+                                    <th class="p-3">Item Name</th>
+                                    <th class="p-3">Category</th>
+                                    <th class="p-3 text-center">Qty</th>
+                                    <th class="p-3">Date & Time</th>
+                                    <th class="p-3 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUserOrdersHistoryTable" class="text-sm divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ADMIN TAB 4: Users -->
+                <div id="tabUsers" class="bg-white p-6 rounded-xl shadow-md border border-gray-200 hidden">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4"><i class="fa-solid fa-users text-blue-600 mr-2"></i> Registered System Users & Admin Control</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
+                                    <th class="p-3">User ID</th>
+                                    <th class="p-3">Full Name</th>
+                                    <th class="p-3">Email ID</th>
+                                    <th class="p-3">Department</th>
+                                    <th class="p-3">Phone</th>
+                                    <th class="p-3">Role</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3 text-center">Admin Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUsersTable" class="text-sm divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ADMIN TAB 5: Activity Logs -->
+                <div id="tabLogs" class="bg-white p-6 rounded-xl shadow-md border border-gray-200 hidden">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4">Audit & Activity Logs</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
+                                    <th class="p-3">Timestamp</th>
+                                    <th class="p-3">User</th>
+                                    <th class="p-3">Action Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminLogsTable" class="text-sm divide-y font-mono"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL 1: ISSUED STOCK DETAILS POPUP -->
+    <div id="issuedDetailsModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-3xl border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div>
+                    <h3 class="font-bold text-gray-800 text-lg"><i class="fa-solid fa-receipt text-amber-600 mr-2"></i> Issued Stock Details Breakdown</h3>
+                    <p class="text-xs text-gray-500">Item Name: <span id="issuedItemTitle" class="font-bold text-blue-600">---</span></p>
+                </div>
+                <button onclick="closeIssuedDetailsModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="overflow-x-auto max-h-80">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-gray-700 text-xs uppercase border-b">
+                            <th class="p-3">Issued To (User)</th>
+                            <th class="p-3">Issued By (Issuer Name)</th>
+                            <th class="p-3 text-center">Issued Quantity</th>
+                            <th class="p-3">Issue Date & Time</th>
+                            <th class="p-3 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="issuedDetailsTable" class="text-sm divide-y"></tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t">
+                <div class="flex space-x-2">
+                    <button onclick="exportIssuedModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center">
+                        <i class="fa-solid fa-file-excel mr-1.5"></i> Export Excel (CSV)
+                    </button>
+                    <button onclick="printIssuedModalReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center">
+                        <i class="fa-solid fa-print mr-1.5"></i> Print Report
+                    </button>
+                </div>
+                <button onclick="closeIssuedDetailsModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-lg text-xs shadow">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: RECEIVED STOCK DETAILS POPUP -->
+    <div id="receivedDetailsModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div>
+                    <h3 class="font-bold text-gray-800 text-lg"><i class="fa-solid fa-truck-ramp-box text-blue-600 mr-2"></i> Stock Received Logs Breakdown</h3>
+                    <p class="text-xs text-gray-500">Item Name: <span id="receivedItemTitle" class="font-bold text-blue-600">---</span></p>
+                </div>
+                <button onclick="closeReceivedDetailsModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="overflow-x-auto max-h-80">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-gray-700 text-xs uppercase border-b">
+                            <th class="p-3">Received By (Receiver Name)</th>
+                            <th class="p-3 text-center">Received Quantity</th>
+                            <th class="p-3">Stock In Date & Time</th>
+                            <th class="p-3 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receivedDetailsTable" class="text-sm divide-y"></tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t">
+                <div class="flex space-x-2">
+                    <button onclick="exportReceivedModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center">
+                        <i class="fa-solid fa-file-excel mr-1.5"></i> Export Excel (CSV)
+                    </button>
+                    <button onclick="printReceivedModalReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center">
+                        <i class="fa-solid fa-print mr-1.5"></i> Print Report
+                    </button>
+                </div>
+                <button onclick="closeReceivedDetailsModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-lg text-xs shadow">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: SINGLE-CLICK STOCK IN FORM -->
+    <div id="stockInModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-gray-800 text-lg"><i class="fa-solid fa-boxes-packing text-blue-600 mr-2"></i> Receive New Stock In</h3>
+                <button onclick="closeStockInModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <input type="hidden" id="stockInItemId" />
+            
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Item Name</label>
+                <input type="text" id="stockInItemName" class="w-full bg-gray-100 border rounded p-2 text-xs font-bold text-gray-700" readonly />
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Received Stock Quantity</label>
+                <input type="number" id="stockInQty" min="1" placeholder="Enter Received Quantity" class="w-full border rounded p-2.5 text-xs font-semibold" required />
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Received Date</label>
+                <input type="date" id="stockInDate" class="w-full border rounded p-2.5 text-xs" required />
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Receiver Name</label>
+                <input type="text" id="stockInReceiverName" placeholder="Enter Receiver / Employee Name" class="w-full border rounded p-2.5 text-xs" required />
+            </div>
+
+            <div class="flex space-x-2 pt-2">
+                <button onclick="saveStockInEntry()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded text-xs shadow">Save Received Stock</button>
+                <button onclick="closeStockInModal()" class="bg-gray-200 text-gray-700 font-bold px-4 py-2.5 rounded text-xs">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: ADD NEW ITEM -->
+    <div id="addItemModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-gray-800 text-lg"><i class="fa-solid fa-plus-circle text-blue-600 mr-2"></i> Add New Inventory Item</h3>
+                <button onclick="closeAddItemModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Item Name</label>
+                <input type="text" id="newItemName" placeholder="e.g. Wireless Router" class="w-full border rounded p-2 text-xs" />
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Category</label>
+                <input type="text" id="newItemCategory" placeholder="e.g. IT Hardware / Stationery" class="w-full border rounded p-2 text-xs" />
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Opening Stock Quantity</label>
+                <input type="number" id="newItemOpening" min="0" placeholder="e.g. 50" class="w-full border rounded p-2 text-xs" />
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="saveNewItem()" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-xs shadow">Save Item</button>
+                <button onclick="closeAddItemModal()" class="bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded text-xs">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Core Script -->
+    <script>
+        let currentUser = null;
+        let activeIssuedItemId = null;
+        let activeReceivedItemId = null;
+        let currentFilteredLedger = [];
+
+        const securityPassword = "admin123";
+
+        let usersList = [
+            { id: "USR-001", name: "System Admin", email: "dipankardag1987@gmail.com", password: "123", dept: "IT & Admin", phone: "+91 9876543210", role: "ADMIN", status: "ACTIVE" },
+            { id: "USR-002", name: "Rahul Sharma", email: "rahul@company.com", password: "123", dept: "Operations", phone: "+91 9123456789", role: "USER", status: "ACTIVE" }
+        ];
+
+        let inventory = [
+            { id: "1", name: "A4 Paper Rim", category: "Stationery", opening: 150, received: 10, issued: 30, current: 130, lastDate: "2026-10-05" },
+            { id: "2", name: "Ball Pens Box", category: "Stationery", opening: 20, received: 5, issued: 10, current: 15, lastDate: "2026-10-08" },
+            { id: "3", name: "Dell USB Mouse", category: "IT Hardware", opening: 10, received: 0, issued: 5, current: 5, lastDate: "2026-10-01" },
+            { id: "4", name: "Logitech Keyboard", category: "IT Hardware", opening: 8, received: 2, issued: 8, current: 2, lastDate: "2026-10-09" },
+            { id: "5", name: "Hand Sanitizer 500ml", category: "Cleaning", opening: 50, received: 10, issued: 5, current: 55, lastDate: "2026-10-11" }
+        ];
+
+        let orders = [
+            { id: "ORD-101", user: "Rahul Sharma", issuer: "System Admin", itemId: "1", itemName: "A4 Paper Rim", category: "Stationery", qty: 2, time: "2026-10-10 08:30 AM", dateOnly: "2026-10-10", status: "ISSUED" },
+            { id: "ORD-102", user: "Rahul Sharma", issuer: "System Admin", itemId: "2", itemName: "Ball Pens Box", category: "Stationery", qty: 5, time: "2026-10-08 11:15 AM", dateOnly: "2026-10-08", status: "ISSUED" }
+        ];
+
+        let receivedLogs = [
+            { itemId: "1", user: "System Admin", qty: 10, dateOnly: "2026-10-05", time: "10:15 AM" },
+            { itemId: "2", user: "System Admin", qty: 5, dateOnly: "2026-10-08", time: "02:30 PM" },
+            { itemId: "4", user: "System Admin", qty: 2, dateOnly: "2026-10-09", time: "11:00 AM" },
+            { itemId: "5", user: "System Admin", qty: 10, dateOnly: "2026-10-11", time: "09:45 AM" }
+        ];
+
+        let logs = [{ time: new Date().toLocaleTimeString(), user: "System", action: "App Initialized" }];
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const emailInput = document.getElementById('loginUsername').value.trim();
+            const passwordInput = document.getElementById('loginPassword').value.trim();
+            const errorDiv = document.getElementById('loginError');
+
+            errorDiv.classList.add('hidden');
+
+            fetch('/api/users/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: emailInput, password: passwordInput })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.user.status !== 'ACTIVE') {
+                        alert("Your account is disabled by Admin!");
+                        return;
+                    }
+                    currentUser = data.user;
+                    setupDashboardAfterLogin();
+                } else {
+                    localLoginFallback(emailInput, passwordInput, errorDiv);
+                }
+            })
+            .catch(err => {
+                console.log('Using local fallback login check');
+                localLoginFallback(emailInput, passwordInput, errorDiv);
+            });
+        }
+
+        function localLoginFallback(emailInput, passwordInput, errorDiv) {
+            const matchedUser = usersList.find(u => 
+                (u.email.toLowerCase() === emailInput.toLowerCase() || u.name.toLowerCase() === emailInput.toLowerCase()) && 
+                u.password === passwordInput
+            );
+
+            if (matchedUser) {
+                if (matchedUser.status !== 'ACTIVE') {
+                    alert("Your account is disabled by Admin!");
+                    return;
+                }
+                currentUser = matchedUser;
+                setupDashboardAfterLogin();
+            } else {
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        function setupDashboardAfterLogin() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+            document.getElementById('displayUserName').innerText = currentUser.name;
+            document.getElementById('displayUserRole').innerText = currentUser.role;
+
+            const switcher = document.getElementById('panelSwitcherContainer');
+            if (currentUser.role === 'ADMIN') {
+                switcher.classList.remove('hidden');
+                populateUserDropdown();
+                populateCategoriesDropdown();
+                switchPanel('admin');
+            } else {
+                switcher.classList.add('hidden');
+                switchPanel('user');
+            }
+            populateUserItemDropdown();
+            renderAll();
+        }
+
+        function toggleAuthMode(mode) {
+            if (mode === 'register') {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('registerForm').classList.remove('hidden');
+            } else {
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('loginForm').classList.remove('hidden');
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim().toLowerCase();
+            const dept = document.getElementById('regDept').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+
+            const newUser = {
+                userId: "USR-00" + (usersList.length + 1),
+                name, email, password, dept, phone, role: "USER", status: "ACTIVE"
+            };
+
+            fetch('/api/users/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newUser)
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert("Registration successful & saved to database! You can now login with: " + email);
+                return fetch('/api/state');
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.users && data.users.length) {
+                    usersList = data.users.map(u => ({ id: u.user_id, name: u.name, email: u.email, password: u.password, dept: u.dept, phone: u.phone, role: u.role, status: u.status }));
+                }
+                toggleAuthMode('login');
+                document.getElementById('registerForm').reset();
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Error registering user to database!");
+            });
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            document.getElementById('mainDashboard').classList.add('hidden');
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+        }
+
+        function switchPanel(panel) {
+            if (panel === 'user') {
+                document.getElementById('userPanel').classList.remove('hidden');
+                document.getElementById('adminPanel').classList.add('hidden');
+            } else {
+                document.getElementById('userPanel').classList.add('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+            }
+        }
+
+        function switchAdminTab(tab) {
+            ['requests', 'stock', 'userOrders', 'users', 'logs'].forEach(t => {
+                document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('hidden');
+            });
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
+        }
+
+        function populateUserItemDropdown() {
+            const select = document.getElementById('itemSelect');
+            select.innerHTML = '<option value="" disabled selected>-- Choose Item --</option>';
+            inventory.forEach(i => {
+                select.innerHTML += `<option value="${i.id}">${i.name} (${i.category})</option>`;
+            });
+        }
+
+        function updateStockPreview() {
+            const itemId = document.getElementById('itemSelect').value;
+            const item = inventory.find(i => i.id === itemId);
+            const badge = document.getElementById('stockBadge');
+            document.getElementById('stockBadgeContainer').classList.remove('hidden');
+
+            if (item && item.current > 0) {
+                badge.className = "text-xs px-2.5 py-1 rounded-full font-bold bg-green-100 text-green-800";
+                badge.innerText = `Available (${item.current} Units)`;
+            } else {
+                badge.className = "text-xs px-2.5 py-1 rounded-full font-bold bg-red-100 text-red-800";
+                badge.innerText = "Out of Stock";
+            }
+        }
+
+        function handleOrderSubmit(e) {
+            e.preventDefault();
+            const itemId = document.getElementById('itemSelect').value;
+            const qty = parseInt(document.getElementById('orderQty').value);
+            const item = inventory.find(i => i.id === itemId);
+
+            if (!item || qty > item.current) {
+                alert("Stock insufficient!");
+                return;
+            }
+
+            const newOrderData = {
+                orderId: "ORD-" + Math.floor(100 + Math.random() * 900),
+                user: currentUser.name,
+                itemId: item.id,
+                itemName: item.name,
+                category: item.category,
+                qty: qty,
+                timeStr: new Date().toLocaleTimeString(),
+                dateOnly: new Date().toISOString().split('T')[0]
+            };
+
+            fetch('/api/orders/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newOrderData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert("Order Submitted & Saved to Database Successfully!");
+                document.getElementById('orderForm').reset();
+                document.getElementById('stockBadgeContainer').classList.add('hidden');
+                return fetch('/api/state');
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.orders && data.orders.length) {
+                    orders = data.orders.map(o => ({ id: o.order_id, user: o.user_name, issuer: o.issuer_name, itemId: o.item_id, itemName: o.item_name, category: o.category, qty: o.qty, time: o.time_str, dateOnly: o.date_only ? o.date_only.split('T')[0] : '', status: o.status }));
+                }
+                renderAll();
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Error saving order to database!");
+            });
+        }
+
+        function processOrder(orderId, action) {
+            const order = orders.find(o => o.id === orderId);
+            const item = inventory.find(i => i.id === order.itemId);
+
+            if (action === 'APPROVE') order.status = 'APPROVED';
+            else if (action === 'ISSUE') {
+                order.status = 'ISSUED';
+                order.issuer = currentUser ? currentUser.name : "System Admin";
+                item.issued += order.qty;
+                item.current -= order.qty;
+            } else if (action === 'REJECT') order.status = 'REJECTED';
+
+            fetch('/api/orders/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: order.id,
+                    action: action,
+                    issuerName: currentUser ? currentUser.name : "System Admin"
+                })
+            }).catch(e => console.log('Server not reachable'));
+
+            renderAll();
+        }
+
+        function populateCategoriesDropdown() {
+            const select = document.getElementById('ledgerCategoryFilter');
+            select.innerHTML = '<option value="ALL">-- All Categories --</option>';
+            const cats = [...new Set(inventory.map(i => i.category))];
+            cats.forEach(c => {
+                select.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+        }
+
+        function applyLedgerFilter() {
+            const catVal = document.getElementById('ledgerCategoryFilter').value;
+            const start = document.getElementById('ledgerStartDate').value;
+            const end = document.getElementById('ledgerEndDate').value;
+
+            const filtered = inventory.filter(i => {
+                if(catVal !== 'ALL' && i.category !== catVal) return false;
+                if(start && end && i.lastDate) {
+                    if(i.lastDate < start || i.lastDate > end) return false;
+                } else if(start && i.lastDate) {
+                    if(i.lastDate < start) return false;
+                }
+                return true;
+            });
+
+            renderLedgerTableCustom(filtered);
+        }
+
+        function resetLedgerFilters() {
+            document.getElementById('ledgerCategoryFilter').value = 'ALL';
+            document.getElementById('ledgerStartDate').value = '';
+            document.getElementById('ledgerEndDate').value = '';
+            renderLedgerTableCustom(inventory);
+        }
+
+        function editOpeningQuantity(itemId) {
+            const pwd = prompt("Security Access Required!\nPlease Enter Security Password to edit Opening Quantity:");
+            if (pwd === null) return;
+            
+            if (pwd === securityPassword) {
+                const item = inventory.find(i => i.id === itemId);
+                const newOpeningStr = prompt(`Enter New Opening Quantity for '${item.name}':`, item.opening);
+                const newOpening = parseInt(newOpeningStr);
+
+                if (!isNaN(newOpening) && newOpening >= 0) {
+                    item.opening = newOpening;
+                    item.current = item.opening + item.received - item.issued;
+                    
+                    fetch('/api/inventory/update-opening', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ itemId: item.id, newOpening })
+                    }).catch(e => console.log('Backend sync skipped'));
+
+                    renderAll();
+                    alert("Opening Quantity updated successfully!");
+                } else if (newOpeningStr !== null) {
+                    alert("Invalid Quantity entered!");
+                }
+            } else {
+                alert("Incorrect Password! Access Denied.");
+            }
+        }
+
+        function renderLedgerTableCustom(list) {
+            currentFilteredLedger = list;
+            document.getElementById('adminStockTable').innerHTML = list.map(i => `
+                <tr>
+                    <td class="p-3 font-bold">${i.name}</td>
+                    <td class="p-3 text-xs">${i.category}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="editOpeningQuantity('${i.id}')" title="Click to edit Opening Quantity (Password Protected)" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-2.5 py-1 rounded border border-gray-300 text-xs">
+                            ${i.opening} <i class="fa-solid fa-lock text-[10px] text-amber-600 ml-1"></i>
+                        </button>
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="showReceivedBreakdown('${i.id}')" title="Click to view received stock details" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-blue-300">
+                            +${i.received} <i class="fa-solid fa-circle-info ml-1 text-[10px]"></i>
+                        </button>
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="showIssuedBreakdown('${i.id}')" title="Click to view issued user details" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-amber-300">
+                            -${i.issued} <i class="fa-solid fa-circle-info ml-1 text-[10px]"></i>
+                        </button>
+                    </td>
+                    <td class="p-3 text-center text-emerald-700 font-extrabold">${i.current}</td>
+                    <td class="p-3 text-center text-xs text-gray-500">${i.lastDate || 'N/A'}</td>
+                    <td class="p-3 text-center space-x-1">
+                        <button onclick="openStockInModal('${i.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold shadow">+ Date Stock In</button>
+                        <button onclick="editOpeningQuantity('${i.id}')" title="Edit Opening Stock" class="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-xs font-bold shadow"><i class="fa-solid fa-pen"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function exportLedgerCSV() {
+            if(currentFilteredLedger.length === 0) { alert("No ledger data available to export!"); return; }
+            let csv = "Inventory Movement Ledger Report\nItem Name,Category,Opening Stock,Received Stock,Issued Stock,Closing Balance,Last Received Date\n";
+            currentFilteredLedger.forEach(i => { csv += `"${i.name}","${i.category}","${i.opening}","${i.received}","${i.issued}","${i.current}","${i.lastDate || 'N/A'}"\n`; });
+            const link = document.createElement("a");
+            link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
+            link.download = `Inventory_Movement_Ledger_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function printLedgerReport() {
+            if(currentFilteredLedger.length === 0) { alert("No ledger data available to print!"); return; }
+            const printWin = window.open('', '_blank');
+            printWin.document.write(`
+                <html><head><title>Inventory Movement Ledger Report</title>
+                <style>body { font-family: Arial, sans-serif; padding: 20px; color: #333; } h2 { color: #0f172a; margin-bottom: 2px; } p { font-size: 13px; color: #64748b; margin-top: 0; } table { width: 100%; border-collapse: collapse; margin-top: 15px; } th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 13px; } th { background-color: #0f172a; color: white; } .text-center { text-align: center; } .font-bold { font-weight: bold; }</style>
+                </head><body><h2>Inventory Movement Ledger Report</h2><p>Generated Date: ${new Date().toLocaleString()}</p><hr/><table><thead><tr><th>Item Name</th><th>Category</th><th class="text-center">Opening</th><th class="text-center">Received</th><th class="text-center">Issued</th><th class="text-center">Closing Balance</th><th class="text-center">Last Received Date</th></tr></thead><tbody>
+                ${currentFilteredLedger.map(i => `<tr><td class="font-bold">${i.name}</td><td>${i.category}</td><td class="text-center">${i.opening}</td><td class="text-center">+${i.received}</td><td class="text-center">-${i.issued}</td><td class="text-center font-bold">${i.current}</td><td class="text-center">${i.lastDate || 'N/A'}</td></tr>`).join('')}
+                </tbody></table></body></html>
+            `);
+            printWin.document.close(); printWin.focus(); setTimeout(() => { printWin.print(); }, 500);
+        }
+
+        function showReceivedBreakdown(itemId) {
+            activeReceivedItemId = itemId;
+            const item = inventory.find(i => i.id === itemId);
+            document.getElementById('receivedItemTitle').innerText = `${item.name} (${item.category})`;
+            
+            const logsForNext = receivedLogs.filter(l => l.itemId === itemId);
+            const tbody = document.getElementById('receivedDetailsTable');
+
+            if(logsForNext.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">No stock in records found for this item yet.</td></tr>`;
+            } else {
+                tbody.innerHTML = logsForNext.map(l => `
+                    <tr>
+                        <td class="p-3 font-bold text-gray-800">${l.user}</td>
+                        <td class="p-3 text-center font-bold text-blue-700 text-base">+${l.qty} Units</td>
+                        <td class="p-3 text-xs text-gray-500">${l.dateOnly} (${l.time})</td>
+                        <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800">RECEIVED</span></td>
+                    </tr>
+                `).join('');
+            }
+
+            document.getElementById('receivedDetailsModal').classList.remove('hidden');
+        }
+
+        function closeReceivedDetailsModal() {
+            activeReceivedItemId = null;
+            document.getElementById('receivedDetailsModal').classList.add('hidden');
+        }
+
+        function exportReceivedModalCSV() {
+            if(!activeReceivedItemId) return;
+            const item = inventory.find(i => i.id === activeReceivedItemId);
+            const logsForNext = receivedLogs.filter(l => l.itemId === activeReceivedItemId);
+            if(logsForNext.length === 0) { alert("No received stock records available to export!"); return; }
+
+            let csv = `Stock Received Details Report - ${item.name} (${item.category})\nReceived By,Received Quantity,Date,Time,Status\n`;
+            logsForNext.forEach(l => { csv += `"${l.user}","${l.qty}","${l.dateOnly}","${l.time}","RECEIVED"\n`; });
+
+            const link = document.createElement("a");
+            link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
+            link.download = `Received_Stock_Details_${item.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function printReceivedModalReport() {
+            if(!activeReceivedItemId) return;
+            const item = inventory.find(i => i.id === activeReceivedItemId);
+            const logsForNext = receivedLogs.filter(l => l.itemId === activeReceivedItemId);
+
+            const printWin = window.open('', '_blank');
+            printWin.document.write(`
+                <html><head><title>Received Stock Report - ${item.name}</title>
+                <style>body { font-family: Arial, sans-serif; padding: 20px; color: #333; } h2 { color: #1e293b; margin-bottom: 2px; } p { font-size: 13px; color: #64748b; margin-top: 0; } table { width: 100%; border-collapse: collapse; margin-top: 15px; } th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 13px; } th { background-color: #0f172a; color: white; } .text-center { text-align: center; }</style>
+                </head><body><h2>Stock Received Logs Breakdown Report</h2><p><strong>Item:</strong> ${item.name} | <strong>Category:</strong> ${item.category} | <strong>Generated:</strong> ${new Date().toLocaleString()}</p><hr/>
+                <table><thead><tr><th>Received By (Receiver Name)</th><th class="text-center">Quantity Received</th><th>Date & Time</th><th class="text-center">Status</th></tr></thead><tbody>
+                ${logsForNext.length === 0 ? `<tr><td colspan="4" class="text-center">No received records.</td></tr>` : logsForNext.map(l => `<tr><td>${l.user}</td><td class="text-center"><strong>+${l.qty} Units</strong></td><td>${l.dateOnly} (${l.time})</td><td class="text-center">RECEIVED</td></tr>`).join('')}
+                </tbody></table></body></html>
+            `);
+            printWin.document.close(); printWin.focus(); setTimeout(() => { printWin.print(); }, 500);
+        }
+
+        function showIssuedBreakdown(itemId) {
+            activeIssuedItemId = itemId;
+            const item = inventory.find(i => i.id === itemId);
+            document.getElementById('issuedItemTitle').innerText = `${item.name} (${item.category})`;
+            
+            const itemIssuedOrders = orders.filter(o => o.itemId === itemId && o.status === 'ISSUED');
+            const tbody = document.getElementById('issuedDetailsTable');
+
+            if(itemIssuedOrders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-400">No issued records found for this item yet.</td></tr>`;
+            } else {
+                tbody.innerHTML = itemIssuedOrders.map(o => `
+                    <tr>
+                        <td class="p-3 font-bold text-gray-800">${o.user}</td>
+                        <td class="p-3 font-bold text-blue-700">${o.issuer || 'System Admin'}</td>
+                        <td class="p-3 text-center font-bold text-amber-700 text-base">${o.qty} Units</td>
+                        <td class="p-3 text-xs text-gray-500">${o.dateOnly} (${o.time})</td>
+                        <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-800">ISSUED</span></td>
+                    </tr>
+                `).join('');
+            }
+
+            document.getElementById('issuedDetailsModal').classList.remove('hidden');
+        }
+
+        function closeIssuedDetailsModal() { activeIssuedItemId = null; document.getElementById('issuedDetailsModal').classList.add('hidden'); }
+
+        function exportIssuedModalCSV() {
+            if(!activeIssuedItemId) return;
+            const item = inventory.find(i => i.id === activeIssuedItemId);
+            const itemIssuedOrders = orders.filter(o => o.itemId === activeIssuedItemId && o.status === 'ISSUED');
+            if(itemIssuedOrders.length === 0) { alert("No issued records available to export!"); return; }
+
+            let csv = `Issued Stock Details Report - ${item.name} (${item.category})\nIssued To (User),Issued By (Issuer Name),Issued Quantity,Date,Time,Status\n`;
+            itemIssuedOrders.forEach(o => { csv += `"${o.user}","${o.issuer || 'System Admin'}","${o.qty}","${o.dateOnly}","${o.time}","${o.status}"\n`; });
+
+            const link = document.createElement("a");
+            link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
+            link.download = `Issued_Stock_Details_${item.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function printIssuedModalReport() {
+            if(!activeIssuedItemId) return;
+            const item = inventory.find(i => i.id === activeIssuedItemId);
+            const itemIssuedOrders = orders.filter(o => o.itemId === activeIssuedItemId && o.status === 'ISSUED');
+
+            const printWin = window.open('', '_blank');
+            printWin.document.write(`
+                <html><head><title>Issued Stock Report - ${item.name}</title>
+                <style>body { font-family: Arial, sans-serif; padding: 20px; color: #333; } h2 { color: #1e293b; margin-bottom: 2px; } p { font-size: 13px; color: #64748b; margin-top: 0; } table { width: 100%; border-collapse: collapse; margin-top: 15px; } th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 13px; } th { background-color: #0f172a; color: white; } .text-center { text-align: center; }</style>
+                </head><body><h2>Issued Stock Breakdown Report</h2><p><strong>Item:</strong> ${item.name} | <strong>Category:</strong> ${item.category} | <strong>Generated:</strong> ${new Date().toLocaleString()}</p><hr/>
+                <table><thead><tr><th>Issued To (User)</th><th>Issued By (Issuer Name)</th><th class="text-center">Quantity Issued</th><th>Issue Date & Time</th><th class="text-center">Status</th></tr></thead><tbody>
+                ${itemIssuedOrders.length === 0 ? `<tr><td colspan="5" class="text-center">No issued records.</td></tr>` : itemIssuedOrders.map(o => `<tr><td>${o.user}</td><td><strong>${o.issuer || 'System Admin'}</strong></td><td class="text-center"><strong>${o.qty} Units</strong></td><td>${o.dateOnly} (${o.time})</td><td class="text-center">${o.status}</td></tr>`).join('')}
+                </tbody></table></body></html>
+            `);
+            printWin.document.close(); printWin.focus(); setTimeout(() => { printWin.print(); }, 500);
+        }
+
+        function openStockInModal(itemId) {
+            const item = inventory.find(i => i.id === itemId);
+            document.getElementById('stockInItemId').value = item.id;
+            document.getElementById('stockInItemName').value = `${item.name} (${item.category})`;
+            document.getElementById('stockInQty').value = '';
+            document.getElementById('stockInDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('stockInReceiverName').value = currentUser ? currentUser.name : 'System Admin';
+            document.getElementById('stockInModal').classList.remove('hidden');
+        }
+
+        function closeStockInModal() {
+            document.getElementById('stockInModal').classList.add('hidden');
+        }
+
+        function saveStockInEntry() {
+            const itemId = document.getElementById('stockInItemId').value;
+            const qty = parseInt(document.getElementById('stockInQty').value);
+            const dateStr = document.getElementById('stockInDate').value;
+            const receiver = document.getElementById('stockInReceiverName').value.trim();
+
+            if (!qty || qty <= 0 || !dateStr || !receiver) {
+                alert("Please fill all required fields!");
+                return;
+            }
+
+            const item = inventory.find(i => i.id === itemId);
+            item.received += qty;
+            item.current += qty;
+            item.lastDate = dateStr;
+
+            receivedLogs.unshift({
+                itemId: item.id,
+                user: receiver,
+                qty: qty,
+                dateOnly: dateStr,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+
+            fetch('/api/inventory/stock-in', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ itemId, qty, dateStr, receiver })
+            }).catch(e => console.log('Backend sync skipped'));
+
+            closeStockInModal();
+            renderAll();
+            alert("Received Stock Log Added Successfully!");
+        }
+
+        function openAddItemModal() { document.getElementById('addItemModal').classList.remove('hidden'); }
+        function closeAddItemModal() { document.getElementById('addItemModal').classList.add('hidden'); }
+
+        function saveNewItem() {
+            const name = document.getElementById('newItemName').value.trim();
+            const category = document.getElementById('newItemCategory').value.trim();
+            const opening = parseInt(document.getElementById('newItemOpening').value) || 0;
+
+            if(!name || !category) { alert("Please enter item name & category!"); return; }
+
+            const newItem = {
+                id: (inventory.length + 1).toString(),
+                name, category, opening, received: 0, issued: 0, current: opening, lastDate: new Date().toISOString().split('T')[0]
+            };
+
+            inventory.push(newItem);
+
+            fetch('/api/inventory/add', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name, category, opening })
+            }).catch(e => console.log('Backend sync skipped'));
+
+            closeAddItemModal();
+            populateUserItemDropdown();
+            populateCategoriesDropdown();
+            renderAll();
+            alert("New Item Added Successfully!");
+        }
+
+        function toggleUserStatus(userId) {
+            const u = usersList.find(x => x.id === userId);
+            if(u && u.role !== 'ADMIN') { u.status = u.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE'; renderAll(); }
+        }
+
+        function deleteUserAccount(userId) {
+            if(confirm("Are you sure you want to delete this user?")) { usersList = usersList.filter(x => x.id !== userId); renderAll(); }
+        }
+
+        function populateUserDropdown() {
+            const select = document.getElementById('userFilterSelect');
+            select.innerHTML = '<option value="ALL">-- All Users --</option>';
+            usersList.forEach(u => { if(u.role !== 'ADMIN') select.innerHTML += `<option value="${u.name}">${u.name}</option>`; });
+        }
+
+        function applyUserHistoryFilter() {
+            const selectedUser = document.getElementById('userFilterSelect').value;
+            const start = document.getElementById('userOrderStartDate').value;
+            const end = document.getElementById('userOrderEndDate').value;
+
+            const filtered = orders.filter(o => {
+                let matchUser = (selectedUser === 'ALL' || o.user === selectedUser);
+                let matchDate = true;
+                if(start && end) matchDate = (o.dateOnly >= start && o.dateOnly <= end);
+                return matchUser && matchDate;
+            });
+
+            renderUserHistoryTableCustom(filtered);
+        }
+
+        function renderUserHistoryTableCustom(list) {
+            document.getElementById('adminUserOrdersHistoryTable').innerHTML = list.map(o => `
+                <tr>
+                    <td class="p-3 text-blue-600">${o.id}</td>
+                    <td class="p-3 font-bold">${o.user}</td>
+                    <td class="p-3">${o.itemName}</td>
+                    <td class="p-3 text-xs">${o.category}</td>
+                    <td class="p-3 text-center font-bold">${o.qty}</td>
+                    <td class="p-3 text-xs text-gray-400">${o.time}</td>
+                    <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800">${o.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function exportUserOrdersCSV() {
+            let csv = "Order ID,User Name,Item Name,Category,Qty,Time,Status\n";
+            orders.forEach(o => { csv += `"${o.id}","${o.user}","${o.itemName}","${o.category}","${o.qty}","${o.time}","${o.status}"\n`; });
+            const link = document.createElement("a");
+            link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
+            link.download = `User_Order_History.csv`;
+            link.click();
+        }
+
+        function renderAll() {
+            const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => o.user === currentUser.name) : orders;
+            document.getElementById('userOrdersTable').innerHTML = userOrders.map(o => `
+                <tr>
+                    <td class="p-3 font-semibold text-blue-600">${o.id}</td>
+                    <td class="p-3">${o.itemName}</td>
+                    <td class="p-3 text-gray-500">${o.category}</td>
+                    <td class="p-3 font-bold text-center">${o.qty}</td>
+                    <td class="p-3 text-xs text-gray-400">${o.time}</td>
+                    <td class="p-3 text-center"><span class="px-2 py-1 text-xs rounded-full font-bold bg-amber-100 text-amber-700">${o.status}</span></td>
+                </tr>
+            `).join('');
+
+            const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED');
+            document.getElementById('pendingCount').innerText = pending.length;
+            document.getElementById('adminRequestsTable').innerHTML = pending.map(o => `
+                <tr>
+                    <td class="p-3 font-semibold text-blue-600">${o.id}</td>
+                    <td class="p-3 font-bold">${o.user}</td>
+                    <td class="p-3">${o.itemName}</td>
+                    <td class="p-3 text-center font-bold">${o.qty}</td>
+                    <td class="p-3 text-center">Available</td>
+                    <td class="p-3 text-center space-x-1">
+                        ${o.status === 'UNDER PROCESS' ? `<button onclick="processOrder('${o.id}', 'APPROVE')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs">Approve</button>` : ''}
+                        <button onclick="processOrder('${o.id}', 'ISSUE')" class="bg-green-600 text-white px-2 py-1 rounded text-xs">Issue</button>
+                        <button onclick="processOrder('${o.id}', 'REJECT')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Reject</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            renderLedgerTableCustom(inventory);
+            renderUserHistoryTableCustom(orders);
+
+            document.getElementById('adminUsersTable').innerHTML = usersList.map(u => `
+                <tr>
+                    <td class="p-3 font-mono text-xs">${u.id}</td>
+                    <td class="p-3 font-bold">${u.name}</td>
+                    <td class="p-3 text-xs text-blue-600">${u.email}</td>
+                    <td class="p-3 text-xs">${u.dept}</td>
+                    <td class="p-3 text-xs">${u.phone}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-purple-100 text-purple-800">${u.role}</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${u.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${u.status}</span></td>
+                    <td class="p-3 text-center space-x-1">
+                        ${u.role !== 'ADMIN' ? `
+                            <button onclick="toggleUserStatus('${u.id}')" class="text-xs px-2 py-1 rounded ${u.status === 'ACTIVE' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'} font-bold">${u.status === 'ACTIVE' ? 'Disable' : 'Enable'}</button>
+                            <button onclick="deleteUserAccount('${u.id}')" class="text-xs px-2 py-1 rounded bg-red-100 text-red-700 font-bold">Delete</button>
+                        ` : '<span class="text-xs text-gray-400">Admin Account</span>'}
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('adminLogsTable').innerHTML = logs.map(l => `
+                <tr>
+                    <td class="p-3 text-xs text-gray-400">${l.time}</td>
+                    <td class="p-3 text-xs font-bold text-gray-700">${l.user}</td>
+                    <td class="p-3 text-xs text-gray-800">${l.action}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Fetch state from backend database on load
+        fetch('/api/state')
+            .then(res => res.json())
+            .then(data => {
+                if(data.users && data.users.length) usersList = data.users.map(u => ({ id: u.user_id, name: u.name, email: u.email, password: u.password, dept: u.dept, phone: u.phone, role: u.role, status: u.status }));
+                if(data.inventory && data.inventory.length) inventory = data.inventory.map(i => ({ id: i.item_id, name: i.name, category: i.category, opening: i.opening, received: i.received, issued: i.issued, current: i.current, lastDate: i.last_date ? i.last_date.split('T')[0] : '' }));
+                if(data.orders && data.orders.length) orders = data.orders.map(o => ({ id: o.order_id, user: o.user_name, issuer: o.issuer_name, itemId: o.item_id, itemName: o.item_name, category: o.category, qty: o.qty, time: o.time_str, dateOnly: o.date_only ? o.date_only.split('T')[0] : '', status: o.status }));
+                if(data.receivedLogs && data.receivedLogs.length) receivedLogs = data.receivedLogs.map(l => ({ itemId: l.item_id, user: l.receiver_name, qty: l.qty, dateOnly: l.date_only ? l.date_only.split('T')[0] : '', time: l.time_str }));
+                renderAll();
+            })
+            .catch(e => {
+                console.log('Using local fallback state');
+                renderAll();
+            });
+// Fetch state from backend database on load
+        fetch('/api/state')
+            .then(res => res.json())
+            .then(data => {
+                if(data.users && data.users.length) usersList = data.users.map(u => ({ id: u.user_id, name: u.name, email: u.email, password: u.password, dept: u.dept, phone: u.phone, role: u.role, status: u.status }));
+                if(data.inventory && data.inventory.length) inventory = data.inventory.map(i => ({ id: i.item_id, name: i.name, category: i.category, opening: i.opening, received: i.received, issued: i.issued, current: i.current, lastDate: i.last_date ? i.last_date.split('T')[0] : '' }));
+                if(data.orders && data.orders.length) orders = data.orders.map(o => ({ id: o.order_id, user: o.user_name, issuer: o.issuer_name, itemId: o.item_id, itemName: o.item_name, category: o.category, qty: o.qty, time: o.time_str, dateOnly: o.date_only ? o.date_only.split('T')[0] : '', status: o.status }));
+                if(data.receivedLogs && data.receivedLogs.length) receivedLogs = data.receivedLogs.map(l => ({ itemId: l.item_id, user: l.receiver_name, qty: l.qty, dateOnly: l.date_only ? l.date_only.split('T')[0] : '', time: l.time_str }));
+                renderAll();
+            })
+            .catch(e => {
+                console.log('Using local fallback state');
+                renderAll();
+            });
+
+        // AUTO-REFRESH BACKGROUND POLLING (Bina logout kiye live updates ke liye)
+        setInterval(() => {
+            if (currentUser) {
+                fetch('/api/state')
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.users && data.users.length) usersList = data.users.map(u => ({ id: u.user_id, name: u.name, email: u.email, password: u.password, dept: u.dept, phone: u.phone, role: u.role, status: u.status }));
+                        if(data.inventory && data.inventory.length) inventory = data.inventory.map(i => ({ id: i.item_id, name: i.name, category: i.category, opening: i.opening, received: i.received, issued: i.issued, current: i.current, lastDate: i.last_date ? i.last_date.split('T')[0] : '' }));
+                        if(data.orders && data.orders.length) orders = data.orders.map(o => ({ id: o.order_id, user: o.user_name, issuer: o.issuer_name, itemId: o.item_id, itemName: o.item_name, category: o.category, qty: o.qty, time: o.time_str, dateOnly: o.date_only ? o.date_only.split('T')[0] : '', status: o.status }));
+                        if(data.receivedLogs && data.receivedLogs.length) receivedLogs = data.receivedLogs.map(l => ({ itemId: l.item_id, user: l.receiver_name, qty: l.qty, dateOnly: l.date_only ? l.date_only.split('T')[0] : '', time: l.time_str }));
+                        renderAll();
+                    })
+                    .catch(e => console.log('Background sync skipped'));
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
