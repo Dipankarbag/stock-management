@@ -2,7 +2,7 @@ const { Pool } = require('pg');
 
 const pool = new Pool({
     // Direct apna Render PostgreSQL connection string yahan double quotes mein paste karein
-    connectionString: "postgres://username:password@hostname/dbname",
+    connectionString: "postgres://postgresql://stock_management_yfj4_user:kWTCfmMwboWzrsyPlFxskU28DNZCs3Z1@dpg-db4uibp42hec73f2cs70-a.singapore-postgres.render.com/stock_management_yfj4",
     ssl: {
         rejectUnauthorized: false
     }
