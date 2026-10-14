@@ -17,7 +17,73 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'stock.html'));
 });
 
-// Nodemailer SMTP Transporter
+// Auto-Create Database Tables Function
+async function initDatabase() {
+    try {
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                user_id VARCHAR(50) UNIQUE,
+                name VARCHAR(100),
+                email VARCHAR(100) UNIQUE,
+                password VARCHAR(100),
+                dept VARCHAR(100),
+                phone VARCHAR(50),
+                role VARCHAR(20) DEFAULT 'USER',
+                status VARCHAR(20) DEFAULT 'ACTIVE'
+            );
+
+            CREATE TABLE IF NOT EXISTS inventory (
+                id SERIAL PRIMARY KEY,
+                item_id VARCHAR(50) UNIQUE,
+                name VARCHAR(100),
+                category VARCHAR(100),
+                opening INT DEFAULT 0,
+                received INT DEFAULT 0,
+                issued INT DEFAULT 0,
+                current INT DEFAULT 0,
+                last_date VARCHAR(50)
+            );
+
+            CREATE TABLE IF NOT EXISTS orders (
+                id SERIAL PRIMARY KEY,
+                order_id VARCHAR(50) UNIQUE,
+                user_name VARCHAR(100),
+                issuer_name VARCHAR(100),
+                item_id VARCHAR(50),
+                item_name VARCHAR(100),
+                category VARCHAR(100),
+                qty INT,
+                time_str VARCHAR(50),
+                date_only VARCHAR(50),
+                status VARCHAR(50) DEFAULT 'UNDER PROCESS'
+            );
+
+            CREATE TABLE IF NOT EXISTS received_logs (
+                id SERIAL PRIMARY KEY,
+                item_id VARCHAR(50),
+                receiver_name VARCHAR(100),
+                qty INT,
+                date_only VARCHAR(50),
+                time_str VARCHAR(50)
+            );
+        `);
+
+        // Insert Default Admin User into DB if missing
+        await db.query(`
+            INSERT INTO users (user_id, name, email, password, dept, phone, role, status)
+            VALUES ('USR-001', 'System Admin', 'dipankardag1987@gmail.com', '123', 'IT & Admin', '+91 9876543210', 'ADMIN', 'ACTIVE')
+            ON CONFLICT (email) DO NOTHING;
+        `);
+
+        console.log("Database Tables Verified & Default Admin Ready!");
+    } catch (err) {
+        console.error("Database Init Error:", err.message);
+    }
+}
+initDatabase();
+
+// Nodemailer Transporter
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -26,11 +92,9 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Helper: Send Automatic Mail Notification to Users
+// Email Notification Function
 async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuerName) {
-    if(!process.env.EMAIL_USER || process.env.EMAIL_USER === 'your_gmail_address@gmail.com') {
-        return;
-    }
+    if(!process.env.EMAIL_USER || process.env.EMAIL_USER === 'your_gmail_address@gmail.com') return;
 
     const mailOptions = {
         from: `"StockFlow System" <${process.env.EMAIL_USER}>`,
@@ -41,33 +105,19 @@ async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuer
                 <h2 style="color: #2563eb;">StockFlow Requisition Status Update</h2>
                 <p>Hello <strong>${userName}</strong>,</p>
                 <p>Your item requisition order status has been updated to <strong>${status}</strong>.</p>
-                
                 <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
-                    <tr style="background-color: #f8fafc;">
-                        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Item Name</th>
-                        <td style="padding: 10px; border: 1px solid #ddd;">${itemName}</td>
-                    </tr>
-                    <tr>
-                        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Quantity Requested</th>
-                        <td style="padding: 10px; border: 1px solid #ddd;">${qty} Units</td>
-                    </tr>
-                    <tr style="background-color: #f8fafc;">
-                        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Issuer / Admin Name</th>
-                        <td style="padding: 10px; border: 1px solid #ddd;">${issuerName}</td>
-                    </tr>
+                    <tr style="background-color: #f8fafc;"><th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Item Name</th><td style="padding: 10px; border: 1px solid #ddd;">${itemName}</td></tr>
+                    <tr><th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Quantity</th><td style="padding: 10px; border: 1px solid #ddd;">${qty} Units</td></tr>
+                    <tr style="background-color: #f8fafc;"><th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Issuer</th><td style="padding: 10px; border: 1px solid #ddd;">${issuerName}</td></tr>
                 </table>
             </div>
         `
     };
 
-    try {
-        await transporter.sendMail(mailOptions);
-    } catch (err) {
-        console.error('Email Notification Error:', err.message);
-    }
+    try { await transporter.sendMail(mailOptions); } catch (err) { console.error('Email Error:', err.message); }
 }
 
-// 1. Complete System State Fetch
+// 1. Get Complete System State from DB
 app.get('/api/state', async (req, res) => {
     try {
         const users = await db.query('SELECT * FROM users ORDER BY id ASC');
@@ -86,28 +136,28 @@ app.get('/api/state', async (req, res) => {
     }
 });
 
-// 2. Direct PostgreSQL User Registration Route (With Synchronous Response)
+// 2. Register New User Route (Saves to DB)
 app.post('/api/users/register', async (req, res) => {
     const { userId, name, email, password, dept, phone, role, status } = req.body;
     const cleanEmail = email ? email.trim().toLowerCase() : '';
     const cleanPassword = password ? password.trim() : '';
 
     try {
-        const insertResult = await db.query(
+        const insertRes = await db.query(
             `INSERT INTO users (user_id, name, email, password, dept, phone, role, status) 
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
              ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, password = EXCLUDED.password, dept = EXCLUDED.dept, phone = EXCLUDED.phone
              RETURNING *`,
             [userId, name.trim(), cleanEmail, cleanPassword, dept, phone, role || 'USER', status || 'ACTIVE']
         );
-        res.json({ message: 'User Registered Successfully', user: insertResult.rows[0] });
+        res.json({ message: 'User Registered Successfully', user: insertRes.rows[0] });
     } catch (err) {
-        console.error('User Registration Error:', err.message);
+        console.error('Registration API Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
 
-// 3. Robust Direct PostgreSQL User Login Verification Route
+// 3. User Login Verification Route
 app.post('/api/users/login', async (req, res) => {
     const { username, password } = req.body;
     const cleanUsername = username ? username.trim().toLowerCase() : '';
@@ -137,7 +187,7 @@ app.post('/api/users/login', async (req, res) => {
             res.status(401).json({ success: false, message: 'Invalid Credentials' });
         }
     } catch (err) {
-        console.error('Login Query Error:', err.message);
+        console.error('Login API Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -200,7 +250,7 @@ app.post('/api/inventory/update-opening', async (req, res) => {
     }
 });
 
-// 7. Order Requisition Creation
+// 7. Submit Order Requisition (SAVED TO POSTGRESQL)
 app.post('/api/orders/create', async (req, res) => {
     const { orderId, user, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
     try {
@@ -212,12 +262,12 @@ app.post('/api/orders/create', async (req, res) => {
         );
         res.json({ message: 'Order created and saved to database successfully' });
     } catch (err) {
-        console.error('Order Creation Error:', err.message);
+        console.error('Order API Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
 
-// 8. Order Status Processing
+// 8. Process Order Request
 app.post('/api/orders/process', async (req, res) => {
     const { orderId, action, issuerName } = req.body;
     try {
@@ -251,4 +301,4 @@ app.post('/api/orders/process', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
