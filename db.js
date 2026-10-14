@@ -1,8 +1,8 @@
 const { Pool } = require('pg');
-require('dotenv').config();
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    // Direct apna Render PostgreSQL connection string yahan double quotes mein paste karein
+    connectionString: "postgres://username:password@hostname/dbname",
     ssl: {
         rejectUnauthorized: false
     }
