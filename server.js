@@ -17,7 +17,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'stock.html'));
 });
 
-// Auto-Create Database Tables Function
+// Auto-Create Database Tables Function & Initial Inventory Seed
 async function initDatabase() {
     try {
         await db.query(`
@@ -75,6 +75,20 @@ async function initDatabase() {
             VALUES ('USR-001', 'System Admin', 'dipankardag1987@gmail.com', '123', 'IT & Admin', '+91 9876543210', 'ADMIN', 'ACTIVE')
             ON CONFLICT (email) DO NOTHING;
         `);
+
+        // Insert Initial Inventory Items if table is empty
+        const invCheck = await db.query('SELECT COUNT(*) FROM inventory');
+        if (parseInt(invCheck.rows[0].count) === 0) {
+            await db.query(`
+                INSERT INTO inventory (item_id, name, category, opening, received, issued, current, last_date) VALUES 
+                ('1', 'A4 Paper Rim', 'Stationery', 150, 10, 30, 130, '2026-10-05'),
+                ('2', 'Ball Pens Box', 'Stationery', 20, 5, 10, 15, '2026-10-08'),
+                ('3', 'Dell USB Mouse', 'IT Hardware', 10, 0, 5, 5, '2026-10-01'),
+                ('4', 'Logitech Keyboard', 'IT Hardware', 8, 2, 8, 2, '2026-10-09'),
+                ('5', 'Hand Sanitizer 500ml', 'Cleaning', 50, 10, 5, 55, '2026-10-11')
+                ON CONFLICT (item_id) DO NOTHING;
+            `);
+        }
 
         console.log("Database Tables Verified & Default Admin Ready!");
     } catch (err) {
