@@ -160,7 +160,7 @@
                                 <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
                                     <th class="p-2.5">Item Name</th>
                                     <th class="p-2.5">Category</th>
-                                    <th class="p-2.5 text-center">Quantity</th>
+                                    <th class="p-2.5 text-center">Quantity & Unit</th>
                                     <th class="p-2.5 text-center">Action</th>
                                 </tr>
                             </thead>
@@ -245,6 +245,7 @@
                                 <tr class="bg-slate-800 text-white text-xs uppercase">
                                     <th class="p-3">Item Name</th>
                                     <th class="p-3">Category</th>
+                                    <th class="p-3 text-center">Unit</th>
                                     <th class="p-3 text-center">Opening</th>
                                     <th class="p-3 text-center">Received</th>
                                     <th class="p-3 text-center">Issued</th>
@@ -332,6 +333,15 @@
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Category</label>
                 <input type="text" id="newItemCategory" placeholder="e.g. IT Hardware" class="w-full border rounded p-2 text-xs" />
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Unit</label>
+                <select id="newItemUnit" class="w-full border rounded p-2 text-xs">
+                    <option value="pcs">pcs</option>
+                    <option value="pkt">pkt</option>
+                    <option value="box">box</option>
+                    <option value="nos">nos</option>
+                </select>
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Opening Stock Quantity</label>
@@ -459,7 +469,6 @@
             ['requests', 'stock', 'userOrders', 'users', 'logs'].forEach(t => {
                 const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
                 if(el) el.classList.add('hidden');
-                const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
             });
             const target = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
             if(target) target.classList.remove('hidden');
@@ -470,7 +479,7 @@
             if(!select) return;
             select.innerHTML = '<option value="" disabled selected>-- Choose Item --</option>';
             inventory.forEach(i => {
-                select.innerHTML += `<option value="${i.item_id || i.id}">${i.name} (${i.category}) - [Avail: ${i.current}]</option>`;
+                select.innerHTML += `<option value="${i.item_id || i.id}">${i.name} (${i.category}) - [Avail: ${i.current} ${i.unit || 'pcs'}]</option>`;
             });
         }
 
@@ -488,7 +497,7 @@
                 return;
             }
             if (qty > item.current) {
-                alert(`Insufficient stock! Available units: ${item.current}`);
+                alert(`Insufficient stock! Available units: ${item.current} ${item.unit || 'pcs'}`);
                 return;
             }
 
@@ -502,7 +511,7 @@
             } else {
                 orderCart.push({
                     itemId: item.item_id || item.id,
-                    itemName: item.name,
+                    itemName: `${item.name} (${item.unit || 'pcs'})`,
                     category: item.category,
                     qty: qty
                 });
@@ -645,6 +654,7 @@
         function saveNewItem() {
             const name = document.getElementById('newItemName').value.trim();
             const category = document.getElementById('newItemCategory').value.trim();
+            const unit = document.getElementById('newItemUnit').value;
             const opening = parseInt(document.getElementById('newItemOpening').value) || 0;
 
             if(!name || !category) { alert("Please enter item name & category!"); return; }
@@ -652,7 +662,7 @@
             fetch('/api/inventory/add', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ name, category, opening })
+                body: JSON.stringify({ name, category, unit, opening })
             })
             .then(res => res.json())
             .then(data => {
@@ -686,7 +696,6 @@
         function renderAll() {
             populateUserItemDropdown();
 
-            // Render User Orders Table
             const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => o.user_name === currentUser.name || o.user === currentUser.name) : orders;
             const userOrdersTbl = document.getElementById('userOrdersTable');
             if(userOrdersTbl) {
@@ -702,7 +711,6 @@
                 `).join('') || `<tr><td colspan="6" class="p-4 text-center text-gray-400">No orders found.</td></tr>`;
             }
 
-            // Render Admin Pending Approvals
             const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED');
             const pendingCountEl = document.getElementById('pendingCount');
             if(pendingCountEl) pendingCountEl.innerText = pending.length;
@@ -725,13 +733,13 @@
                 `).join('') || `<tr><td colspan="6" class="p-4 text-center text-gray-400">No pending approvals.</td></tr>`;
             }
 
-            // Render Admin Ledger Table
             const adminStockTbl = document.getElementById('adminStockTable');
             if(adminStockTbl) {
                 adminStockTbl.innerHTML = inventory.map(i => `
                     <tr>
                         <td class="p-3 font-bold">${i.name}</td>
                         <td class="p-3 text-xs">${i.category}</td>
+                        <td class="p-3 text-center font-semibold text-purple-700">${i.unit || 'pcs'}</td>
                         <td class="p-3 text-center">${i.opening}</td>
                         <td class="p-3 text-center text-blue-600">+${i.received}</td>
                         <td class="p-3 text-center text-amber-600">-${i.issued}</td>
@@ -740,10 +748,9 @@
                             <button onclick="deleteInventoryItem('${i.item_id || i.id}')" title="Delete Item" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-bold shadow"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
-                `).join('') || `<tr><td colspan="7" class="p-4 text-center text-gray-400">No inventory items found.</td></tr>`;
+                `).join('') || `<tr><td colspan="8" class="p-4 text-center text-gray-400">No inventory items found.</td></tr>`;
             }
 
-            // Render Admin User History Table
             const adminHistoryTbl = document.getElementById('adminUserOrdersHistoryTable');
             if(adminHistoryTbl) {
                 adminHistoryTbl.innerHTML = orders.map(o => `
@@ -761,7 +768,6 @@
                 `).join('') || `<tr><td colspan="6" class="p-4 text-center text-gray-400">No order history available.</td></tr>`;
             }
 
-            // Render Admin Users Table
             const adminUsersTbl = document.getElementById('adminUsersTable');
             if(adminUsersTbl) {
                 adminUsersTbl.innerHTML = usersList.map(u => `
@@ -778,7 +784,6 @@
                 `).join('') || `<tr><td colspan="5" class="p-4 text-center text-gray-400">No users found.</td></tr>`;
             }
 
-            // Render Admin Activity Logs Table
             const adminLogsTbl = document.getElementById('adminLogsTable');
             if(adminLogsTbl) {
                 adminLogsTbl.innerHTML = orders.map(o => `
