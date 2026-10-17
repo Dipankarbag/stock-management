@@ -1,4 +1,512 @@
-<!-- JavaScript Core Script -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock & Inventory Management System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .active-tab { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: bold; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+
+    <!-- AUTHENTICATION SCREEN -->
+    <div id="authScreen" class="flex items-center justify-center min-h-screen p-4 bg-slate-900">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200">
+            <div class="text-center mb-6">
+                <div class="inline-flex p-3 bg-blue-100 text-blue-600 rounded-full mb-2">
+                    <i class="fa-solid fa-boxes-stacked text-3xl"></i>
+                </div>
+                <h2 id="authTitle" class="text-2xl font-bold text-gray-800">Inventory Portal Login</h2>
+                <p id="authSubtitle" class="text-xs text-gray-500 mt-1">Enter your credentials to access system</p>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email / Username</label>
+                    <input type="text" id="loginUsername" placeholder="Email" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Password</label>
+                    <input type="password" id="loginPassword" placeholder="123" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                </div>
+
+                <div id="loginError" class="hidden text-xs text-red-600 font-semibold text-center bg-red-50 p-2 rounded border border-red-200">
+                    Invalid Email or Password!
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-lg flex items-center justify-center">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i> Login
+                </button>
+
+                <p class="text-center text-xs text-gray-600 pt-3">
+                    Don't have an account? 
+                    <button type="button" onclick="toggleAuthMode('register')" class="text-blue-600 font-bold hover:underline">Register Here</button>
+                </p>
+            </form>
+
+            <!-- REGISTRATION FORM -->
+            <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-3 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Full Name</label>
+                    <input type="text" id="regName" placeholder="e.g. Rahul Sharma" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email Address</label>
+                    <input type="email" id="regEmail" placeholder="rahul@company.com" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Department</label>
+                        <input type="text" id="regDept" placeholder="Operations / IT" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Phone Number</label>
+                        <input type="text" id="regPhone" placeholder="+91 9876543210" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Password</label>
+                    <input type="password" id="regPassword" placeholder="Create password" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition shadow-lg flex items-center justify-center">
+                    <i class="fa-solid fa-user-plus mr-2"></i> Register Account
+                </button>
+
+                <p class="text-center text-xs text-gray-600 pt-2">
+                    Already registered? 
+                    <button type="button" onclick="toggleAuthMode('login')" class="text-blue-600 font-bold hover:underline">Back to Login</button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- MAIN DASHBOARD -->
+    <div id="mainDashboard" class="hidden">
+        
+        <!-- Navbar -->
+        <nav class="bg-slate-900 text-white px-6 py-4 flex flex-wrap justify-between items-center shadow-lg gap-4">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-boxes-stacked text-2xl text-blue-400"></i>
+                <h1 class="text-xl font-bold tracking-wide">StockFlow | Inventory System</h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div id="panelSwitcherContainer" class="bg-slate-800 p-1 rounded-lg flex space-x-1">
+                    <button id="btnUserView" onclick="switchPanel('user')" class="px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white transition">
+                        <i class="fa-solid fa-user-tag mr-2"></i>User Panel
+                    </button>
+                    <button id="btnAdminView" onclick="switchPanel('admin')" class="px-4 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white transition">
+                        <i class="fa-solid fa-user-shield mr-2"></i>Admin Panel
+                    </button>
+                </div>
+
+                <div class="flex items-center space-x-3 border-l border-gray-700 pl-4">
+                    <div class="text-right">
+                        <div id="displayUserName" class="text-sm font-bold text-white">---</div>
+                        <div id="displayUserRole" class="text-xs text-blue-400 uppercase tracking-wider font-semibold">---</div>
+                    </div>
+                    <button onclick="handleLogout()" title="Logout" class="bg-red-600 hover:bg-red-700 text-white p-2.5 rounded-lg transition shadow flex items-center justify-center">
+                        <i class="fa-solid fa-power-off text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Workspace Container -->
+        <div class="max-w-7xl mx-auto p-6">
+
+            <!-- USER PANEL -->
+            <div id="userPanel" class="space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fa-solid fa-cart-plus text-blue-600 mr-2"></i> Submit Item Requisition Order
+                    </h2>
+                    <form id="orderForm" onsubmit="handleOrderSubmit(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Select Item</label>
+                            <select id="itemSelect" onchange="updateStockPreview()" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-gray-800" required>
+                                <option value="" disabled selected>-- Choose Item --</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Quantity Needed</label>
+                            <input type="number" id="orderQty" min="1" placeholder="Enter Qty" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-gray-800" required />
+                        </div>
+
+                        <div>
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-2.5 rounded-lg transition shadow-md flex items-center justify-center">
+                                <i class="fa-solid fa-paper-plane mr-2"></i> Submit Request
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="stockBadgeContainer" class="mt-4 hidden">
+                        <span class="text-xs text-gray-500 font-semibold">Live Availability: </span>
+                        <span id="stockBadge" class="text-xs px-2.5 py-1 rounded-full font-bold"></span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-600 mr-2"></i> My Requisition Status & Orders
+                    </h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
+                                    <th class="p-3">Order ID</th>
+                                    <th class="p-3">Item Name</th>
+                                    <th class="p-3">Category</th>
+                                    <th class="p-3 text-center">Quantity</th>
+                                    <th class="p-3">Date & Time</th>
+                                    <th class="p-3 text-center">Live Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userOrdersTable" class="text-sm text-gray-700 divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN PANEL -->
+            <div id="adminPanel" class="space-y-6 hidden">
+
+                <div class="flex border-b border-gray-300 space-x-6 text-sm font-medium flex-wrap">
+                    <button onclick="switchAdminTab('requests')" id="tabRequestsBtn" class="py-2 active-tab"><i class="fa-solid fa-list-check mr-2"></i>Pending Approvals (<span id="pendingCount">0</span>)</button>
+                    <button onclick="switchAdminTab('stock')" id="tabStockBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-boxes-stacked mr-2"></i>Inventory Movement Ledger</button>
+                    <button onclick="switchAdminTab('userOrders')" id="tabUserOrdersBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-file-invoice mr-2"></i>User Order Details & History</button>
+                    <button onclick="switchAdminTab('users')" id="tabUsersBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-users mr-2"></i>Registered Users Control</button>
+                    <button onclick="switchAdminTab('logs')" id="tabLogsBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-user-clock mr-2"></i>System Activity Logs</button>
+                </div>
+
+                <!-- ADMIN TAB 1: Pending Approvals -->
+                <div id="tabRequests" class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4">Pending Requisition Approvals</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
+                                    <th class="p-3">Order ID</th>
+                                    <th class="p-3">User Name</th>
+                                    <th class="p-3">Item Name</th>
+                                    <th class="p-3 text-center">Requested Qty</th>
+                                    <th class="p-3 text-center">Stock Available</th>
+                                    <th class="p-3 text-center">Approval Control</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminRequestsTable" class="text-sm divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ADMIN TAB 2: Ledger -->
+                <div id="tabStock" class="bg-white p-6 rounded-xl shadow-md border border-gray-200 hidden space-y-4">
+                    <div class="flex justify-between items-center flex-wrap gap-4 border-b pb-3">
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-boxes-stacked text-blue-600 mr-2"></i> Inventory Movement Ledger</h2>
+                            <p class="text-xs text-gray-500">Filter Ledger by Category and Stock Received Date Range</p>
+                        </div>
+                        <div class="flex flex-wrap space-x-2 gap-y-2">
+                            <button onclick="exportLedgerCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow flex items-center">
+                                <i class="fa-solid fa-file-excel mr-1.5"></i> Export Excel (CSV)
+                            </button>
+                            <button onclick="printLedgerReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow flex items-center">
+                                <i class="fa-solid fa-print mr-1.5"></i> Print Ledger Report
+                            </button>
+                            <button onclick="openAddItemModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow flex items-center">
+                                <i class="fa-solid fa-plus mr-1"></i> Add New Item
+                            </button>
+                            <button onclick="resetLedgerFilters()" class="bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold">Reset Filters</button>
+                        </div>
+                    </div>
+
+                    <!-- Category & Date Filters -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Filter By Category</label>
+                            <select id="ledgerCategoryFilter" onchange="applyLedgerFilter()" class="w-full border rounded p-2 text-xs font-semibold">
+                                <option value="ALL">-- All Categories --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">From Date</label>
+                            <input type="date" id="ledgerStartDate" onchange="applyLedgerFilter()" class="w-full border rounded p-2 text-xs" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">To Date</label>
+                            <input type="date" id="ledgerEndDate" onchange="applyLedgerFilter()" class="w-full border rounded p-2 text-xs" />
+                        </div>
+                        <div>
+                            <button onclick="applyLedgerFilter()" class="w-full bg-blue-600 text-white p-2 rounded text-xs font-bold shadow">Apply Date Filter</button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-800 text-white text-xs uppercase">
+                                    <th class="p-3">Item Name</th>
+                                    <th class="p-3">Category</th>
+                                    <th class="p-3 text-center bg-slate-700">Opening Stock</th>
+                                    <th class="p-3 text-center bg-blue-900">Received Stock</th>
+                                    <th class="p-3 text-center bg-amber-800">Issued Stock</th>
+                                    <th class="p-3 text-center bg-green-900">Closing Balance</th>
+                                    <th class="p-3 text-center">Last Received Date</th>
+                                    <th class="p-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminStockTable" class="text-sm divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ADMIN TAB 3: User Order History -->
+                <div id="tabUserOrders" class="bg-white p-6 rounded-xl shadow-md border border-gray-200 hidden space-y-4">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-file-invoice text-blue-600 mr-2"></i> User-wise Order History</h2>
+                        <div class="flex space-x-2">
+                            <button onclick="exportUserOrdersCSV()" class="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-bold">Export CSV</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Select User</label>
+                            <select id="userFilterSelect" class="w-full border rounded p-2 text-xs">
+                                <option value="ALL">-- All Users --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">From Date</label>
+                            <input type="date" id="userOrderStartDate" class="w-full border rounded p-2 text-xs" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">To Date</label>
+                            <input type="date" id="userOrderEndDate" class="w-full border rounded p-2 text-xs" />
+                        </div>
+                        <div>
+                            <button onclick="applyUserHistoryFilter()" class="w-full bg-blue-600 text-white p-2 rounded text-xs font-bold shadow">Filter History</button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-800 text-white text-xs uppercase">
+                                    <th class="p-3">Order ID</th>
+                                    <th class="p-3">User Name</th>
+                                    <th class="p-3">Item Name</th>
+                                    <th class="p-3">Category</th>
+                                    <th class="p-3 text-center">Qty</th>
+                                    <th class="p-3">Date & Time</th>
+                                    <th class="p-3 text-center">Status / Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUserOrdersHistoryTable" class="text-sm divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ADMIN TAB 4: Users -->
+                <div id="tabUsers" class="bg-white p-6 rounded-xl shadow-md border border-gray-200 hidden">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4"><i class="fa-solid fa-users text-blue-600 mr-2"></i> Registered System Users & Admin Control</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
+                                    <th class="p-3">User ID</th>
+                                    <th class="p-3">Full Name</th>
+                                    <th class="p-3">Email ID</th>
+                                    <th class="p-3">Department</th>
+                                    <th class="p-3">Phone</th>
+                                    <th class="p-3">Role</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3 text-center">Admin Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUsersTable" class="text-sm divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ADMIN TAB 5: Activity Logs -->
+                <div id="tabLogs" class="bg-white p-6 rounded-xl shadow-md border border-gray-200 hidden">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4">Audit & Activity Logs</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
+                                    <th class="p-3">Timestamp</th>
+                                    <th class="p-3">User</th>
+                                    <th class="p-3">Action Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminLogsTable" class="text-sm divide-y font-mono"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL 1: ISSUED STOCK DETAILS POPUP -->
+    <div id="issuedDetailsModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-3xl border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div>
+                    <h3 class="font-bold text-gray-800 text-lg"><i class="fa-solid fa-receipt text-amber-600 mr-2"></i> Issued Stock Details Breakdown</h3>
+                    <p class="text-xs text-gray-500">Item Name: <span id="issuedItemTitle" class="font-bold text-blue-600">---</span></p>
+                </div>
+                <button onclick="closeIssuedDetailsModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="overflow-x-auto max-h-80">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-gray-700 text-xs uppercase border-b">
+                            <th class="p-3">Issued To (User)</th>
+                            <th class="p-3">Issued By (Issuer Name)</th>
+                            <th class="p-3 text-center">Issued Quantity</th>
+                            <th class="p-3">Issue Date & Time</th>
+                            <th class="p-3 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="issuedDetailsTable" class="text-sm divide-y"></tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t">
+                <div class="flex space-x-2">
+                    <button onclick="exportIssuedModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center">
+                        <i class="fa-solid fa-file-excel mr-1.5"></i> Export Excel (CSV)
+                    </button>
+                    <button onclick="printIssuedModalReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center">
+                        <i class="fa-solid fa-print mr-1.5"></i> Print Report
+                    </button>
+                </div>
+                <button onclick="closeIssuedDetailsModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-lg text-xs shadow">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: RECEIVED STOCK DETAILS POPUP -->
+    <div id="receivedDetailsModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div>
+                    <h3 class="font-bold text-gray-800 text-lg"><i class="fa-solid fa-truck-ramp-box text-blue-600 mr-2"></i> Stock Received Logs Breakdown</h3>
+                    <p class="text-xs text-gray-500">Item Name: <span id="receivedItemTitle" class="font-bold text-blue-600">---</span></p>
+                </div>
+                <button onclick="closeReceivedDetailsModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="overflow-x-auto max-h-80">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-gray-700 text-xs uppercase border-b">
+                            <th class="p-3">Received By (Receiver Name)</th>
+                            <th class="p-3 text-center">Received Quantity</th>
+                            <th class="p-3">Stock In Date & Time</th>
+                            <th class="p-3 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receivedDetailsTable" class="text-sm divide-y"></tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t">
+                <div class="flex space-x-2">
+                    <button onclick="exportReceivedModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center">
+                        <i class="fa-solid fa-file-excel mr-1.5"></i> Export Excel (CSV)
+                    </button>
+                    <button onclick="printReceivedModalReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center">
+                        <i class="fa-solid fa-print mr-1.5"></i> Print Report
+                    </button>
+                </div>
+                <button onclick="closeReceivedDetailsModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-lg text-xs shadow">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: SINGLE-CLICK STOCK IN FORM -->
+    <div id="stockInModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-gray-800 text-lg"><i class="fa-solid fa-boxes-packing text-blue-600 mr-2"></i> Receive New Stock In</h3>
+                <button onclick="closeStockInModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <input type="hidden" id="stockInItemId" />
+            
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Item Name</label>
+                <input type="text" id="stockInItemName" class="w-full bg-gray-100 border rounded p-2 text-xs font-bold text-gray-700" readonly />
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Received Stock Quantity</label>
+                <input type="number" id="stockInQty" min="1" placeholder="Enter Received Quantity" class="w-full border rounded p-2.5 text-xs font-semibold" required />
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Received Date</label>
+                <input type="date" id="stockInDate" class="w-full border rounded p-2.5 text-xs" required />
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Receiver Name</label>
+                <input type="text" id="stockInReceiverName" placeholder="Enter Receiver / Employee Name" class="w-full border rounded p-2.5 text-xs" required />
+            </div>
+
+            <div class="flex space-x-2 pt-2">
+                <button onclick="saveStockInEntry()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded text-xs shadow">Save Received Stock</button>
+                <button onclick="closeStockInModal()" class="bg-gray-200 text-gray-700 font-bold px-4 py-2.5 rounded text-xs">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: ADD NEW ITEM -->
+    <div id="addItemModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-gray-800 text-lg"><i class="fa-solid fa-plus-circle text-blue-600 mr-2"></i> Add New Inventory Item</h3>
+                <button onclick="closeAddItemModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Item Name</label>
+                <input type="text" id="newItemName" placeholder="e.g. Wireless Router" class="w-full border rounded p-2 text-xs" />
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Category</label>
+                <input type="text" id="newItemCategory" placeholder="e.g. IT Hardware / Stationery" class="w-full border rounded p-2 text-xs" />
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Opening Stock Quantity</label>
+                <input type="number" id="newItemOpening" min="0" placeholder="e.g. 50" class="w-full border rounded p-2 text-xs" />
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="saveNewItem()" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-xs shadow">Save Item</button>
+                <button onclick="closeAddItemModal()" class="bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded text-xs">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Core Script -->
     <script>
         let currentUser = null;
         let activeIssuedItemId = null;
@@ -768,3 +1276,5 @@
             }
         }, 10000);
     </script>
+</body>
+</html>
