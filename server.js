@@ -198,7 +198,7 @@ app.post('/api/orders/process', async (req, res) => {
     }
 });
 
-// Add New Item API
+// Add New Item API (Fixed)
 app.post('/api/inventory/add', async (req, res) => {
     const { name, category, opening } = req.body;
     try {
@@ -207,7 +207,7 @@ app.post('/api/inventory/add', async (req, res) => {
             VALUES ($1, $2, $3, 0, 0, $3, CURRENT_DATE)
             RETURNING *;
         `;
-        const values = [name, category, opening];
+        const values = [name, category, opening || 0];
         const result = await db.query(query, values);
         res.json({ success: true, item: result.rows[0] });
     } catch (err) {
