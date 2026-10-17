@@ -10,7 +10,7 @@ const pool = new Pool({
 });
 
 pool.on('connect', () => {
-    console.log('Successfully connected to Local PostgreSQL database!');[cite: 4]
+    console.log('Successfully connected to Local PostgreSQL database!');
 });
 
 pool.on('error', (err) => {
