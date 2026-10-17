@@ -1,7 +1,8 @@
 const express = require('express');
-const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
+const db = require('./db');
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
@@ -10,60 +11,50 @@ app.use(express.json());
 // Serve static files from current directory
 app.use(express.static(__dirname));
 
-// PostgreSQL Database Connection
-const db = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'stockflow_db',
-    password: 'bag@1991A',
-    port: 5432,
-});
-
-db.connect()
-    .then(() => console.log('Successfully connected to Local PostgreSQL database!'))
-    .catch(err => console.error('Database connection error:', err.stack));
-
 // Initialize tables if not exist & insert default data
 async function initDB() {
     try {
         await db.query(`
             CREATE TABLE IF NOT EXISTS users (
-                user_id VARCHAR(50) PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
+                user_id VARCHAR(50) UNIQUE NOT NULL,
                 name VARCHAR(100),
                 email VARCHAR(100) UNIQUE,
                 password VARCHAR(100),
                 dept VARCHAR(100),
                 phone VARCHAR(50),
-                role VARCHAR(20),
-                status VARCHAR(20)
+                role VARCHAR(20) DEFAULT 'USER',
+                status VARCHAR(20) DEFAULT 'ACTIVE'
             );
 
             CREATE TABLE IF NOT EXISTS inventory (
-                item_id SERIAL PRIMARY KEY,
-                name VARCHAR(100),
-                category VARCHAR(100),
+                id SERIAL PRIMARY KEY,
+                item_id VARCHAR(50) UNIQUE NOT NULL,
+                name VARCHAR(100) NOT NULL,
+                category VARCHAR(100) NOT NULL,
                 opening INT DEFAULT 0,
                 received INT DEFAULT 0,
                 issued INT DEFAULT 0,
                 current INT DEFAULT 0,
-                last_date DATE
+                last_date DATE DEFAULT CURRENT_DATE
             );
 
             CREATE TABLE IF NOT EXISTS orders (
-                order_id VARCHAR(50) PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
+                order_id VARCHAR(50) UNIQUE NOT NULL,
                 user_name VARCHAR(100),
-                issuer_name VARCHAR(100),
+                issuer_name VARCHAR(100) DEFAULT 'System Admin',
                 item_id VARCHAR(50),
                 item_name VARCHAR(100),
                 category VARCHAR(100),
                 qty INT,
                 time_str VARCHAR(50),
-                date_only DATE,
-                status VARCHAR(50)
+                date_only DATE DEFAULT CURRENT_DATE,
+                status VARCHAR(50) DEFAULT 'UNDER PROCESS'
             );
 
             CREATE TABLE IF NOT EXISTS received_logs (
-                log_id SERIAL PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 item_id VARCHAR(50),
                 receiver_name VARCHAR(100),
                 qty INT,
@@ -139,9 +130,31 @@ app.post('/api/users/register', async (req, res) => {
             ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name
             RETURNING *;
         `;
-        const values = [userId, name, email, password, dept, phone, role || 'USER', status || 'ACTIVE'];
+        const values = [userId || `USR-${Math.floor(100+Math.random()*900)}`, name, email, password, dept, phone, role || 'USER', status || 'ACTIVE'];
         const result = await db.query(query, values);
         res.json({ success: true, user: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Toggle User Status API
+app.post('/api/users/status', async (req, res) => {
+    const { userId, status } = req.body;
+    try {
+        const result = await db.query('UPDATE users SET status = $1 WHERE user_id = $2 RETURNING *;', [status, userId]);
+        res.json({ success: true, user: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete User API
+app.delete('/api/users/delete/:userId', async (req, res) => {
+    const { userId } = req.params;
+    try {
+        await db.query('DELETE FROM users WHERE user_id = $1', [userId]);
+        res.json({ success: true, message: 'User deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -156,7 +169,7 @@ app.post('/api/orders/create', async (req, res) => {
             VALUES ($1, $2, 'System Admin', $3, $4, $5, $6, $7, $8, 'UNDER PROCESS')
             RETURNING *;
         `;
-        const values = [orderId, user, itemId, itemName, category, qty, timeStr, dateOnly];
+        const values = [orderId, user, itemId, itemName, category, qty, timeStr, dateOnly || new Date().toISOString().split('T')[0]];
         const result = await db.query(query, values);
         res.json({ success: true, order: result.rows[0] });
     } catch (err) {
@@ -198,16 +211,17 @@ app.post('/api/orders/process', async (req, res) => {
     }
 });
 
-// Add New Item API (Fixed)
+// Add New Item API
 app.post('/api/inventory/add', async (req, res) => {
     const { name, category, opening } = req.body;
     try {
+        const itemId = String(Math.floor(1000 + Math.random() * 9000));
         const query = `
-            INSERT INTO inventory (name, category, opening, received, issued, current, last_date)
-            VALUES ($1, $2, $3, 0, 0, $3, CURRENT_DATE)
+            INSERT INTO inventory (item_id, name, category, opening, received, issued, current, last_date)
+            VALUES ($1, $2, $3, $4, 0, 0, $4, CURRENT_DATE)
             RETURNING *;
         `;
-        const values = [name, category, opening || 0];
+        const values = [itemId, name, category, opening || 0];
         const result = await db.query(query, values);
         res.json({ success: true, item: result.rows[0] });
     } catch (err) {
@@ -216,55 +230,11 @@ app.post('/api/inventory/add', async (req, res) => {
     }
 });
 
-// Update Opening Quantity API
-app.post('/api/inventory/update-opening', async (req, res) => {
-    const { itemId, newOpening } = req.body;
-    try {
-        const itemQuery = await db.query('SELECT * FROM inventory WHERE item_id = $1', [itemId]);
-        if (itemQuery.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
-        const item = itemQuery.rows[0];
-
-        const newCurrent = newOpening + item.received - item.issued;
-
-        const result = await db.query(`
-            UPDATE inventory 
-            SET opening = $1, current = $2 
-            WHERE item_id = $3 
-            RETURNING *;
-        `, [newOpening, newCurrent, itemId]);
-
-        res.json({ success: true, item: result.rows[0] });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Stock In API
-app.post('/api/inventory/stock-in', async (req, res) => {
-    const { itemId, qty, dateStr, receiver } = req.body;
-    try {
-        await db.query(`
-            UPDATE inventory 
-            SET received = received + $1, current = current + $1, last_date = $2 
-            WHERE item_id = $3
-        `, [qty, dateStr, itemId]);
-
-        await db.query(`
-            INSERT INTO received_logs (item_id, receiver_name, qty, date_only, time_str)
-            VALUES ($1, $2, $3, $4, $5)
-        `, [itemId, receiver, qty, dateStr, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })]);
-
-        res.json({ success: true, message: 'Stock received logged successfully' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
 // Delete Inventory Item API
 app.delete('/api/inventory/delete/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        await db.query('DELETE FROM inventory WHERE item_id = $1', [id]);
+        await db.query('DELETE FROM inventory WHERE item_id = $1 OR id::text = $1', [id]);
         res.json({ message: 'Item deleted successfully from database' });
     } catch (err) {
         console.error('Delete Item Error:', err.message);
