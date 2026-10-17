@@ -62,7 +62,6 @@ async function initDB() {
             );
         `);
 
-        // Check if unit column exists in inventory, add if missing
         await db.query(`
             DO $$ 
             BEGIN 
