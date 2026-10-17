@@ -8,10 +8,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from current directory
 app.use(express.static(__dirname));
 
-// Initialize tables if not exist & insert default data
 async function initDB() {
     try {
         await db.query(`
@@ -32,6 +30,7 @@ async function initDB() {
                 item_id VARCHAR(50) UNIQUE NOT NULL,
                 name VARCHAR(100) NOT NULL,
                 category VARCHAR(100) NOT NULL,
+                unit VARCHAR(20) DEFAULT 'pcs',
                 opening INT DEFAULT 0,
                 received INT DEFAULT 0,
                 issued INT DEFAULT 0,
@@ -63,7 +62,16 @@ async function initDB() {
             );
         `);
 
-        // Insert default admin if not exists
+        // Check if unit column exists in inventory, add if missing
+        await db.query(`
+            DO $$ 
+            BEGIN 
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory' and column_name='unit') THEN
+                    ALTER TABLE inventory ADD COLUMN unit VARCHAR(20) DEFAULT 'pcs';
+                END IF;
+            END $$;
+        `);
+
         const adminCheck = await db.query("SELECT * FROM users WHERE role = 'ADMIN'");
         if (adminCheck.rows.length === 0) {
             await db.query(`
@@ -80,12 +88,10 @@ async function initDB() {
 }
 initDB();
 
-// Root Route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'stock.html'));
 });
 
-// Get State API
 app.get('/api/state', async (req, res) => {
     try {
         const users = await db.query('SELECT * FROM users');
@@ -104,7 +110,6 @@ app.get('/api/state', async (req, res) => {
     }
 });
 
-// Login API
 app.post('/api/users/login', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -120,7 +125,6 @@ app.post('/api/users/login', async (req, res) => {
     }
 });
 
-// Register API
 app.post('/api/users/register', async (req, res) => {
     const { userId, name, email, password, dept, phone, role, status } = req.body;
     try {
@@ -138,7 +142,6 @@ app.post('/api/users/register', async (req, res) => {
     }
 });
 
-// Toggle User Status API
 app.post('/api/users/status', async (req, res) => {
     const { userId, status } = req.body;
     try {
@@ -149,7 +152,6 @@ app.post('/api/users/status', async (req, res) => {
     }
 });
 
-// Delete User API
 app.delete('/api/users/delete/:userId', async (req, res) => {
     const { userId } = req.params;
     try {
@@ -160,7 +162,6 @@ app.delete('/api/users/delete/:userId', async (req, res) => {
     }
 });
 
-// Create Order API
 app.post('/api/orders/create', async (req, res) => {
     const { orderId, user, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
     try {
@@ -177,7 +178,6 @@ app.post('/api/orders/create', async (req, res) => {
     }
 });
 
-// Process Order API
 app.post('/api/orders/process', async (req, res) => {
     const { orderId, action, issuerName } = req.body;
     try {
@@ -211,17 +211,16 @@ app.post('/api/orders/process', async (req, res) => {
     }
 });
 
-// Add New Item API
 app.post('/api/inventory/add', async (req, res) => {
-    const { name, category, opening } = req.body;
+    const { name, category, unit, opening } = req.body;
     try {
         const itemId = String(Math.floor(1000 + Math.random() * 9000));
         const query = `
-            INSERT INTO inventory (item_id, name, category, opening, received, issued, current, last_date)
-            VALUES ($1, $2, $3, $4, 0, 0, $4, CURRENT_DATE)
+            INSERT INTO inventory (item_id, name, category, unit, opening, received, issued, current, last_date)
+            VALUES ($1, $2, $3, $4, $5, 0, 0, $5, CURRENT_DATE)
             RETURNING *;
         `;
-        const values = [itemId, name, category, opening || 0];
+        const values = [itemId, name, category, unit || 'pcs', opening || 0];
         const result = await db.query(query, values);
         res.json({ success: true, item: result.rows[0] });
     } catch (err) {
@@ -230,7 +229,6 @@ app.post('/api/inventory/add', async (req, res) => {
     }
 });
 
-// Delete Inventory Item API
 app.delete('/api/inventory/delete/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -242,7 +240,6 @@ app.delete('/api/inventory/delete/:id', async (req, res) => {
     }
 });
 
-// Delete Order API
 app.delete('/api/orders/delete/:orderId', async (req, res) => {
     const { orderId } = req.params;
     try {
