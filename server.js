@@ -1,53 +1,56 @@
-const path = require('path');
 const express = require('express');
+const { Pool } = require('pg');
 const cors = require('cors');
-const nodemailer = require('nodemailer');
-const db = require('./db');
-require('dotenv').config();
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static frontend files
+// Serve static files from current directory
 app.use(express.static(__dirname));
 
-// Root Route
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'stock.html'));
+// PostgreSQL Database Connection
+const db = new Pool({
+    user: 'postgres',
+    host: 'localhost',
+    database: 'stockflow_db',
+    password: 'bag@1991A',
+    port: 5432,
 });
 
-// Auto-Create Database Tables Function & Initial Inventory Seed
-async function initDatabase() {
+db.connect()
+    .then(() => console.log('Successfully connected to Local PostgreSQL database!'))
+    .catch(err => console.error('Database connection error:', err.stack));
+
+// Initialize tables if not exist & insert default data
+async function initDB() {
     try {
         await db.query(`
             CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
-                user_id VARCHAR(50) UNIQUE,
+                user_id VARCHAR(50) PRIMARY KEY,
                 name VARCHAR(100),
                 email VARCHAR(100) UNIQUE,
                 password VARCHAR(100),
                 dept VARCHAR(100),
                 phone VARCHAR(50),
-                role VARCHAR(20) DEFAULT 'USER',
-                status VARCHAR(20) DEFAULT 'ACTIVE'
+                role VARCHAR(20),
+                status VARCHAR(20)
             );
 
             CREATE TABLE IF NOT EXISTS inventory (
-                id SERIAL PRIMARY KEY,
-                item_id VARCHAR(50) UNIQUE,
+                item_id SERIAL PRIMARY KEY,
                 name VARCHAR(100),
                 category VARCHAR(100),
                 opening INT DEFAULT 0,
                 received INT DEFAULT 0,
                 issued INT DEFAULT 0,
                 current INT DEFAULT 0,
-                last_date VARCHAR(50)
+                last_date DATE
             );
 
             CREATE TABLE IF NOT EXISTS orders (
-                id SERIAL PRIMARY KEY,
-                order_id VARCHAR(50) UNIQUE,
+                order_id VARCHAR(50) PRIMARY KEY,
                 user_name VARCHAR(100),
                 issuer_name VARCHAR(100),
                 item_id VARCHAR(50),
@@ -55,89 +58,49 @@ async function initDatabase() {
                 category VARCHAR(100),
                 qty INT,
                 time_str VARCHAR(50),
-                date_only VARCHAR(50),
-                status VARCHAR(50) DEFAULT 'UNDER PROCESS'
+                date_only DATE,
+                status VARCHAR(50)
             );
 
             CREATE TABLE IF NOT EXISTS received_logs (
-                id SERIAL PRIMARY KEY,
+                log_id SERIAL PRIMARY KEY,
                 item_id VARCHAR(50),
                 receiver_name VARCHAR(100),
                 qty INT,
-                date_only VARCHAR(50),
+                date_only DATE,
                 time_str VARCHAR(50)
             );
         `);
 
-        // Insert Default Admin User into DB if missing
-        await db.query(`
-            INSERT INTO users (user_id, name, email, password, dept, phone, role, status)
-            VALUES ('USR-001', 'System Admin', 'dipankardag1987@gmail.com', '123', 'IT & Admin', '+91 9876543210', 'ADMIN', 'ACTIVE')
-            ON CONFLICT (email) DO NOTHING;
-        `);
-
-        // Insert Initial Inventory Items if table is empty
-        const invCheck = await db.query('SELECT COUNT(*) FROM inventory');
-        if (parseInt(invCheck.rows[0].count) === 0) {
+        // Insert default admin if not exists
+        const adminCheck = await db.query("SELECT * FROM users WHERE role = 'ADMIN'");
+        if (adminCheck.rows.length === 0) {
             await db.query(`
-                INSERT INTO inventory (item_id, name, category, opening, received, issued, current, last_date) VALUES 
-                ('1', 'A4 Paper Rim', 'Stationery', 150, 10, 30, 130, '2026-10-05'),
-                ('2', 'Ball Pens Box', 'Stationery', 20, 5, 10, 15, '2026-10-08'),
-                ('3', 'Dell USB Mouse', 'IT Hardware', 10, 0, 5, 5, '2026-10-01'),
-                ('4', 'Logitech Keyboard', 'IT Hardware', 8, 2, 8, 2, '2026-10-09'),
-                ('5', 'Hand Sanitizer 500ml', 'Cleaning', 50, 10, 5, 55, '2026-10-11')
-                ON CONFLICT (item_id) DO NOTHING;
+                INSERT INTO users (user_id, name, email, password, dept, phone, role, status)
+                VALUES ('USR-001', 'System Admin', 'dipankardag1987@gmail.com', '123', 'IT & Admin', '+91 9876543210', 'ADMIN', 'ACTIVE')
+                ON CONFLICT (email) DO NOTHING;
             `);
         }
 
-        console.log("Database Tables Verified & Default Admin Ready!");
+        console.log('Database Tables Verified & Default Admin Ready!');
     } catch (err) {
-        console.error("Database Init Error:", err.message);
+        console.error('Init DB Error:', err.message);
     }
 }
-initDatabase();
+initDB();
 
-// Nodemailer Transporter
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
+// Root Route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'stock.html'));
 });
 
-// Email Notification Function
-async function sendOrderEmail(userEmail, userName, itemName, qty, status, issuerName) {
-    if(!process.env.EMAIL_USER || process.env.EMAIL_USER === 'your_gmail_address@gmail.com') return;
-
-    const mailOptions = {
-        from: `"StockFlow System" <${process.env.EMAIL_USER}>`,
-        to: userEmail,
-        subject: `Requisition Order ${status} - ${itemName}`,
-        html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; border: 1px solid #ddd; border-radius: 8px;">
-                <h2 style="color: #2563eb;">StockFlow Requisition Status Update</h2>
-                <p>Hello <strong>${userName}</strong>,</p>
-                <p>Your item requisition order status has been updated to <strong>${status}</strong>.</p>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
-                    <tr style="background-color: #f8fafc;"><th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Item Name</th><td style="padding: 10px; border: 1px solid #ddd;">${itemName}</td></tr>
-                    <tr><th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Quantity</th><td style="padding: 10px; border: 1px solid #ddd;">${qty} Units</td></tr>
-                    <tr style="background-color: #f8fafc;"><th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Issuer</th><td style="padding: 10px; border: 1px solid #ddd;">${issuerName}</td></tr>
-                </table>
-            </div>
-        `
-    };
-
-    try { await transporter.sendMail(mailOptions); } catch (err) { console.error('Email Error:', err.message); }
-}
-
-// 1. Get Complete System State from DB
+// Get State API
 app.get('/api/state', async (req, res) => {
     try {
-        const users = await db.query('SELECT * FROM users ORDER BY id ASC');
-        const inventory = await db.query('SELECT * FROM inventory ORDER BY id ASC');
-        const orders = await db.query('SELECT * FROM orders ORDER BY id DESC');
-        const receivedLogs = await db.query('SELECT * FROM received_logs ORDER BY id DESC');
+        const users = await db.query('SELECT * FROM users');
+        const inventory = await db.query('SELECT * FROM inventory');
+        const orders = await db.query('SELECT * FROM orders');
+        const receivedLogs = await db.query('SELECT * FROM received_logs');
 
         res.json({
             users: users.rows,
@@ -150,172 +113,154 @@ app.get('/api/state', async (req, res) => {
     }
 });
 
-// 2. Register New User Route (Saves to DB)
-app.post('/api/users/register', async (req, res) => {
-    const { userId, name, email, password, dept, phone, role, status } = req.body;
-    const cleanEmail = email ? email.trim().toLowerCase() : '';
-    const cleanPassword = password ? password.trim() : '';
-
-    try {
-        const insertRes = await db.query(
-            `INSERT INTO users (user_id, name, email, password, dept, phone, role, status) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-             ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, password = EXCLUDED.password, dept = EXCLUDED.dept, phone = EXCLUDED.phone
-             RETURNING *`,
-            [userId, name.trim(), cleanEmail, cleanPassword, dept, phone, role || 'USER', status || 'ACTIVE']
-        );
-        res.json({ message: 'User Registered Successfully', user: insertRes.rows[0] });
-    } catch (err) {
-        console.error('Registration API Error:', err.message);
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// 3. User Login Verification Route
+// Login API
 app.post('/api/users/login', async (req, res) => {
     const { username, password } = req.body;
-    const cleanUsername = username ? username.trim().toLowerCase() : '';
-    const cleanPassword = password ? password.trim() : '';
-
     try {
-        const userRes = await db.query(
-            'SELECT * FROM users WHERE (LOWER(TRIM(email)) = $1 OR LOWER(TRIM(name)) = $1) AND TRIM(password) = $2',
-            [cleanUsername, cleanPassword]
-        );
-
-        if (userRes.rows.length > 0) {
-            const u = userRes.rows[0];
-            res.json({
-                success: true,
-                user: {
-                    id: u.user_id,
-                    name: u.name,
-                    email: u.email,
-                    dept: u.dept,
-                    phone: u.phone,
-                    role: u.role,
-                    status: u.status
-                }
-            });
+        const query = 'SELECT * FROM users WHERE (LOWER(email) = LOWER($1) OR LOWER(name) = LOWER($1)) AND password = $2';
+        const result = await db.query(query, [username, password]);
+        if (result.rows.length > 0) {
+            res.json({ success: true, user: result.rows[0] });
         } else {
-            res.status(401).json({ success: false, message: 'Invalid Credentials' });
+            res.json({ success: false });
         }
     } catch (err) {
-        console.error('Login API Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
 
-// 4. Add Inventory Item
-app.post('/api/inventory/add', async (req, res) => {
-    const { name, category, opening } = req.body;
+// Register API
+app.post('/api/users/register', async (req, res) => {
+    const { userId, name, email, password, dept, phone, role, status } = req.body;
     try {
-        const countRes = await db.query('SELECT COUNT(*) FROM inventory');
-        const nextId = (parseInt(countRes.rows[0].count) + 1).toString();
-        const lastDate = new Date().toISOString().split('T')[0];
-
-        await db.query(
-            'INSERT INTO inventory (item_id, name, category, opening, received, issued, current, last_date) VALUES ($1, $2, $3, $4, 0, 0, $4, $5)',
-            [nextId, name, category, opening, lastDate]
-        );
-        res.json({ message: 'Item Added Successfully' });
+        const query = `
+            INSERT INTO users (user_id, name, email, password, dept, phone, role, status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name
+            RETURNING *;
+        `;
+        const values = [userId, name, email, password, dept, phone, role || 'USER', status || 'ACTIVE'];
+        const result = await db.query(query, values);
+        res.json({ success: true, user: result.rows[0] });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// 5. Stock In Entry
-app.post('/api/inventory/stock-in', async (req, res) => {
-    const { itemId, qty, dateStr, receiver } = req.body;
-    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    try {
-        await db.query(
-            'INSERT INTO received_logs (item_id, receiver_name, qty, date_only, time_str) VALUES ($1, $2, $3, $4, $5)',
-            [itemId, receiver, qty, dateStr, timeStr]
-        );
-        await db.query(
-            'UPDATE inventory SET received = received + $1, current = current + $1, last_date = $2 WHERE item_id = $3',
-            [qty, dateStr, itemId]
-        );
-        res.json({ message: 'Stock In Recorded Successfully' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// 6. Update Opening Quantity
-app.post('/api/inventory/update-opening', async (req, res) => {
-    const { itemId, newOpening } = req.body;
-    try {
-        const itemRes = await db.query('SELECT received, issued FROM inventory WHERE item_id = $1', [itemId]);
-        if (itemRes.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
-        
-        const item = itemRes.rows[0];
-        const newCurrent = parseInt(newOpening) + item.received - item.issued;
-
-        await db.query(
-            'UPDATE inventory SET opening = $1, current = $2 WHERE item_id = $3',
-            [newOpening, newCurrent, itemId]
-        );
-        res.json({ message: 'Opening quantity updated successfully' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// 7. Submit Order Requisition (SAVED TO POSTGRESQL)
+// Create Order API
 app.post('/api/orders/create', async (req, res) => {
     const { orderId, user, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
     try {
-        await db.query(
-            `INSERT INTO orders (order_id, user_name, issuer_name, item_id, item_name, category, qty, time_str, date_only, status) 
-             VALUES ($1, $2, 'N/A', $3, $4, $5, $6, $7, $8, 'UNDER PROCESS')
-             ON CONFLICT (order_id) DO NOTHING`,
-            [orderId, user, itemId, itemName, category, qty, timeStr, dateOnly]
-        );
-        res.json({ message: 'Order created and saved to database successfully' });
+        const query = `
+            INSERT INTO orders (order_id, user_name, issuer_name, item_id, item_name, category, qty, time_str, date_only, status)
+            VALUES ($1, $2, 'System Admin', $3, $4, $5, $6, $7, $8, 'UNDER PROCESS')
+            RETURNING *;
+        `;
+        const values = [orderId, user, itemId, itemName, category, qty, timeStr, dateOnly];
+        const result = await db.query(query, values);
+        res.json({ success: true, order: result.rows[0] });
     } catch (err) {
-        console.error('Order API Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
 
-// 8. Process Order Request
+// Process Order API
 app.post('/api/orders/process', async (req, res) => {
     const { orderId, action, issuerName } = req.body;
     try {
-        const orderRes = await db.query('SELECT * FROM orders WHERE order_id = $1', [orderId]);
-        if (orderRes.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
+        let newStatus = 'UNDER PROCESS';
+        if (action === 'APPROVE') newStatus = 'APPROVED';
+        else if (action === 'ISSUE') newStatus = 'ISSUED';
+        else if (action === 'REJECT') newStatus = 'REJECTED';
 
-        const order = orderRes.rows[0];
-        let newStatus = action === 'APPROVE' ? 'APPROVED' : (action === 'ISSUE' ? 'ISSUED' : 'REJECTED');
-
-        await db.query(
-            'UPDATE orders SET status = $1, issuer_name = $2 WHERE order_id = $3',
-            [newStatus, issuerName, orderId]
-        );
+        const orderQuery = await db.query('SELECT * FROM orders WHERE order_id = $1', [orderId]);
+        if (orderQuery.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
+        const order = orderQuery.rows[0];
 
         if (action === 'ISSUE') {
-            await db.query(
-                'UPDATE inventory SET issued = issued + $1, current = current - $1 WHERE item_id = $2',
-                [order.qty, order.item_id]
-            );
+            await db.query(`
+                UPDATE inventory 
+                SET issued = issued + $1, current = current - $1 
+                WHERE item_id = $2
+            `, [order.qty, order.item_id]);
         }
 
-        const userRes = await db.query('SELECT email FROM users WHERE name = $1', [order.user_name]);
-        if (userRes.rows.length > 0) {
-            sendOrderEmail(userRes.rows[0].email, order.user_name, order.item_name, order.qty, newStatus, issuerName);
-        }
+        const result = await db.query(`
+            UPDATE orders 
+            SET status = $1, issuer_name = $2 
+            WHERE order_id = $3 
+            RETURNING *;
+        `, [newStatus, issuerName, orderId]);
 
-        res.json({ message: 'Order processed successfully' });
+        res.json({ success: true, order: result.rows[0] });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));// Delete Inventory Item API
+// Add New Item API
+app.post('/api/inventory/add', async (req, res) => {
+    const { name, category, opening } = req.body;
+    try {
+        const query = `
+            INSERT INTO inventory (name, category, opening, received, issued, current, last_date)
+            VALUES ($1, $2, $3, 0, 0, $3, CURRENT_DATE)
+            RETURNING *;
+        `;
+        const values = [name, category, opening];
+        const result = await db.query(query, values);
+        res.json({ success: true, item: result.rows[0] });
+    } catch (err) {
+        console.error('Add Item Error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Update Opening Quantity API
+app.post('/api/inventory/update-opening', async (req, res) => {
+    const { itemId, newOpening } = req.body;
+    try {
+        const itemQuery = await db.query('SELECT * FROM inventory WHERE item_id = $1', [itemId]);
+        if (itemQuery.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
+        const item = itemQuery.rows[0];
+
+        const newCurrent = newOpening + item.received - item.issued;
+
+        const result = await db.query(`
+            UPDATE inventory 
+            SET opening = $1, current = $2 
+            WHERE item_id = $3 
+            RETURNING *;
+        `, [newOpening, newCurrent, itemId]);
+
+        res.json({ success: true, item: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Stock In API
+app.post('/api/inventory/stock-in', async (req, res) => {
+    const { itemId, qty, dateStr, receiver } = req.body;
+    try {
+        await db.query(`
+            UPDATE inventory 
+            SET received = received + $1, current = current + $1, last_date = $2 
+            WHERE item_id = $3
+        `, [qty, dateStr, itemId]);
+
+        await db.query(`
+            INSERT INTO received_logs (item_id, receiver_name, qty, date_only, time_str)
+            VALUES ($1, $2, $3, $4, $5)
+        `, [itemId, receiver, qty, dateStr, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })]);
+
+        res.json({ success: true, message: 'Stock received logged successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete Inventory Item API
 app.delete('/api/inventory/delete/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -337,4 +282,9 @@ app.delete('/api/orders/delete/:orderId', async (req, res) => {
         console.error('Delete Order Error:', err.message);
         res.status(500).json({ error: err.message });
     }
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
