@@ -315,4 +315,26 @@ app.post('/api/orders/process', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));// Delete Inventory Item API
+app.delete('/api/inventory/delete/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query('DELETE FROM inventory WHERE item_id = $1', [id]);
+        res.json({ message: 'Item deleted successfully from database' });
+    } catch (err) {
+        console.error('Delete Item Error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete Order API
+app.delete('/api/orders/delete/:orderId', async (req, res) => {
+    const { orderId } = req.params;
+    try {
+        await db.query('DELETE FROM orders WHERE order_id = $1', [orderId]);
+        res.json({ message: 'Order deleted successfully from database' });
+    } catch (err) {
+        console.error('Delete Order Error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
