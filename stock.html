@@ -127,7 +127,7 @@
         <!-- Workspace Container -->
         <div class="max-w-7xl mx-auto p-6">
 
-            <!-- USER PANEL (Multiple Order Cart with Units) -->
+            <!-- USER PANEL -->
             <div id="userPanel" class="space-y-6">
                 <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
                     <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
@@ -1199,7 +1199,6 @@
             populateCategoriesDropdown();
             populateUserDropdown();
 
-            // User Orders
             const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => (o.user_name === currentUser.name || o.user === currentUser.name)) : orders;
             const uOrdersTbl = document.getElementById('userOrdersTable');
             if(uOrdersTbl) {
@@ -1215,7 +1214,6 @@
                 `).join('') || `<tr><td colspan="6" class="p-4 text-center text-gray-400">No orders found.</td></tr>`;
             }
 
-            // Admin Pending
             const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED');
             const pCountEl = document.getElementById('pendingCount');
             if(pCountEl) pCountEl.innerText = pending.length;
@@ -1241,7 +1239,6 @@
             renderLedgerTableCustom(inventory);
             renderUserHistoryTableCustom(orders);
 
-            // Users Table
             const adminUsersTbl = document.getElementById('adminUsersTable');
             if(adminUsersTbl) {
                 adminUsersTbl.innerHTML = usersList.map(u => `
@@ -1263,7 +1260,6 @@
                 `).join('') || `<tr><td colspan="8" class="p-4 text-center text-gray-400">No users found.</td></tr>`;
             }
 
-            // Logs Table
             const adminLogsTbl = document.getElementById('adminLogsTable');
             if(adminLogsTbl) {
                 adminLogsTbl.innerHTML = orders.map(o => `
@@ -1276,7 +1272,6 @@
             }
         }
 
-        // Initial fetch on page load
         fetchAppState();
     </script>
 </body>
