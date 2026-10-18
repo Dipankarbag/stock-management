@@ -75,12 +75,12 @@ async function initDB() {
         if (adminCheck.rows.length === 0) {
             await db.query(`
                 INSERT INTO users (user_id, name, email, password, dept, phone, role, status)
-                VALUES ('USR-001', 'System Admin', 'admin@stockflow.com', '123', 'IT & Admin', '+91 9876543210', 'ADMIN', 'ACTIVE')
+                VALUES ('USR-001', 'System Admin', 'dipankardag1987@gmail.com', '123', 'IT & Admin', '+91 9876543210', 'ADMIN', 'ACTIVE')
                 ON CONFLICT (email) DO NOTHING;
             `);
         }
 
-        console.log('Database Tables Verified & Default Admin Ready!');
+        console.log('Database Tables Verified & Default Admin Ready!');[cite: 4]
     } catch (err) {
         console.error('Init DB Error:', err.message);
     }
@@ -113,7 +113,7 @@ app.post('/api/users/login', async (req, res) => {
     const { username, password } = req.body;
     try {
         const query = 'SELECT * FROM users WHERE (LOWER(email) = LOWER($1) OR LOWER(name) = LOWER($1)) AND password = $2';
-        const result = await db.query(query, [username, password]);
+        const result = await db.query(query, [username.trim(), password.trim()]);
         if (result.rows.length > 0) {
             res.json({ success: true, user: result.rows[0] });
         } else {
