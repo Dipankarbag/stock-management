@@ -29,12 +29,12 @@
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email / Username</label>
-                    <input type="text" id="loginUsername" placeholder="exmpl@gmail.com" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    <input type="text" id="loginUsername" placeholder="dipankardag1987@gmail.com" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Password</label>
-                    <input type="password" id="loginPassword" placeholder="1234" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    <input type="password" id="loginPassword" placeholder="123" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
                 </div>
 
                 <div id="loginError" class="hidden text-xs text-red-600 font-semibold text-center bg-red-50 p-2 rounded border border-red-200">
@@ -508,6 +508,7 @@
         let inventory = [];
         let orders = [];
         let receivedLogs = [];
+        let liveSyncInterval = null;
 
         function handleLogin(e) {
             e.preventDefault();
@@ -544,11 +545,21 @@
                         switchPanel('user');
                     }
                     fetchAppState();
+                    startLiveSync();
                 } else {
                     errorDiv.classList.remove('hidden');
                 }
             })
             .catch(err => alert("Login connection error!"));
+        }
+
+        function startLiveSync() {
+            if (liveSyncInterval) clearInterval(liveSyncInterval);
+            liveSyncInterval = setInterval(() => {
+                if (currentUser) {
+                    fetchAppState(true); // background fetch without jarring UI
+                }
+            }, 3000); // Live poll every 3 seconds
         }
 
         function toggleAuthMode(mode) {
@@ -589,6 +600,7 @@
         }
 
         function handleLogout() {
+            if (liveSyncInterval) clearInterval(liveSyncInterval);
             currentUser = null;
             document.getElementById('mainDashboard').classList.add('hidden');
             document.getElementById('authScreen').classList.remove('hidden');
@@ -690,10 +702,11 @@
         function submitBulkOrders() {
             if (orderCart.length === 0) return;
 
-            const baseOrderId = Math.floor(100 + Math.random() * 900);
+            // Generate clean number series ID based on existing orders count + 1
+            let nextIdNum = orders.length + 1;
             let promises = orderCart.map((cartItem, idx) => {
                 const newOrderData = {
-                    orderId: 'ORD-' + baseOrderId + '-' + (idx + 1),
+                    orderId: String(nextIdNum + idx),
                     user: currentUser.name,
                     itemId: cartItem.itemId,
                     itemName: cartItem.itemName,
@@ -1099,7 +1112,7 @@
             let html = '';
             list.forEach(o => {
                 html += '<tr>' +
-                    '<td class="p-3 text-blue-600">' + (o.order_id || o.id) + '</td>' +
+                    '<td class="p-3 text-blue-600 font-bold">ORD-' + (o.order_id || o.id) + '</td>' +
                     '<td class="p-3 font-bold">' + (o.user_name || o.user) + '</td>' +
                     '<td class="p-3">' + (o.item_name || o.itemName) + '</td>' +
                     '<td class="p-3 text-xs">' + o.category + '</td>' +
@@ -1116,14 +1129,14 @@
 
         function exportUserOrdersCSV() {
             let csv = "Order ID,User Name,Item Name,Category,Qty,Time,Status\n";
-            orders.forEach(o => { csv += '"' + (o.order_id || o.id) + '","' + (o.user_name || o.user) + '","' + (o.item_name || o.itemName) + '","' + o.category + '","' + o.qty + '","' + (o.time_str || o.time) + '","' + o.status + '"\n'; });
+            orders.forEach(o => { csv += '"ORD-' + (o.order_id || o.id) + '","' + (o.user_name || o.user) + '","' + (o.item_name || o.itemName) + '","' + o.category + '","' + o.qty + '","' + (o.time_str || o.time) + '","' + o.status + '"\n'; });
             const link = document.createElement("a");
             link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
             link.download = "User_Order_History.csv";
             link.click();
         }
 
-        function fetchAppState() {
+        function fetchAppState(isBackground = false) {
             fetch('/api/state')
                 .then(res => res.json())
                 .then(data => {
@@ -1147,7 +1160,7 @@
                 let html = '';
                 userOrders.forEach(o => {
                     html += '<tr>' +
-                        '<td class="p-3 font-semibold text-blue-600">' + (o.order_id || o.id) + '</td>' +
+                        '<td class="p-3 font-semibold text-blue-600">ORD-' + (o.order_id || o.id) + '</td>' +
                         '<td class="p-3">' + (o.item_name || o.itemName) + '</td>' +
                         '<td class="p-3 text-gray-500">' + o.category + '</td>' +
                         '<td class="p-3 font-bold text-center">' + o.qty + '</td>' +
@@ -1167,7 +1180,7 @@
                 let html = '';
                 pending.forEach(o => {
                     html += '<tr>' +
-                        '<td class="p-3 font-semibold text-blue-600">' + (o.order_id || o.id) + '</td>' +
+                        '<td class="p-3 font-semibold text-blue-600">ORD-' + (o.order_id || o.id) + '</td>' +
                         '<td class="p-3 font-bold">' + (o.user_name || o.user) + '</td>' +
                         '<td class="p-3">' + (o.item_name || o.itemName) + '</td>' +
                         '<td class="p-3 text-center font-bold">' + o.qty + '</td>' +
@@ -1212,7 +1225,7 @@
                     html += '<tr>' +
                         '<td class="p-3 text-xs text-gray-400">' + (o.date_only ? o.date_only.split('T')[0] : '') + ' ' + (o.time_str || '') + '</td>' +
                         '<td class="p-3 text-xs font-bold text-gray-700">' + (o.user_name || 'System User') + '</td>' +
-                        '<td class="p-3 text-xs text-gray-800">Order ' + o.order_id + ' for ' + o.item_name + ' (Qty: ' + o.qty + ') - Status: ' + o.status + '</td>' +
+                        '<td class="p-3 text-xs text-gray-800">Order ORD-' + (o.order_id || o.id) + ' for ' + o.item_name + ' (Qty: ' + o.qty + ') - Status: ' + o.status + '</td>' +
                     '</tr>';
                 });
                 adminLogsTbl.innerHTML = html || '<tr><td colspan="3" class="p-4 text-center text-gray-400">No logs found.</td></tr>';
