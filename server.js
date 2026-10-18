@@ -80,7 +80,7 @@ async function initDB() {
             `);
         }
 
-        console.log('Database Tables Verified & Default Admin Ready!');[cite: 4]
+        console.log('Database Tables Verified & Default Admin Ready!');
     } catch (err) {
         console.error('Init DB Error:', err.message);
     }
