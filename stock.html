@@ -542,31 +542,10 @@
 
         const securityPassword = "admin123";
 
-        let usersList = [
-            { id: "USR-001", name: "System Admin", email: "admin@stockflow.com", password: "123", dept: "IT & Admin", phone: "+91 9876543210", role: "ADMIN", status: "ACTIVE" },
-            { id: "USR-002", name: "Rahul Sharma", email: "rahul@company.com", password: "123", dept: "Operations", phone: "+91 9123456789", role: "USER", status: "ACTIVE" }
-        ];
-
-        let inventory = [
-            { id: "1", name: "A4 Paper Rim", category: "Stationery", unit: "pkt", opening: 150, received: 10, issued: 30, current: 130, lastDate: "2026-10-05" },
-            { id: "2", name: "Ball Pens Box", category: "Stationery", unit: "box", opening: 20, received: 5, issued: 10, current: 15, lastDate: "2026-10-08" },
-            { id: "3", name: "Dell USB Mouse", category: "IT Hardware", unit: "pcs", opening: 10, received: 0, issued: 5, current: 5, lastDate: "2026-10-01" },
-            { id: "4", name: "Logitech Keyboard", category: "IT Hardware", unit: "pcs", opening: 8, received: 2, issued: 8, current: 2, lastDate: "2026-10-09" },
-            { id: "5", name: "Hand Sanitizer 500ml", category: "Cleaning", unit: "nos", opening: 50, received: 10, issued: 5, current: 55, lastDate: "2026-10-11" }
-        ];
-
-        let orders = [
-            { id: "ORD-101", user: "Rahul Sharma", issuer: "System Admin", itemId: "1", itemName: "A4 Paper Rim (pkt)", category: "Stationery", qty: 2, time: "2026-10-10 08:30 AM", dateOnly: "2026-10-10", status: "ISSUED" },
-            { id: "ORD-102", user: "Rahul Sharma", issuer: "System Admin", itemId: "2", itemName: "Ball Pens Box (box)", category: "Stationery", qty: 5, time: "2026-10-08 11:15 AM", dateOnly: "2026-10-08", status: "ISSUED" }
-        ];
-
-        let receivedLogs = [
-            { itemId: "1", user: "System Admin", qty: 10, dateOnly: "2026-10-05", time: "10:15 AM" },
-            { itemId: "2", user: "System Admin", qty: 5, dateOnly: "2026-10-08", time: "02:30 PM" },
-            { itemId: "4", user: "System Admin", qty: 2, dateOnly: "2026-10-09", time: "11:00 AM" },
-            { itemId: "5", user: "System Admin", qty: 10, dateOnly: "2026-10-11", time: "09:45 AM" }
-        ];
-
+        let usersList = [];
+        let inventory = [];
+        let orders = [];
+        let receivedLogs = [];
         let logs = [{ time: new Date().toLocaleTimeString(), user: "System", action: "App Initialized" }];
 
         function handleLogin(e) {
@@ -576,34 +555,39 @@
             const errorDiv = document.getElementById('loginError');
 
             errorDiv.classList.add('hidden');
-            const matchedUser = usersList.find(u => (u.email.toLowerCase() === emailInput || u.name.toLowerCase() === emailInput) && u.password === passwordInput);
 
-            if (matchedUser) {
-                if (matchedUser.status !== 'ACTIVE') {
-                    alert("Your account is disabled by Admin!");
-                    return;
-                }
-                currentUser = matchedUser;
-                document.getElementById('authScreen').classList.add('hidden');
-                document.getElementById('mainDashboard').classList.remove('hidden');
-                document.getElementById('displayUserName').innerText = currentUser.name;
-                document.getElementById('displayUserRole').innerText = currentUser.role;
+            fetch('/api/users/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: emailInput, password: passwordInput })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.user.status !== 'ACTIVE') {
+                        alert("Your account is disabled by Admin!");
+                        return;
+                    }
+                    currentUser = data.user;
+                    document.getElementById('authScreen').classList.add('hidden');
+                    document.getElementById('mainDashboard').classList.remove('hidden');
+                    document.getElementById('displayUserName').innerText = currentUser.name;
+                    document.getElementById('displayUserRole').innerText = currentUser.role;
 
-                const switcher = document.getElementById('panelSwitcherContainer');
-                if (currentUser.role === 'ADMIN') {
-                    switcher.classList.remove('hidden');
-                    populateUserDropdown();
-                    populateCategoriesDropdown();
-                    switchPanel('admin');
+                    const switcher = document.getElementById('panelSwitcherContainer');
+                    if (currentUser.role === 'ADMIN') {
+                        switcher.classList.remove('hidden');
+                        switchPanel('admin');
+                    } else {
+                        switcher.classList.add('hidden');
+                        switchPanel('user');
+                    }
+                    fetchAppState();
                 } else {
-                    switcher.classList.add('hidden');
-                    switchPanel('user');
+                    errorDiv.classList.remove('hidden');
                 }
-                populateUserItemDropdown();
-                renderAll();
-            } else {
-                errorDiv.classList.remove('hidden');
-            }
+            })
+            .catch(err => alert("Login connection error!"));
         }
 
         function toggleAuthMode(mode) {
@@ -625,13 +609,22 @@
             const password = document.getElementById('regPassword').value.trim();
 
             const newUser = {
-                id: "USR-00" + (usersList.length + 1),
+                userId: "USR-00" + Math.floor(100 + Math.random() * 900),
                 name, email, password, dept, phone, role: "USER", status: "ACTIVE"
             };
 
-            usersList.push(newUser);
-            alert("Registration successful! You can now login with: " + email);
-            toggleAuthMode('login');
+            fetch('/api/users/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newUser)
+            })
+            .then(res => res.json())
+            .then(() => {
+                alert("Registration successful! You can now login.");
+                toggleAuthMode('login');
+                document.getElementById('registerForm').reset();
+            })
+            .catch(err => alert("Registration error!"));
         }
 
         function handleLogout() {
@@ -653,9 +646,11 @@
 
         function switchAdminTab(tab) {
             ['requests', 'stock', 'userOrders', 'users', 'logs'].forEach(t => {
-                document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('hidden');
+                const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+                if(el) el.classList.add('hidden');
             });
-            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
+            const target = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+            if(target) target.classList.remove('hidden');
         }
 
         function populateUserItemDropdown() {
@@ -663,14 +658,14 @@
             if(!select) return;
             select.innerHTML = '<option value="" disabled selected>-- Choose Item --</option>';
             inventory.forEach(i => {
-                select.innerHTML += `<option value="${i.id}">${i.name} (${i.category}) - [Avail: ${i.current} ${i.unit || 'pcs'}]</option>`;
+                select.innerHTML += `<option value="${i.item_id || i.id}">${i.name} (${i.category}) - [Avail: ${i.current} ${i.unit || 'pcs'}]</option>`;
             });
         }
 
         function addToOrderCart() {
             const itemId = document.getElementById('cartItemSelect').value;
             const qty = parseInt(document.getElementById('cartItemQty').value);
-            const item = inventory.find(i => i.id === itemId);
+            const item = inventory.find(i => (i.item_id == itemId || i.id == itemId));
 
             if (!item) {
                 alert("Please select a valid item!");
@@ -685,7 +680,7 @@
                 return;
             }
 
-            const existingIndex = orderCart.findIndex(cartItem => cartItem.itemId === itemId);
+            const existingIndex = orderCart.findIndex(cartItem => cartItem.itemId == itemId);
             if (existingIndex > -1) {
                 if (orderCart[existingIndex].qty + qty > item.current) {
                     alert("Total cart quantity exceeds available stock!");
@@ -694,7 +689,7 @@
                 orderCart[existingIndex].qty += qty;
             } else {
                 orderCart.push({
-                    itemId: item.id,
+                    itemId: item.item_id || item.id,
                     itemName: `${item.name} (${item.unit || 'pcs'})`,
                     category: item.category,
                     qty: qty
@@ -742,90 +737,90 @@
             if (orderCart.length === 0) return;
 
             const baseOrderId = Math.floor(100 + Math.random() * 900);
-            orderCart.forEach((cartItem, idx) => {
-                const newOrder = {
-                    id: `ORD-${baseOrderId}-${idx + 1}`,
+            let promises = orderCart.map((cartItem, idx) => {
+                const newOrderData = {
+                    orderId: `ORD-${baseOrderId}-${idx + 1}`,
                     user: currentUser.name,
-                    issuer: "N/A",
                     itemId: cartItem.itemId,
                     itemName: cartItem.itemName,
                     category: cartItem.category,
                     qty: cartItem.qty,
-                    time: new Date().toLocaleTimeString(),
-                    dateOnly: new Date().toISOString().split('T')[0],
-                    status: "UNDER PROCESS"
+                    timeStr: new Date().toLocaleTimeString(),
+                    dateOnly: new Date().toISOString().split('T')[0]
                 };
-                orders.unshift(newOrder);
 
-                fetch('http://localhost:5000/api/orders/create', {
+                return fetch('/api/orders/create', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        orderId: newOrder.id,
-                        user: newOrder.user,
-                        itemId: newOrder.itemId,
-                        itemName: newOrder.itemName,
-                        category: newOrder.category,
-                        qty: newOrder.qty,
-                        timeStr: newOrder.time,
-                        dateOnly: newOrder.dateOnly
-                    })
-                }).catch(e => console.log('Backend sync skipped'));
+                    body: JSON.stringify(newOrderData)
+                });
             });
 
-            alert("All cart items submitted successfully as orders!");
-            orderCart = [];
-            renderOrderCart();
-            renderAll();
+            Promise.all(promises)
+                .then(() => {
+                    alert("All cart items submitted successfully as orders!");
+                    orderCart = [];
+                    renderOrderCart();
+                    fetchAppState();
+                })
+                .catch(err => alert("Error submitting bulk orders!"));
         }
 
         function processOrder(orderId, action) {
-            const order = orders.find(o => o.id === orderId);
-            const item = inventory.find(i => i.id === order.itemId);
-
-            if (action === 'APPROVE') order.status = 'APPROVED';
-            else if (action === 'ISSUE') {
-                order.status = 'ISSUED';
-                order.issuer = currentUser ? currentUser.name : "System Admin";
-                item.issued += order.qty;
-                item.current -= order.qty;
-            } else if (action === 'REJECT') order.status = 'REJECTED';
-
-            fetch('http://localhost:5000/api/orders/process', {
+            fetch('/api/orders/process', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    orderId: order.id,
+                    orderId: orderId,
                     action: action,
                     issuerName: currentUser ? currentUser.name : "System Admin"
                 })
-            }).catch(e => console.log('Offline mode or server not reachable'));
-
-            renderAll();
+            })
+            .then(res => res.json())
+            .then(() => fetchAppState())
+            .catch(err => alert("Error processing order"));
         }
 
         function deleteInventoryItem(itemId) {
-            if (confirm("Are you sure you want to delete this inventory item?")) {
-                inventory = inventory.filter(i => i.id !== itemId);
-                fetch(`http://localhost:5000/api/inventory/delete/${itemId}`, { method: 'DELETE' })
-                    .catch(e => console.log('Backend delete sync skipped'));
-                populateUserItemDropdown();
-                populateCategoriesDropdown();
-                renderAll();
+            if (confirm("Are you sure you want to delete this item?")) {
+                fetch(`/api/inventory/delete/${itemId}`, { method: 'DELETE' })
+                .then(() => fetchAppState())
+                .catch(err => alert("Delete error"));
             }
         }
 
         function deleteOrderRecord(orderId) {
             if (confirm("Are you sure you want to delete this order record?")) {
-                orders = orders.filter(o => o.id !== orderId);
-                fetch(`http://localhost:5000/api/orders/delete/${orderId}`, { method: 'DELETE' })
-                    .catch(e => console.log('Backend delete order sync skipped'));
-                renderAll();
+                fetch(`/api/orders/delete/${orderId}`, { method: 'DELETE' })
+                .then(() => fetchAppState())
+                .catch(err => alert("Delete order error"));
+            }
+        }
+
+        function toggleUserStatus(userId, currentStatus) {
+            const newStatus = currentStatus === 'ACTIVE' ? 'DISABLED' : 'ACTIVE';
+            fetch('/api/users/status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, status: newStatus })
+            })
+            .then(res => res.json())
+            .then(() => fetchAppState())
+            .catch(err => alert("Error updating user status"));
+        }
+
+        function deleteUserAccount(userId) {
+            if (confirm("Are you sure you want to delete this user?")) {
+                fetch(`/api/users/delete/${userId}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(() => fetchAppState())
+                .catch(err => alert("Error deleting user"));
             }
         }
 
         function populateCategoriesDropdown() {
             const select = document.getElementById('ledgerCategoryFilter');
+            if(!select) return;
             select.innerHTML = '<option value="ALL">-- All Categories --</option>';
             const cats = [...new Set(inventory.map(i => i.category))];
             cats.forEach(c => {
@@ -839,11 +834,12 @@
             const end = document.getElementById('ledgerEndDate').value;
 
             const filtered = inventory.filter(i => {
+                const lastDateStr = i.last_date ? i.last_date.split('T')[0] : (i.lastDate || '');
                 if(catVal !== 'ALL' && i.category !== catVal) return false;
-                if(start && end && i.lastDate) {
-                    if(i.lastDate < start || i.lastDate > end) return false;
-                } else if(start && i.lastDate) {
-                    if(i.lastDate < start) return false;
+                if(start && end && lastDateStr) {
+                    if(lastDateStr < start || lastDateStr > end) return false;
+                } else if(start && lastDateStr) {
+                    if(lastDateStr < start) return false;
                 }
                 return true;
             });
@@ -863,7 +859,7 @@
             if (pwd === null) return;
             
             if (pwd === securityPassword) {
-                const item = inventory.find(i => i.id === itemId);
+                const item = inventory.find(i => (i.item_id == itemId || i.id == itemId));
                 const newOpeningStr = prompt(`Enter New Opening Quantity for '${item.name}':`, item.opening);
                 const newOpening = parseInt(newOpeningStr);
 
@@ -882,31 +878,33 @@
 
         function renderLedgerTableCustom(list) {
             currentFilteredLedger = list;
-            document.getElementById('adminStockTable').innerHTML = list.map(i => `
+            const tbl = document.getElementById('adminStockTable');
+            if(!tbl) return;
+            tbl.innerHTML = list.map(i => `
                 <tr>
                     <td class="p-3 font-bold">${i.name}</td>
                     <td class="p-3 text-xs">${i.category}</td>
                     <td class="p-3 text-center font-semibold text-purple-700">${i.unit || 'pcs'}</td>
                     <td class="p-3 text-center">
-                        <button onclick="editOpeningQuantity('${i.id}')" title="Click to edit Opening Quantity (Password Protected)" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-2.5 py-1 rounded border border-gray-300 text-xs">
+                        <button onclick="editOpeningQuantity('${i.item_id || i.id}')" title="Click to edit Opening Quantity (Password Protected)" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-2.5 py-1 rounded border border-gray-300 text-xs">
                             ${i.opening} <i class="fa-solid fa-lock text-[10px] text-amber-600 ml-1"></i>
                         </button>
                     </td>
                     <td class="p-3 text-center">
-                        <button onclick="showReceivedBreakdown('${i.id}')" title="Click to view received stock details" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-blue-300">
+                        <button onclick="showReceivedBreakdown('${i.item_id || i.id}')" title="Click to view received stock details" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-blue-300">
                             +${i.received} <i class="fa-solid fa-circle-info ml-1 text-[10px]"></i>
                         </button>
                     </td>
                     <td class="p-3 text-center">
-                        <button onclick="showIssuedBreakdown('${i.id}')" title="Click to view issued user details" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-amber-300">
+                        <button onclick="showIssuedBreakdown('${i.item_id || i.id}')" title="Click to view issued user details" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-amber-300">
                             -${i.issued} <i class="fa-solid fa-circle-info ml-1 text-[10px]"></i>
                         </button>
                     </td>
                     <td class="p-3 text-center text-emerald-700 font-extrabold">${i.current}</td>
-                    <td class="p-3 text-center text-xs text-gray-500">${i.lastDate || 'N/A'}</td>
+                    <td class="p-3 text-center text-xs text-gray-500">${i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')}</td>
                     <td class="p-3 text-center space-x-1">
-                        <button onclick="openStockInModal('${i.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold shadow">+ Stock In</button>
-                        <button onclick="deleteInventoryItem('${i.id}')" title="Delete Item" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-bold shadow"><i class="fa-solid fa-trash"></i></button>
+                        <button onclick="openStockInModal('${i.item_id || i.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold shadow">+ Stock In</button>
+                        <button onclick="deleteInventoryItem('${i.item_id || i.id}')" title="Delete Item" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-bold shadow"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -915,7 +913,7 @@
         function exportLedgerCSV() {
             if(currentFilteredLedger.length === 0) { alert("No ledger data available to export!"); return; }
             let csv = "Inventory Movement Ledger Report\nItem Name,Category,Unit,Opening Stock,Received Stock,Issued Stock,Closing Balance,Last Received Date\n";
-            currentFilteredLedger.forEach(i => { csv += `"${i.name}","${i.category}","${i.unit || 'pcs'}","${i.opening}","${i.received}","${i.issued}","${i.current}","${i.lastDate || 'N/A'}"\n`; });
+            currentFilteredLedger.forEach(i => { csv += `"${i.name}","${i.category}","${i.unit || 'pcs'}","${i.opening}","${i.received}","${i.issued}","${i.current}","${i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')}"\n`; });
             const link = document.createElement("a");
             link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
             link.download = `Inventory_Movement_Ledger_${new Date().toISOString().split('T')[0]}.csv`;
@@ -929,7 +927,7 @@
                 <html><head><title>Inventory Movement Ledger Report</title>
                 <style>body { font-family: Arial, sans-serif; padding: 20px; color: #333; } h2 { color: #0f172a; margin-bottom: 2px; } p { font-size: 13px; color: #64748b; margin-top: 0; } table { width: 100%; border-collapse: collapse; margin-top: 15px; } th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 13px; } th { background-color: #0f172a; color: white; } .text-center { text-align: center; } .font-bold { font-weight: bold; }</style>
                 </head><body><h2>Inventory Movement Ledger Report</h2><p>Generated Date: ${new Date().toLocaleString()}</p><hr/><table><thead><tr><th>Item Name</th><th>Category</th><th class="text-center">Unit</th><th class="text-center">Opening</th><th class="text-center">Received</th><th class="text-center">Issued</th><th class="text-center">Closing Balance</th><th class="text-center">Last Received Date</th></tr></thead><tbody>
-                ${currentFilteredLedger.map(i => `<tr><td class="font-bold">${i.name}</td><td>${i.category}</td><td class="text-center">${i.unit || 'pcs'}</td><td class="text-center">${i.opening}</td><td class="text-center">+${i.received}</td><td class="text-center">-${i.issued}</td><td class="text-center font-bold">${i.current}</td><td class="text-center">${i.lastDate || 'N/A'}</td></tr>`).join('')}
+                ${currentFilteredLedger.map(i => `<tr><td class="font-bold">${i.name}</td><td>${i.category}</td><td class="text-center">${i.unit || 'pcs'}</td><td class="text-center">${i.opening}</td><td class="text-center">+${i.received}</td><td class="text-center">-${i.issued}</td><td class="text-center font-bold">${i.current}</td><td class="text-center">${i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')}</td></tr>`).join('')}
                 </tbody></table></body></html>
             `);
             printWin.document.close(); printWin.focus(); setTimeout(() => { printWin.print(); }, 500);
@@ -937,10 +935,10 @@
 
         function showReceivedBreakdown(itemId) {
             activeReceivedItemId = itemId;
-            const item = inventory.find(i => i.id === itemId);
+            const item = inventory.find(i => (i.item_id == itemId || i.id == itemId));
             document.getElementById('receivedItemTitle').innerText = `${item.name} (${item.category})`;
             
-            const logsForNext = receivedLogs.filter(l => l.itemId === itemId);
+            const logsForNext = receivedLogs.filter(l => (l.item_id == itemId || l.itemId == itemId));
             const tbody = document.getElementById('receivedDetailsTable');
 
             if(logsForNext.length === 0) {
@@ -948,9 +946,9 @@
             } else {
                 tbody.innerHTML = logsForNext.map(l => `
                     <tr>
-                        <td class="p-3 font-bold text-gray-800">${l.user}</td>
+                        <td class="p-3 font-bold text-gray-800">${l.receiver_name || l.user}</td>
                         <td class="p-3 text-center font-bold text-blue-700 text-base">+${l.qty} ${item.unit || 'pcs'}</td>
-                        <td class="p-3 text-xs text-gray-500">${l.dateOnly} (${l.time})</td>
+                        <td class="p-3 text-xs text-gray-500">${l.date_only ? l.date_only.split('T')[0] : (l.dateOnly || '')} (${l.time_str || l.time || ''})</td>
                         <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800">RECEIVED</span></td>
                     </tr>
                 `).join('');
@@ -966,13 +964,13 @@
 
         function exportReceivedModalCSV() {
             if(!activeReceivedItemId) return;
-            const item = inventory.find(i => i.id === activeReceivedItemId);
-            const logsForNext = receivedLogs.filter(l => l.itemId === activeReceivedItemId);
+            const item = inventory.find(i => (i.item_id == activeReceivedItemId || i.id == activeReceivedItemId));
+            const logsForNext = receivedLogs.filter(l => (l.item_id == activeReceivedItemId || l.itemId == activeReceivedItemId));
 
             if(logsForNext.length === 0) { alert("No received stock records available to export!"); return; }
 
             let csv = `Stock Received Details Report - ${item.name} (${item.category})\nReceived By,Received Quantity,Date,Time,Status\n`;
-            logsForNext.forEach(l => { csv += `"${l.user}","${l.qty}","${l.dateOnly}","${l.time}","RECEIVED"\n`; });
+            logsForNext.forEach(l => { csv += `"${l.receiver_name || l.user}","${l.qty}","${l.date_only ? l.date_only.split('T')[0] : (l.dateOnly || '')}","${l.time_str || l.time || ''}","RECEIVED"\n`; });
 
             const link = document.createElement("a");
             link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
@@ -982,8 +980,8 @@
 
         function printReceivedModalReport() {
             if(!activeReceivedItemId) return;
-            const item = inventory.find(i => i.id === activeReceivedItemId);
-            const logsForNext = receivedLogs.filter(l => l.itemId === activeReceivedItemId);
+            const item = inventory.find(i => (i.item_id == activeReceivedItemId || i.id == activeReceivedItemId));
+            const logsForNext = receivedLogs.filter(l => (l.item_id == activeReceivedItemId || l.itemId == activeReceivedItemId));
 
             const printWin = window.open('', '_blank');
             printWin.document.write(`
@@ -991,7 +989,7 @@
                 <style>body { font-family: Arial, sans-serif; padding: 20px; color: #333; } h2 { color: #1e293b; margin-bottom: 2px; } p { font-size: 13px; color: #64748b; margin-top: 0; } table { width: 100%; border-collapse: collapse; margin-top: 15px; } th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 13px; } th { background-color: #0f172a; color: white; } .text-center { text-align: center; }</style>
                 </head><body><h2>Stock Received Logs Breakdown Report</h2><p><strong>Item:</strong> ${item.name} | <strong>Category:</strong> ${item.category} | <strong>Generated:</strong> ${new Date().toLocaleString()}</p><hr/>
                 <table><thead><tr><th>Received By (Receiver Name)</th><th class="text-center">Quantity Received</th><th>Date & Time</th><th class="text-center">Status</th></tr></thead><tbody>
-                ${logsForNext.length === 0 ? `<tr><td colspan="4" class="text-center">No received records.</td></tr>` : logsForNext.map(l => `<tr><td>${l.user}</td><td class="text-center"><strong>+${l.qty}${item.unit || 'pcs'}</strong></td><td>${l.dateOnly} (${l.time})</td><td class="text-center">RECEIVED</td></tr>`).join('')}
+                ${logsForNext.length === 0 ? `<tr><td colspan="4" class="text-center">No received records.</td></tr>` : logsForNext.map(l => `<tr><td>${l.receiver_name || l.user}</td><td class="text-center"><strong>+${l.qty}${item.unit || 'pcs'}</strong></td><td>${l.date_only ? l.date_only.split('T')[0] : (l.dateOnly \vert{}\vert{} '')} (${l.time_str || l.time || ''})</td><td class="text-center">RECEIVED</td></tr>`).join('')}
                 </tbody></table></body></html>
             `);
             printWin.document.close(); printWin.focus(); setTimeout(() => { printWin.print(); }, 500);
@@ -999,10 +997,10 @@
 
         function showIssuedBreakdown(itemId) {
             activeIssuedItemId = itemId;
-            const item = inventory.find(i => i.id === itemId);
+            const item = inventory.find(i => (i.item_id == itemId || i.id == itemId));
             document.getElementById('issuedItemTitle').innerText = `${item.name} (${item.category})`;
             
-            const itemIssuedOrders = orders.filter(o => o.itemId === itemId && o.status === 'ISSUED');
+            const itemIssuedOrders = orders.filter(o => (o.item_id == itemId || o.itemId == itemId) && o.status === 'ISSUED');
             const tbody = document.getElementById('issuedDetailsTable');
 
             if(itemIssuedOrders.length === 0) {
@@ -1010,10 +1008,10 @@
             } else {
                 tbody.innerHTML = itemIssuedOrders.map(o => `
                     <tr>
-                        <td class="p-3 font-bold text-gray-800">${o.user}</td>
-                        <td class="p-3 font-bold text-blue-700">${o.issuer || 'System Admin'}</td>
+                        <td class="p-3 font-bold text-gray-800">${o.user_name || o.user}</td>
+                        <td class="p-3 font-bold text-blue-700">${o.issuer_name || o.issuer || 'System Admin'}</td>
                         <td class="p-3 text-center font-bold text-amber-700 text-base">${o.qty} ${item.unit || 'pcs'}</td>
-                        <td class="p-3 text-xs text-gray-500">${o.dateOnly} (${o.time})</td>
+                        <td class="p-3 text-xs text-gray-500">${o.date_only ? o.date_only.split('T')[0] : (o.dateOnly || '')} (${o.time_str || o.time || ''})</td>
                         <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-800">ISSUED</span></td>
                     </tr>
                 `).join('');
@@ -1026,12 +1024,12 @@
 
         function exportIssuedModalCSV() {
             if(!activeIssuedItemId) return;
-            const item = inventory.find(i => i.id === activeIssuedItemId);
-            const itemIssuedOrders = orders.filter(o => o.itemId === activeIssuedItemId && o.status === 'ISSUED');
+            const item = inventory.find(i => (i.item_id == activeIssuedItemId || i.id == activeIssuedItemId));
+            const itemIssuedOrders = orders.filter(o => (o.item_id == activeIssuedItemId || o.itemId == activeIssuedItemId) && o.status === 'ISSUED');
             if(itemIssuedOrders.length === 0) { alert("No issued records available to export!"); return; }
 
             let csv = `Issued Stock Details Report - ${item.name} (${item.category})\nIssued To (User),Issued By (Issuer Name),Issued Quantity,Date,Time,Status\n`;
-            itemIssuedOrders.forEach(o => { csv += `"${o.user}","${o.issuer || 'System Admin'}","${o.qty}","${o.dateOnly}","${o.time}","${o.status}"\n`; });
+            itemIssuedOrders.forEach(o => { csv += `"${o.user_name || o.user}","${o.issuer_name || o.issuer || 'System Admin'}","${o.qty}","${o.date_only ? o.date_only.split('T')[0] : (o.dateOnly || '')}","${o.time_str || o.time || ''}","${o.status}"\n`; });
 
             const link = document.createElement("a");
             link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
@@ -1041,8 +1039,8 @@
 
         function printIssuedModalReport() {
             if(!activeIssuedItemId) return;
-            const item = inventory.find(i => i.id === activeIssuedItemId);
-            const itemIssuedOrders = orders.filter(o => o.itemId === activeIssuedItemId && o.status === 'ISSUED');
+            const item = inventory.find(i => (i.item_id == activeIssuedItemId || i.id == activeIssuedItemId));
+            const itemIssuedOrders = orders.filter(o => (o.item_id == activeIssuedItemId || o.itemId == activeIssuedItemId) && o.status === 'ISSUED');
 
             const printWin = window.open('', '_blank');
             printWin.document.write(`
@@ -1050,15 +1048,15 @@
                 <style>body { font-family: Arial, sans-serif; padding: 20px; color: #333; } h2 { color: #1e293b; margin-bottom: 2px; } p { font-size: 13px; color: #64748b; margin-top: 0; } table { width: 100%; border-collapse: collapse; margin-top: 15px; } th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 13px; } th { background-color: #0f172a; color: white; } .text-center { text-align: center; }</style>
                 </head><body><h2>Issued Stock Breakdown Report</h2><p><strong>Item:</strong> ${item.name} | <strong>Category:</strong> ${item.category} | <strong>Generated:</strong> ${new Date().toLocaleString()}</p><hr/>
                 <table><thead><tr><th>Issued To (User)</th><th>Issued By (Issuer Name)</th><th class="text-center">Quantity Issued</th><th>Issue Date & Time</th><th class="text-center">Status</th></tr></thead><tbody>
-                ${itemIssuedOrders.length === 0 ? `<tr><td colspan="5" class="text-center">No issued records.</td></tr>` : itemIssuedOrders.map(o => `<tr><td>${o.user}</td><td><strong>${o.issuer || 'System Admin'}</strong></td><td class="text-center"><strong>${o.qty}${item.unit || 'pcs'}</strong></td><td>${o.dateOnly} (${o.time})</td><td class="text-center">${o.status}</td></tr>`).join('')}
+                ${itemIssuedOrders.length === 0 ? `<tr><td colspan="5" class="text-center">No issued records.</td></tr>` : itemIssuedOrders.map(o => `<tr><td>${o.user_name \vert{}\vert{} o.user}</td><td><strong>${o.issuer_name || o.issuer || 'System Admin'}</strong></td><td class="text-center"><strong>${o.qty}${item.unit || 'pcs'}</strong></td><td>${o.date_only ? o.date_only.split('T')[0] : (o.dateOnly \vert{}\vert{} '')} (${o.time_str || o.time || ''})</td><td class="text-center">${o.status}</td></tr>`).join('')}
                 </tbody></table></body></html>
             `);
             printWin.document.close(); printWin.focus(); setTimeout(() => { printWin.print(); }, 500);
         }
 
         function openStockInModal(itemId) {
-            const item = inventory.find(i => i.id === itemId);
-            document.getElementById('stockInItemId').value = item.id;
+            const item = inventory.find(i => (i.item_id == itemId || i.id == itemId));
+            document.getElementById('stockInItemId').value = item.item_id || item.id;
             document.getElementById('stockInItemName').value = `${item.name} (${item.category}) - [Unit: ${item.unit || 'pcs'}]`;
             document.getElementById('stockInQty').value = '';
             document.getElementById('stockInDate').value = new Date().toISOString().split('T')[0];
@@ -1081,17 +1079,17 @@
                 return;
             }
 
-            const item = inventory.find(i => i.id === itemId);
+            const item = inventory.find(i => (i.item_id == itemId || i.id == itemId));
             item.received += qty;
             item.current += qty;
-            item.lastDate = dateStr;
+            item.last_date = dateStr;
 
             receivedLogs.unshift({
-                itemId: item.id,
-                user: receiver,
+                item_id: item.item_id || item.id,
+                receiver_name: receiver,
                 qty: qty,
-                dateOnly: dateStr,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                date_only: dateStr,
+                time_str: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             });
 
             closeStockInModal();
@@ -1110,37 +1108,30 @@
 
             if(!name || !category) { alert("Please enter item name & category!"); return; }
 
-            const newItem = {
-                id: (inventory.length + 1).toString(),
-                name, category, unit, opening, received: 0, issued: 0, current: opening, lastDate: new Date().toISOString().split('T')[0]
-            };
-
-            inventory.push(newItem);
-
-            fetch('http://localhost:5000/api/inventory/add', {
+            fetch('/api/inventory/add', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ name, category, unit, opening })
-            }).catch(e => console.log('Backend sync skipped'));
-
-            closeAddItemModal();
-            populateUserItemDropdown();
-            populateCategoriesDropdown();
-            renderAll();
-            alert("New Item Added Successfully!");
-        }
-
-        function toggleUserStatus(userId) {
-            const u = usersList.find(x => x.id === userId);
-            if(u && u.role !== 'ADMIN') { u.status = u.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE'; renderAll(); }
-        }
-
-        function deleteUserAccount(userId) {
-            if(confirm("Are you sure you want to delete this user?")) { usersList = usersList.filter(x => x.id !== userId); renderAll(); }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert("New Item Added Successfully!");
+                    closeAddItemModal();
+                    document.getElementById('newItemName').value = '';
+                    document.getElementById('newItemCategory').value = '';
+                    document.getElementById('newItemOpening').value = '';
+                    fetchAppState();
+                } else {
+                    alert("Error adding item");
+                }
+            })
+            .catch(err => alert("Server connection error while adding item"));
         }
 
         function populateUserDropdown() {
             const select = document.getElementById('userFilterSelect');
+            if(!select) return;
             select.innerHTML = '<option value="ALL">-- All Users --</option>';
             usersList.forEach(u => { if(u.role !== 'ADMIN') select.innerHTML += `<option value="${u.name}">${u.name}</option>`; });
         }
@@ -1151,9 +1142,11 @@
             const end = document.getElementById('userOrderEndDate').value;
 
             const filtered = orders.filter(o => {
-                let matchUser = (selectedUser === 'ALL' || o.user === selectedUser);
+                const uName = o.user_name || o.user;
+                const dOnly = o.date_only ? o.date_only.split('T')[0] : (o.dateOnly || '');
+                let matchUser = (selectedUser === 'ALL' || uName === selectedUser);
                 let matchDate = true;
-                if(start && end) matchDate = (o.dateOnly >= start && o.dateOnly <= end);
+                if(start && end) matchDate = (dOnly >= start && dOnly <= end);
                 return matchUser && matchDate;
             });
 
@@ -1161,17 +1154,19 @@
         }
 
         function renderUserHistoryTableCustom(list) {
-            document.getElementById('adminUserOrdersHistoryTable').innerHTML = list.map(o => `
+            const tbl = document.getElementById('adminUserOrdersHistoryTable');
+            if(!tbl) return;
+            tbl.innerHTML = list.map(o => `
                 <tr>
-                    <td class="p-3 text-blue-600">${o.id}</td>
-                    <td class="p-3 font-bold">${o.user}</td>
-                    <td class="p-3">${o.itemName}</td>
+                    <td class="p-3 text-blue-600">${o.order_id || o.id}</td>
+                    <td class="p-3 font-bold">${o.user_name || o.user}</td>
+                    <td class="p-3">${o.item_name || o.itemName}</td>
                     <td class="p-3 text-xs">${o.category}</td>
                     <td class="p-3 text-center font-bold">${o.qty}</td>
-                    <td class="p-3 text-xs text-gray-400">${o.time}</td>
+                    <td class="p-3 text-xs text-gray-400">${o.time_str || o.time}</td>
                     <td class="p-3 text-center space-x-1">
                         <span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800">${o.status}</span>
-                        <button onclick="deleteOrderRecord('${o.id}')" title="Delete Order" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-xs font-bold ml-2 shadow"><i class="fa-solid fa-trash"></i></button>
+                        <button onclick="deleteOrderRecord('${o.order_id || o.id}')" title="Delete Order" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-xs font-bold ml-2 shadow"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -1179,90 +1174,110 @@
 
         function exportUserOrdersCSV() {
             let csv = "Order ID,User Name,Item Name,Category,Qty,Time,Status\n";
-            orders.forEach(o => { csv += `"${o.id}","${o.user}","${o.itemName}","${o.category}","${o.qty}","${o.time}","${o.status}"\n`; });
+            orders.forEach(o => { csv += `"${o.order_id || o.id}","${o.user_name || o.user}","${o.item_name || o.itemName}","${o.category}","${o.qty}","${o.time_str || o.time}","${o.status}"\n`; });
             const link = document.createElement("a");
             link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
             link.download = `User_Order_History.csv`;
             link.click();
         }
 
+        function fetchAppState() {
+            fetch('/api/state')
+                .then(res => res.json())
+                .then(data => {
+                    if(data.users) usersList = data.users;
+                    if(data.inventory) inventory = data.inventory;
+                    if(data.orders) orders = data.orders;
+                    if(data.receivedLogs) receivedLogs = data.receivedLogs;
+                    renderAll();
+                })
+                .catch(e => console.log('State fetch error'));
+        }
+
         function renderAll() {
+            populateUserItemDropdown();
+            populateCategoriesDropdown();
+            populateUserDropdown();
+
             // User Orders
-            const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => o.user === currentUser.name) : orders;
-            document.getElementById('userOrdersTable').innerHTML = userOrders.map(o => `
-                <tr>
-                    <td class="p-3 font-semibold text-blue-600">${o.id}</td>
-                    <td class="p-3">${o.itemName}</td>
-                    <td class="p-3 text-gray-500">${o.category}</td>
-                    <td class="p-3 font-bold text-center">${o.qty}</td>
-                    <td class="p-3 text-xs text-gray-400">${o.time}</td>
-                    <td class="p-3 text-center"><span class="px-2 py-1 text-xs rounded-full font-bold bg-amber-100 text-amber-700">${o.status}</span></td>
-                </tr>
-            `).join('');
+            const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => (o.user_name === currentUser.name || o.user === currentUser.name)) : orders;
+            const uOrdersTbl = document.getElementById('userOrdersTable');
+            if(uOrdersTbl) {
+                uOrdersTbl.innerHTML = userOrders.map(o => `
+                    <tr>
+                        <td class="p-3 font-semibold text-blue-600">${o.order_id || o.id}</td>
+                        <td class="p-3">${o.item_name || o.itemName}</td>
+                        <td class="p-3 text-gray-500">${o.category}</td>
+                        <td class="p-3 font-bold text-center">${o.qty}</td>
+                        <td class="p-3 text-xs text-gray-400">${o.time_str || o.time}</td>
+                        <td class="p-3 text-center"><span class="px-2 py-1 text-xs rounded-full font-bold bg-amber-100 text-amber-700">${o.status}</span></td>
+                    </tr>
+                `).join('') || `<tr><td colspan="6" class="p-4 text-center text-gray-400">No orders found.</td></tr>`;
+            }
 
             // Admin Pending
             const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED');
-            document.getElementById('pendingCount').innerText = pending.length;
-            document.getElementById('adminRequestsTable').innerHTML = pending.map(o => `
-                <tr>
-                    <td class="p-3 font-semibold text-blue-600">${o.id}</td>
-                    <td class="p-3 font-bold">${o.user}</td>
-                    <td class="p-3">${o.itemName}</td>
-                    <td class="p-3 text-center font-bold">${o.qty}</td>
-                    <td class="p-3 text-center">Available</td>
-                    <td class="p-3 text-center space-x-1">
-                        ${o.status === 'UNDER PROCESS' ? `<button onclick="processOrder('${o.id}', 'APPROVE')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs">Approve</button>` : ''}
-                        <button onclick="processOrder('${o.id}', 'ISSUE')" class="bg-green-600 text-white px-2 py-1 rounded text-xs">Issue</button>
-                        <button onclick="processOrder('${o.id}', 'REJECT')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Reject</button>
-                    </td>
-                </tr>
-            `).join('');
+            const pCountEl = document.getElementById('pendingCount');
+            if(pCountEl) pCountEl.innerText = pending.length;
+            
+            const adminReqTbl = document.getElementById('adminRequestsTable');
+            if(adminReqTbl) {
+                adminReqTbl.innerHTML = pending.map(o => `
+                    <tr>
+                        <td class="p-3 font-semibold text-blue-600">${o.order_id || o.id}</td>
+                        <td class="p-3 font-bold">${o.user_name || o.user}</td>
+                        <td class="p-3">${o.item_name || o.itemName}</td>
+                        <td class="p-3 text-center font-bold">${o.qty}</td>
+                        <td class="p-3 text-center">Available</td>
+                        <td class="p-3 text-center space-x-1">
+                            ${o.status === 'UNDER PROCESS' ? `<button onclick="processOrder('${o.order_id || o.id}', 'APPROVE')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs">Approve</button>` : ''}
+                            <button onclick="processOrder('${o.order_id || o.id}', 'ISSUE')" class="bg-green-600 text-white px-2 py-1 rounded text-xs">Issue</button>
+                            <button onclick="processOrder('${o.order_id || o.id}', 'REJECT')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Reject</button>
+                        </td>
+                    </tr>
+                `).join('') || `<tr><td colspan="6" class="p-4 text-center text-gray-400">No pending approvals.</td></tr>`;
+            }
 
             renderLedgerTableCustom(inventory);
             renderUserHistoryTableCustom(orders);
 
             // Users Table
-            document.getElementById('adminUsersTable').innerHTML = usersList.map(u => `
-                <tr>
-                    <td class="p-3 font-mono text-xs">${u.id}</td>
-                    <td class="p-3 font-bold">${u.name}</td>
-                    <td class="p-3 text-xs text-blue-600">${u.email}</td>
-                    <td class="p-3 text-xs">${u.dept}</td>
-                    <td class="p-3 text-xs">${u.phone}</td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-purple-100 text-purple-800">${u.role}</span></td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${u.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${u.status}</span></td>
-                    <td class="p-3 text-center space-x-1">
-                        ${u.role !== 'ADMIN' ? `
-                            <button onclick="toggleUserStatus('${u.id}')" class="text-xs px-2 py-1 rounded ${u.status === 'ACTIVE' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'} font-bold">${u.status === 'ACTIVE' ? 'Disable' : 'Enable'}</button>
-                            <button onclick="deleteUserAccount('${u.id}')" class="text-xs px-2 py-1 rounded bg-red-100 text-red-700 font-bold">Delete</button>
-                        ` : '<span class="text-xs text-gray-400">Admin Account</span>'}
-                    </td>
-                </tr>
-            `).join('');
+            const adminUsersTbl = document.getElementById('adminUsersTable');
+            if(adminUsersTbl) {
+                adminUsersTbl.innerHTML = usersList.map(u => `
+                    <tr>
+                        <td class="p-3 font-mono text-xs">${u.user_id}</td>
+                        <td class="p-3 font-bold">${u.name}</td>
+                        <td class="p-3 text-xs text-blue-600">${u.email}</td>
+                        <td class="p-3 text-xs">${u.dept || 'N/A'}</td>
+                        <td class="p-3 text-xs">${u.phone || 'N/A'}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${u.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}">${u.role}</span></td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${u.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${u.status}</span></td>
+                        <td class="p-3 text-center space-x-1">
+                            ${u.role !== 'ADMIN' ? `
+                                <button onclick="toggleUserStatus('${u.user_id}', '${u.status}')" class="text-xs px-2 py-1 rounded ${u.status === 'ACTIVE' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'} font-bold">${u.status === 'ACTIVE' ? 'Disable' : 'Enable'}</button>
+                                <button onclick="deleteUserAccount('${u.user_id}')" class="text-xs px-2 py-1 rounded bg-red-100 text-red-700 font-bold">Delete</button>
+                            ` : '<span class="text-xs text-gray-400">Admin Account</span>'}
+                        </td>
+                    </tr>
+                `).join('') || `<tr><td colspan="8" class="p-4 text-center text-gray-400">No users found.</td></tr>`;
+            }
 
             // Logs Table
-            document.getElementById('adminLogsTable').innerHTML = logs.map(l => `
-                <tr>
-                    <td class="p-3 text-xs text-gray-400">${l.time}</td>
-                    <td class="p-3 text-xs font-bold text-gray-700">${l.user}</td>
-                    <td class="p-3 text-xs text-gray-800">${l.action}</td>
-                </tr>
-            `).join('');
+            const adminLogsTbl = document.getElementById('adminLogsTable');
+            if(adminLogsTbl) {
+                adminLogsTbl.innerHTML = orders.map(o => `
+                    <tr>
+                        <td class="p-3 text-xs text-gray-400">${o.date_only ? o.date_only.split('T')[0] : ''} ${o.time_str || ''}</td>
+                        <td class="p-3 text-xs font-bold text-gray-700">${o.user_name || 'System User'}</td>
+                        <td class="p-3 text-xs text-gray-800">Order ${o.order_id} for ${o.item_name} (Qty: ${o.qty}) - Status: ${o.status}</td>
+                    </tr>
+                `).join('') || `<tr><td colspan="3" class="p-4 text-center text-gray-400">No logs found.</td></tr>`;
+            }
         }
 
-        // Auto Initial Render & Sync
-        fetch('http://localhost:5000/api/state')
-            .then(res => res.json())
-            .then(data => {
-                if(data.users && data.users.length) usersList = data.users.map(u => ({ id: u.user_id, name: u.name, email: u.email, password: u.password, dept: u.dept, phone: u.phone, role: u.role, status: u.status }));
-                if(data.inventory && data.inventory.length) inventory = data.inventory.map(i => ({ id: i.item_id, name: i.name, category: i.category, unit: i.unit || 'pcs', opening: i.opening, received: i.received, issued: i.issued, current: i.current, lastDate: i.last_date ? i.last_date.split('T')[0] : '' }));
-                if(data.orders && data.orders.length) orders = data.orders.map(o => ({ id: o.order_id, user: o.user_name, issuer: o.issuer_name, itemId: o.item_id, itemName: o.item_name, category: o.category, qty: o.qty, time: o.time_str, dateOnly: o.date_only ? o.date_only.split('T')[0] : '', status: o.status }));
-                if(data.receivedLogs && data.receivedLogs.length) receivedLogs = data.receivedLogs.map(l => ({ itemId: l.item_id, user: l.receiver_name, qty: l.qty, dateOnly: l.date_only ? l.date_only.split('T')[0] : '', time: l.time_str }));
-                renderAll();
-            })
-            .catch(e => {
-                renderAll();
-            });
+        // Initial fetch on page load
+        fetchAppState();
     </script>
 </body>
 </html>
