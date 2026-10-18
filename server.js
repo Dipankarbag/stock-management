@@ -75,7 +75,7 @@ async function initDB() {
         if (adminCheck.rows.length === 0) {
             await db.query(`
                 INSERT INTO users (user_id, name, email, password, dept, phone, role, status)
-                VALUES ('USR-001', 'System Admin', 'dipankardag1987@gmail.com', '123', 'IT & Admin', '+91 9876543210', 'ADMIN', 'ACTIVE')
+                VALUES ('USR-001', 'System Admin', 'admin@stockflow.com', '123', 'IT & Admin', '+91 9876543210', 'ADMIN', 'ACTIVE')
                 ON CONFLICT (email) DO NOTHING;
             `);
         }
