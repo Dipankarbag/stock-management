@@ -1,3 +1,30 @@
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'dipankardag1987@gmail.com',
+        pass: 'ziiiwcdjjczdfero'
+    }
+});
+
+// Email bhejne ka function
+function sendAutoEmail(toEmail, subject, message) {
+    const mailOptions = {
+        from: 'dipankardag1987@gmail.com',
+        to: toEmail,
+        subject: subject,
+        text: message
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log('Email error:', error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
+}
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -135,6 +162,14 @@ app.post('/api/users/register', async (req, res) => {
         `;
         const values = [userId || `USR-${Math.floor(100+Math.random()*900)}`, name, email, password, dept, phone, role || 'USER', status || 'ACTIVE'];
         const result = await db.query(query, values);
+        
+        // Auto Email Trigger on Registration
+        sendAutoEmail(
+            email,
+            'Account Registered - Stock Inventory System',
+            `Hello ${name},\n\nYour account has been successfully registered in the Inventory Portal.\nYour User ID: ${userId || 'User'}\n\nYou can now log in using your email and password.`
+        );
+
         res.json({ success: true, user: result.rows[0] });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -171,6 +206,17 @@ app.post('/api/orders/create', async (req, res) => {
         `;
         const values = [orderId, user, itemId, itemName, category, qty, timeStr, dateOnly || new Date().toISOString().split('T')[0]];
         const result = await db.query(query, values);
+        
+        // Fetch user email to send auto-notification
+        const userQuery = await db.query('SELECT email FROM users WHERE name = $1', [user]);
+        if (userQuery.rows.length > 0 && userQuery.rows[0].email) {
+            sendAutoEmail(
+                userQuery.rows[0].email,
+                `New Requisition Order Submitted - ${orderId}`,
+                `Hello ${user},\n\nYour requisition order for ${itemName} (Quantity: ${qty}) has been successfully submitted and is currently UNDER PROCESS.\n\nThank you.`
+            );
+        }
+
         res.json({ success: true, order: result.rows[0] });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -203,6 +249,16 @@ app.post('/api/orders/process', async (req, res) => {
             WHERE order_id = $3 
             RETURNING *;
         `, [newStatus, issuerName, orderId]);
+
+        // Fetch user email to notify status update
+        const userQuery = await db.query('SELECT email FROM users WHERE name = $1', [order.user_name]);
+        if (userQuery.rows.length > 0 && userQuery.rows[0].email) {
+            sendAutoEmail(
+                userQuery.rows[0].email,
+                `Order Status Updated: ${orderId} is ${newStatus}`,
+                `Hello ${order.user_name},\n\nYour order (${order.item_name}, Qty: ${order.qty}) status has been updated to: ${newStatus}.\nProcessed by: ${issuerName || 'System Admin'}`
+            );
+        }
 
         res.json({ success: true, order: result.rows[0] });
     } catch (err) {
