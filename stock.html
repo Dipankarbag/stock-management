@@ -29,12 +29,12 @@
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email / Username</label>
-                    <input type="text" id="loginUsername" placeholder="Email" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    <input type="text" id="loginUsername" placeholder="dipankardag1987@gmail.com" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Password</label>
-                    <input type="password" id="loginPassword" placeholder="D" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    <input type="password" id="loginPassword" placeholder="123" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
                 </div>
 
                 <div id="loginError" class="hidden text-xs text-red-600 font-semibold text-center bg-red-50 p-2 rounded border border-red-200">
@@ -557,9 +557,9 @@
             if (liveSyncInterval) clearInterval(liveSyncInterval);
             liveSyncInterval = setInterval(() => {
                 if (currentUser) {
-                    fetchAppState(true); // background fetch without jarring UI
+                    fetchAppState(true); // Instant background sync for live updates
                 }
-            }, 3000); // Live poll every 3 seconds
+            }, 1000); // Poll every 1 second for ultra-fast live updates
         }
 
         function toggleAuthMode(mode) {
@@ -629,22 +629,28 @@
         function populateUserItemDropdown() {
             const select = document.getElementById('cartItemSelect');
             if(!select) return;
+            const currentSelected = select.value;
             select.innerHTML = '<option value="" disabled selected>-- Choose Item --</option>';
             inventory.forEach(i => {
-                select.innerHTML += '<option value="' + (i.item_id || i.id) + '">' + i.name + ' (' + i.category + ') - [Avail: ' + i.current + ' ' + (i.unit || 'pcs') + ']</option>';
+                const itemIdVal = i.item_id || i.id;
+                select.innerHTML += '<option value="' + itemIdVal + '">' + i.name + ' (' + i.category + ') - [Avail: ' + i.current + ' ' + (i.unit || 'pcs') + ']</option>';
             });
+            if (currentSelected) select.value = currentSelected;
         }
 
         function addToOrderCart() {
-            const itemId = document.getElementById('cartItemSelect').value;
-            const qty = parseInt(document.getElementById('cartItemQty').value);
-            const item = inventory.find(i => (i.item_id == itemId || i.id == itemId));
+            const selectEl = document.getElementById('cartItemSelect');
+            const itemId = selectEl.value;
+            const qtyInput = document.getElementById('cartItemQty');
+            const qty = parseInt(qtyInput.value);
+            
+            const item = inventory.find(i => String(i.item_id || i.id) === String(itemId));
 
-            if (!item) { alert("Please select a valid item!"); return; }
+            if (!item) { alert("Please select a valid item from dropdown!"); return; }
             if (!qty || qty <= 0) { alert("Please enter a valid quantity!"); return; }
             if (qty > item.current) { alert("Insufficient stock! Available units: " + item.current + " " + (item.unit || 'pcs')); return; }
 
-            const existingIndex = orderCart.findIndex(cartItem => cartItem.itemId == itemId);
+            const existingIndex = orderCart.findIndex(cartItem => String(cartItem.itemId) === String(itemId));
             if (existingIndex > -1) {
                 if (orderCart[existingIndex].qty + qty > item.current) {
                     alert("Total cart quantity exceeds available stock!");
@@ -660,8 +666,8 @@
                 });
             }
 
-            document.getElementById('cartItemQty').value = '';
-            document.getElementById('cartItemSelect').value = '';
+            qtyInput.value = '';
+            selectEl.value = '';
             renderOrderCart();
         }
 
@@ -690,7 +696,7 @@
                     '<td class="p-2.5 text-xs text-gray-500">' + item.category + '</td>' +
                     '<td class="p-2.5 text-center font-bold text-blue-600">' + item.qty + '</td>' +
                     '<td class="p-2.5 text-center">' +
-                        '<button onclick="removeFromCart(' + index + ')" class="bg-red-100 text-red-600 hover:bg-red-200 px-2 py-1 rounded text-xs font-bold">' +
+                        '<button type="button" onclick="removeFromCart(' + index + ')" class="bg-red-100 text-red-600 hover:bg-red-200 px-2 py-1 rounded text-xs font-bold">' +
                             '<i class="fa-solid fa-trash"></i> Remove' +
                         '</button>' +
                     '</td>' +
@@ -702,7 +708,6 @@
         function submitBulkOrders() {
             if (orderCart.length === 0) return;
 
-            // Generate clean number series ID based on existing orders count + 1
             let nextIdNum = orders.length + 1;
             let promises = orderCart.map((cartItem, idx) => {
                 const newOrderData = {
@@ -788,11 +793,13 @@
         function populateCategoriesDropdown() {
             const select = document.getElementById('ledgerCategoryFilter');
             if(!select) return;
+            const currentCat = select.value;
             select.innerHTML = '<option value="ALL">-- All Categories --</option>';
             const cats = [...new Set(inventory.map(i => i.category))];
             cats.forEach(c => {
                 select.innerHTML += '<option value="' + c + '">' + c + '</option>';
             });
+            if(currentCat) select.value = currentCat;
         }
 
         function applyLedgerFilter() {
@@ -1086,8 +1093,10 @@
         function populateUserDropdown() {
             const select = document.getElementById('userFilterSelect');
             if(!select) return;
+            const currentSelectedUser = select.value;
             select.innerHTML = '<option value="ALL">-- All Users --</option>';
             usersList.forEach(u => { if(u.role !== 'ADMIN') select.innerHTML += '<option value="' + u.name + '">' + u.name + '</option>'; });
+            if(currentSelectedUser) select.value = currentSelectedUser;
         }
 
         function applyUserHistoryFilter() {
@@ -1120,7 +1129,7 @@
                     '<td class="p-3 text-xs text-gray-400">' + (o.time_str || o.time) + '</td>' +
                     '<td class="p-3 text-center space-x-1">' +
                         '<span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800">' + o.status + '</span>' +
-                        '<button onclick="deleteOrderRecord(\'' + (o.order_id || o.id) + '\')" title="Delete Order" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-xs font-bold ml-2 shadow"><i class="fa-solid fa-trash"></i></button>' +
+                        '<button type="button" onclick="deleteOrderRecord(\'' + (o.order_id || o.id) + '\')" title="Delete Order" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-xs font-bold ml-2 shadow"><i class="fa-solid fa-trash"></i></button>' +
                     '</td>' +
                 '</tr>';
             });
@@ -1186,13 +1195,13 @@
                         '<td class="p-3 text-center font-bold">' + o.qty + '</td>' +
                         '<td class="p-3 text-center">Available</td>' +
                         '<td class="p-3 text-center space-x-1">' +
-                            (o.status === 'UNDER PROCESS' ? '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'APPROVE\')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs">Approve</button>' : '') +
-                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'ISSUE\')" class="bg-green-600 text-white px-2 py-1 rounded text-xs">Issue</button>' +
-                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'REJECT\')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Reject</button>' +
+                            (o.status === 'UNDER PROCESS' ? '<button type="button" onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'APPROVE\')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs">Approve</button>' : '') +
+                            '<button type="button" onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'ISSUE\')" class="bg-green-600 text-white px-2 py-1 rounded text-xs">Issue</button>' +
+                            '<button type="button" onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'REJECT\')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Reject</button>' +
                         '</td>' +
                     '</tr>';
                 });
-                adminReqTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No pending approvals.</td></tr>';
+                adminRequestsTable.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No pending approvals.</td></tr>';
             }
 
             renderLedgerTableCustom(inventory);
@@ -1211,7 +1220,7 @@
                         '<td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ' + (u.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800') + '">' + u.role + '</span></td>' +
                         '<td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ' + (u.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') + '">' + u.status + '</span></td>' +
                         '<td class="p-3 text-center space-x-1">' +
-                            (u.role !== 'ADMIN' ? '<button onclick="toggleUserStatus(\'' + u.user_id + '\', \'' + u.status + '\')" class="text-xs px-2 py-1 rounded ' + (u.status === 'ACTIVE' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') + ' font-bold">' + (u.status === 'ACTIVE' ? 'Disable' : 'Enable') + '</button><button onclick="deleteUserAccount(\'' + u.user_id + '\')" class="text-xs px-2 py-1 rounded bg-red-100 text-red-700 font-bold ml-1">Delete</button>' : '<span class="text-xs text-gray-400">Admin Account</span>') +
+                            (u.role !== 'ADMIN' ? '<button type="button" onclick="toggleUserStatus(\'' + u.user_id + '\', \'' + u.status + '\')" class="text-xs px-2 py-1 rounded ' + (u.status === 'ACTIVE' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') + ' font-bold">' + (u.status === 'ACTIVE' ? 'Disable' : 'Enable') + '</button><button type="button" onclick="deleteUserAccount(\'' + u.user_id + '\')" class="text-xs px-2 py-1 rounded bg-red-100 text-red-700 font-bold ml-1">Delete</button>' : '<span class="text-xs text-gray-400">Admin Account</span>') +
                         '</td>' +
                     '</tr>';
                 });
