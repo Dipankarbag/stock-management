@@ -29,7 +29,7 @@
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email / Username</label>
-                    <input type="text" id="loginUsername" placeholder="Ex@gmail.com" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    <input type="text" id="loginUsername" placeholder="dipankardag1987@gmail.com" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
                 </div>
 
                 <div>
@@ -132,14 +132,14 @@
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-slate-50 p-4 rounded-xl border border-gray-200 mb-4">
                         <div class="md:col-span-2">
                             <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Select Item</label>
-                            <select id="cartItemSelect" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <select id="cartItemSelect" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800">
                                 <option value="" disabled selected>-- Choose Item --</option>
                             </select>
                         </div>
 
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Quantity Needed</label>
-                            <input type="number" id="cartItemQty" min="1" placeholder="Enter Qty" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                            <input type="number" id="cartItemQty" min="1" placeholder="Enter Qty" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800" />
                         </div>
 
                         <div>
@@ -508,7 +508,6 @@
         let inventory = [];
         let orders = [];
         let receivedLogs = [];
-        let liveSyncInterval = null;
 
         function handleLogin(e) {
             e.preventDefault();
@@ -545,21 +544,11 @@
                         switchPanel('user');
                     }
                     fetchAppState();
-                    startLiveSync();
                 } else {
                     errorDiv.classList.remove('hidden');
                 }
             })
             .catch(err => alert("Login connection error!"));
-        }
-
-        function startLiveSync() {
-            if (liveSyncInterval) clearInterval(liveSyncInterval);
-            liveSyncInterval = setInterval(() => {
-                if (currentUser) {
-                    fetchAppState(true);
-                }
-            }, 1000); // 1-second interval for instant live updates
         }
 
         function toggleAuthMode(mode) {
@@ -600,7 +589,6 @@
         }
 
         function handleLogout() {
-            if (liveSyncInterval) clearInterval(liveSyncInterval);
             currentUser = null;
             document.getElementById('mainDashboard').classList.add('hidden');
             document.getElementById('authScreen').classList.remove('hidden');
@@ -611,6 +599,7 @@
             if (panel === 'user') {
                 document.getElementById('userPanel').classList.remove('hidden');
                 document.getElementById('adminPanel').classList.add('hidden');
+                populateUserItemDropdown();
             } else {
                 document.getElementById('userPanel').classList.add('hidden');
                 document.getElementById('adminPanel').classList.remove('hidden');
@@ -629,28 +618,24 @@
         function populateUserItemDropdown() {
             const select = document.getElementById('cartItemSelect');
             if(!select) return;
-            const currentSelected = select.value;
-            
             let optionsHtml = '<option value="" disabled selected>-- Choose Item --</option>';
             inventory.forEach(i => {
-                const itemIdVal = i.item_id || i.id;
-                optionsHtml += '<option value="' + itemIdVal + '">' + i.name + ' (' + i.category + ') - [Avail: ' + i.current + ' ' + (i.unit || 'pcs') + ']</option>';
+                const itemId = i.item_id !== undefined ? i.item_id : i.id;
+                const itemName = i.name;
+                const itemCat = i.category;
+                const itemCurrent = i.current;
+                const itemUnit = i.unit || 'pcs';
+                optionsHtml += '<option value="' + itemId + '">' + itemName + ' (' + itemCat + ') - [Avail: ' + itemCurrent + ' ' + itemUnit + ']</option>';
             });
             select.innerHTML = optionsHtml;
-            if (currentSelected) select.value = currentSelected;
         }
 
         function addToOrderCart() {
-            const selectEl = document.getElementById('cartItemSelect');
-            const itemId = selectEl.value;
-            const qtyInput = document.getElementById('cartItemQty');
-            const qty = parseInt(qtyInput.value);
-            
-            if (!itemId) { alert("Please select a valid item from dropdown!"); return; }
-            
-            const item = inventory.find(i => String(i.item_id || i.id) === String(itemId));
+            const itemId = document.getElementById('cartItemSelect').value;
+            const qty = parseInt(document.getElementById('cartItemQty').value);
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
 
-            if (!item) { alert("Selected item not found in inventory!"); return; }
+            if (!item) { alert("Please select a valid item!"); return; }
             if (!qty || qty <= 0) { alert("Please enter a valid quantity!"); return; }
             if (qty > item.current) { alert("Insufficient stock! Available units: " + item.current + " " + (item.unit || 'pcs')); return; }
 
@@ -663,15 +648,15 @@
                 orderCart[existingIndex].qty += qty;
             } else {
                 orderCart.push({
-                    itemId: item.item_id || item.id,
+                    itemId: itemId,
                     itemName: item.name + ' (' + (item.unit || 'pcs') + ')',
                     category: item.category,
                     qty: qty
                 });
             }
 
-            qtyInput.value = '';
-            selectEl.value = '';
+            document.getElementById('cartItemQty').value = '';
+            document.getElementById('cartItemSelect').value = '';
             renderOrderCart();
         }
 
@@ -700,7 +685,7 @@
                     '<td class="p-2.5 text-xs text-gray-500">' + item.category + '</td>' +
                     '<td class="p-2.5 text-center font-bold text-blue-600">' + item.qty + '</td>' +
                     '<td class="p-2.5 text-center">' +
-                        '<button type="button" onclick="removeFromCart(' + index + ')" class="bg-red-100 text-red-600 hover:bg-red-200 px-2 py-1 rounded text-xs font-bold">' +
+                        '<button onclick="removeFromCart(' + index + ')" class="bg-red-100 text-red-600 hover:bg-red-200 px-2 py-1 rounded text-xs font-bold">' +
                             '<i class="fa-solid fa-trash"></i> Remove' +
                         '</button>' +
                     '</td>' +
@@ -712,10 +697,10 @@
         function submitBulkOrders() {
             if (orderCart.length === 0) return;
 
-            let nextIdNum = orders.length + 1;
+            const baseOrderId = Math.floor(100 + Math.random() * 900);
             let promises = orderCart.map((cartItem, idx) => {
                 const newOrderData = {
-                    orderId: String(nextIdNum + idx),
+                    orderId: 'ORD-' + baseOrderId + '-' + (idx + 1),
                     user: currentUser.name,
                     itemId: cartItem.itemId,
                     itemName: cartItem.itemName,
@@ -797,13 +782,11 @@
         function populateCategoriesDropdown() {
             const select = document.getElementById('ledgerCategoryFilter');
             if(!select) return;
-            const currentCat = select.value;
             select.innerHTML = '<option value="ALL">-- All Categories --</option>';
             const cats = [...new Set(inventory.map(i => i.category))];
             cats.forEach(c => {
                 select.innerHTML += '<option value="' + c + '">' + c + '</option>';
             });
-            if(currentCat) select.value = currentCat;
         }
 
         function applyLedgerFilter() {
@@ -837,7 +820,7 @@
             if (pwd === null) return;
             
             if (pwd === securityPassword) {
-                const item = inventory.find(i => (i.item_id == itemId || i.id == itemId));
+                const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
                 const newOpeningStr = prompt("Enter New Opening Quantity for '" + item.name + "':", item.opening);
                 const newOpening = parseInt(newOpeningStr);
 
@@ -860,30 +843,31 @@
             if(!tbl) return;
             let html = '';
             list.forEach(i => {
+                const itemId = i.item_id !== undefined ? i.item_id : i.id;
                 html += '<tr>' +
                     '<td class="p-3 font-bold">' + i.name + '</td>' +
                     '<td class="p-3 text-xs">' + i.category + '</td>' +
                     '<td class="p-3 text-center font-semibold text-purple-700">' + (i.unit || 'pcs') + '</td>' +
                     '<td class="p-3 text-center">' +
-                        '<button type="button" onclick="editOpeningQuantity(\'' + (i.item_id || i.id) + '\')" title="Click to edit Opening Quantity (Password Protected)" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-2.5 py-1 rounded border border-gray-300 text-xs">' +
+                        '<button onclick="editOpeningQuantity(\'' + itemId + '\')" title="Click to edit Opening Quantity (Password Protected)" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-2.5 py-1 rounded border border-gray-300 text-xs">' +
                             i.opening + ' <i class="fa-solid fa-lock text-[10px] text-amber-600 ml-1"></i>' +
                         '</button>' +
                     '</td>' +
                     '<td class="p-3 text-center">' +
-                        '<button type="button" onclick="showReceivedBreakdown(\'' + (i.item_id || i.id) + '\')" title="Click to view received stock details" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-blue-300">' +
+                        '<button onclick="showReceivedBreakdown(\'' + itemId + '\')" title="Click to view received stock details" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-blue-300">' +
                             '+' + i.received + ' <i class="fa-solid fa-circle-info ml-1 text-[10px]"></i>' +
                         '</button>' +
                     '</td>' +
                     '<td class="p-3 text-center">' +
-                        '<button type="button" onclick="showIssuedBreakdown(\'' + (i.item_id || i.id) + '\')" title="Click to view issued user details" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-amber-300">' +
+                        '<button onclick="showIssuedBreakdown(\'' + itemId + '\')" title="Click to view issued user details" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-amber-300">' +
                             '-' + i.issued + ' <i class="fa-solid fa-circle-info ml-1 text-[10px]"></i>' +
                         '</button>' +
                     '</td>' +
                     '<td class="p-3 text-center text-emerald-700 font-extrabold">' + i.current + '</td>' +
                     '<td class="p-3 text-center text-xs text-gray-500">' + (i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')) + '</td>' +
                     '<td class="p-3 text-center space-x-1">' +
-                        '<button type="button" onclick="openStockInModal(\'' + (i.item_id || i.id) + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold shadow">+ Stock In</button>' +
-                        '<button type="button" onclick="deleteInventoryItem(\'' + (i.item_id || i.id) + '\')" title="Delete Item" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-bold shadow"><i class="fa-solid fa-trash"></i></button>' +
+                        '<button onclick="openStockInModal(\'' + itemId + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold shadow">+ Stock In</button>' +
+                        '<button onclick="deleteInventoryItem(\'' + itemId + '\')" title="Delete Item" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-bold shadow"><i class="fa-solid fa-trash"></i></button>' +
                     '</td>' +
                 '</tr>';
             });
@@ -913,10 +897,10 @@
 
         function showReceivedBreakdown(itemId) {
             activeReceivedItemId = itemId;
-            const item = inventory.find(i => (i.item_id == itemId || i.id == itemId));
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
             document.getElementById('receivedItemTitle').innerText = item.name + ' (' + item.category + ')';
             
-            const logsForNext = receivedLogs.filter(l => (l.item_id == itemId || l.itemId == itemId));
+            const logsForNext = receivedLogs.filter(l => String(l.item_id !== undefined ? l.item_id : l.itemId) === String(itemId));
             const tbody = document.getElementById('receivedDetailsTable');
 
             if(logsForNext.length === 0) {
@@ -940,8 +924,8 @@
 
         function exportReceivedModalCSV() {
             if(!activeReceivedItemId) return;
-            const item = inventory.find(i => (i.item_id == activeReceivedItemId || i.id == activeReceivedItemId));
-            const logsForNext = receivedLogs.filter(l => (l.item_id == activeReceivedItemId || l.itemId == activeReceivedItemId));
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(activeReceivedItemId));
+            const logsForNext = receivedLogs.filter(l => String(l.item_id !== undefined ? l.item_id : l.itemId) === String(activeReceivedItemId));
             if(logsForNext.length === 0) { alert("No received stock records available to export!"); return; }
 
             let csv = "Stock Received Details Report - " + item.name + " (" + item.category + ")\nReceived By,Received Quantity,Date,Time,Status\n";
@@ -954,8 +938,8 @@
 
         function printReceivedModalReport() {
             if(!activeReceivedItemId) return;
-            const item = inventory.find(i => (i.item_id == activeReceivedItemId || i.id == activeReceivedItemId));
-            const logsForNext = receivedLogs.filter(l => (l.item_id == activeReceivedItemId || l.itemId == activeReceivedItemId));
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(activeReceivedItemId));
+            const logsForNext = receivedLogs.filter(l => String(l.item_id !== undefined ? l.item_id : l.itemId) === String(activeReceivedItemId));
             const printWin = window.open('', '_blank');
             let rows = '';
             if(logsForNext.length === 0) { rows = '<tr><td colspan="4" class="text-center">No received records.</td></tr>'; }
@@ -970,10 +954,10 @@
 
         function showIssuedBreakdown(itemId) {
             activeIssuedItemId = itemId;
-            const item = inventory.find(i => (i.item_id == itemId || i.id == itemId));
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
             document.getElementById('issuedItemTitle').innerText = item.name + ' (' + item.category + ')';
             
-            const itemIssuedOrders = orders.filter(o => (o.item_id == itemId || o.itemId == itemId) && o.status === 'ISSUED');
+            const itemIssuedOrders = orders.filter(o => String(o.item_id !== undefined ? o.item_id : o.itemId) === String(itemId) && o.status === 'ISSUED');
             const tbody = document.getElementById('issuedDetailsTable');
 
             if(itemIssuedOrders.length === 0) {
@@ -998,8 +982,8 @@
 
         function exportIssuedModalCSV() {
             if(!activeIssuedItemId) return;
-            const item = inventory.find(i => (i.item_id == activeIssuedItemId || i.id == activeIssuedItemId));
-            const itemIssuedOrders = orders.filter(o => (o.item_id == activeIssuedItemId || o.itemId == activeIssuedItemId) && o.status === 'ISSUED');
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(activeIssuedItemId));
+            const itemIssuedOrders = orders.filter(o => String(o.item_id !== undefined ? o.item_id : o.itemId) === String(activeIssuedItemId) && o.status === 'ISSUED');
             if(itemIssuedOrders.length === 0) { alert("No issued records available to export!"); return; }
 
             let csv = "Issued Stock Details Report - " + item.name + " (" + item.category + ")\nIssued To (User),Issued By (Issuer Name),Issued Quantity,Date,Time,Status\n";
@@ -1012,8 +996,8 @@
 
         function printIssuedModalReport() {
             if(!activeIssuedItemId) return;
-            const item = inventory.find(i => (i.item_id == activeIssuedItemId || i.id == activeIssuedItemId));
-            const itemIssuedOrders = orders.filter(o => (o.item_id == activeIssuedItemId || o.itemId == activeIssuedItemId) && o.status === 'ISSUED');
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(activeIssuedItemId));
+            const itemIssuedOrders = orders.filter(o => String(o.item_id !== undefined ? o.item_id : o.itemId) === String(activeIssuedItemId) && o.status === 'ISSUED');
             const printWin = window.open('', '_blank');
             let rows = '';
             if(itemIssuedOrders.length === 0) { rows = '<tr><td colspan="5" class="text-center">No issued records.</td></tr>'; }
@@ -1027,8 +1011,8 @@
         }
 
         function openStockInModal(itemId) {
-            const item = inventory.find(i => (i.item_id == itemId || i.id == itemId));
-            document.getElementById('stockInItemId').value = item.item_id || item.id;
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
+            document.getElementById('stockInItemId').value = itemId;
             document.getElementById('stockInItemName').value = item.name + ' (' + item.category + ') - [Unit: ' + (item.unit || 'pcs') + ']';
             document.getElementById('stockInQty').value = '';
             document.getElementById('stockInDate').value = new Date().toISOString().split('T')[0];
@@ -1046,22 +1030,56 @@
 
             if (!qty || qty <= 0 || !dateStr || !receiver) { alert("Please fill all required fields!"); return; }
 
-            const item = inventory.find(i => (i.item_id == itemId || i.id == itemId));
-            item.received += qty;
-            item.current += qty;
-            item.last_date = dateStr;
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
+            if (!item) { alert("Item not found!"); return; }
 
-            receivedLogs.unshift({
-                item_id: item.item_id || item.id,
-                receiver_name: receiver,
-                qty: qty,
-                date_only: dateStr,
-                time_str: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            fetch('/api/inventory/stock-in', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    itemId: itemId,
+                    qty: qty,
+                    dateStr: dateStr,
+                    receiverName: receiver
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    closeStockInModal();
+                    fetchAppState();
+                    alert("Received Stock Log Added Successfully!");
+                } else {
+                    item.received += qty;
+                    item.current += qty;
+                    item.last_date = dateStr;
+                    receivedLogs.unshift({
+                        item_id: itemId,
+                        receiver_name: receiver,
+                        qty: qty,
+                        date_only: dateStr,
+                        time_str: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    });
+                    closeStockInModal();
+                    renderAll();
+                    alert("Received Stock Log Added Successfully!");
+                }
+            })
+            .catch(err => {
+                item.received += qty;
+                item.current += qty;
+                item.last_date = dateStr;
+                receivedLogs.unshift({
+                    item_id: itemId,
+                    receiver_name: receiver,
+                    qty: qty,
+                    date_only: dateStr,
+                    time_str: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                });
+                closeStockInModal();
+                renderAll();
+                alert("Received Stock Log Added Successfully!");
             });
-
-            closeStockInModal();
-            renderAll();
-            alert("Received Stock Log Added Successfully!");
         }
 
         function openAddItemModal() { document.getElementById('addItemModal').classList.remove('hidden'); }
@@ -1097,10 +1115,8 @@
         function populateUserDropdown() {
             const select = document.getElementById('userFilterSelect');
             if(!select) return;
-            const currentSelectedUser = select.value;
             select.innerHTML = '<option value="ALL">-- All Users --</option>';
             usersList.forEach(u => { if(u.role !== 'ADMIN') select.innerHTML += '<option value="' + u.name + '">' + u.name + '</option>'; });
-            if(currentSelectedUser) select.value = currentSelectedUser;
         }
 
         function applyUserHistoryFilter() {
@@ -1125,7 +1141,7 @@
             let html = '';
             list.forEach(o => {
                 html += '<tr>' +
-                    '<td class="p-3 text-blue-600 font-bold">ORD-' + (o.order_id || o.id) + '</td>' +
+                    '<td class="p-3 text-blue-600">' + (o.order_id || o.id) + '</td>' +
                     '<td class="p-3 font-bold">' + (o.user_name || o.user) + '</td>' +
                     '<td class="p-3">' + (o.item_name || o.itemName) + '</td>' +
                     '<td class="p-3 text-xs">' + o.category + '</td>' +
@@ -1133,7 +1149,7 @@
                     '<td class="p-3 text-xs text-gray-400">' + (o.time_str || o.time) + '</td>' +
                     '<td class="p-3 text-center space-x-1">' +
                         '<span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800">' + o.status + '</span>' +
-                        '<button type="button" onclick="deleteOrderRecord(\'' + (o.order_id || o.id) + '\')" title="Delete Order" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-xs font-bold ml-2 shadow"><i class="fa-solid fa-trash"></i></button>' +
+                        '<button onclick="deleteOrderRecord(\'' + (o.order_id || o.id) + '\')" title="Delete Order" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-xs font-bold ml-2 shadow"><i class="fa-solid fa-trash"></i></button>' +
                     '</td>' +
                 '</tr>';
             });
@@ -1142,14 +1158,14 @@
 
         function exportUserOrdersCSV() {
             let csv = "Order ID,User Name,Item Name,Category,Qty,Time,Status\n";
-            orders.forEach(o => { csv += '"ORD-' + (o.order_id || o.id) + '","' + (o.user_name || o.user) + '","' + (o.item_name || o.itemName) + '","' + o.category + '","' + o.qty + '","' + (o.time_str || o.time) + '","' + o.status + '"\n'; });
+            orders.forEach(o => { csv += '"' + (o.order_id || o.id) + '","' + (o.user_name || o.user) + '","' + (o.item_name || o.itemName) + '","' + o.category + '","' + o.qty + '","' + (o.time_str || o.time) + '","' + o.status + '"\n'; });
             const link = document.createElement("a");
             link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
             link.download = "User_Order_History.csv";
             link.click();
         }
 
-        function fetchAppState(isBackground = false) {
+        function fetchAppState() {
             fetch('/api/state')
                 .then(res => res.json())
                 .then(data => {
@@ -1173,7 +1189,7 @@
                 let html = '';
                 userOrders.forEach(o => {
                     html += '<tr>' +
-                        '<td class="p-3 font-semibold text-blue-600">ORD-' + (o.order_id || o.id) + '</td>' +
+                        '<td class="p-3 font-semibold text-blue-600">' + (o.order_id || o.id) + '</td>' +
                         '<td class="p-3">' + (o.item_name || o.itemName) + '</td>' +
                         '<td class="p-3 text-gray-500">' + o.category + '</td>' +
                         '<td class="p-3 font-bold text-center">' + o.qty + '</td>' +
@@ -1193,15 +1209,15 @@
                 let html = '';
                 pending.forEach(o => {
                     html += '<tr>' +
-                        '<td class="p-3 font-semibold text-blue-600">ORD-' + (o.order_id || o.id) + '</td>' +
+                        '<td class="p-3 font-semibold text-blue-600">' + (o.order_id || o.id) + '</td>' +
                         '<td class="p-3 font-bold">' + (o.user_name || o.user) + '</td>' +
                         '<td class="p-3">' + (o.item_name || o.itemName) + '</td>' +
                         '<td class="p-3 text-center font-bold">' + o.qty + '</td>' +
                         '<td class="p-3 text-center">Available</td>' +
                         '<td class="p-3 text-center space-x-1">' +
-                            (o.status === 'UNDER PROCESS' ? '<button type="button" onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'APPROVE\')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs">Approve</button>' : '') +
-                            '<button type="button" onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'ISSUE\')" class="bg-green-600 text-white px-2 py-1 rounded text-xs">Issue</button>' +
-                            '<button type="button" onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'REJECT\')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Reject</button>' +
+                            (o.status === 'UNDER PROCESS' ? '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'APPROVE\')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs">Approve</button>' : '') +
+                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'ISSUE\')" class="bg-green-600 text-white px-2 py-1 rounded text-xs">Issue</button>' +
+                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'REJECT\')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Reject</button>' +
                         '</td>' +
                     '</tr>';
                 });
@@ -1224,7 +1240,7 @@
                         '<td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ' + (u.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800') + '">' + u.role + '</span></td>' +
                         '<td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ' + (u.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') + '">' + u.status + '</span></td>' +
                         '<td class="p-3 text-center space-x-1">' +
-                            (u.role !== 'ADMIN' ? '<button type="button" onclick="toggleUserStatus(\'' + u.user_id + '\', \'' + u.status + '\')" class="text-xs px-2 py-1 rounded ' + (u.status === 'ACTIVE' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') + ' font-bold">' + (u.status === 'ACTIVE' ? 'Disable' : 'Enable') + '</button><button type="button" onclick="deleteUserAccount(\'' + u.user_id + '\')" class="text-xs px-2 py-1 rounded bg-red-100 text-red-700 font-bold ml-1">Delete</button>' : '<span class="text-xs text-gray-400">Admin Account</span>') +
+                            (u.role !== 'ADMIN' ? '<button onclick="toggleUserStatus(\'' + u.user_id + '\', \'' + u.status + '\')" class="text-xs px-2 py-1 rounded ' + (u.status === 'ACTIVE' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') + ' font-bold">' + (u.status === 'ACTIVE' ? 'Disable' : 'Enable') + '</button><button onclick="deleteUserAccount(\'' + u.user_id + '\')" class="text-xs px-2 py-1 rounded bg-red-100 text-red-700 font-bold ml-1">Delete</button>' : '<span class="text-xs text-gray-400">Admin Account</span>') +
                         '</td>' +
                     '</tr>';
                 });
@@ -1238,7 +1254,7 @@
                     html += '<tr>' +
                         '<td class="p-3 text-xs text-gray-400">' + (o.date_only ? o.date_only.split('T')[0] : '') + ' ' + (o.time_str || '') + '</td>' +
                         '<td class="p-3 text-xs font-bold text-gray-700">' + (o.user_name || 'System User') + '</td>' +
-                        '<td class="p-3 text-xs text-gray-800">Order ORD-' + (o.order_id || o.id) + ' for ' + o.item_name + ' (Qty: ' + o.qty + ') - Status: ' + o.status + '</td>' +
+                        '<td class="p-3 text-xs text-gray-800">Order ' + o.order_id + ' for ' + o.item_name + ' (Qty: ' + o.qty + ') - Status: ' + o.status + '</td>' +
                     '</tr>';
                 });
                 adminLogsTbl.innerHTML = html || '<tr><td colspan="3" class="p-4 text-center text-gray-400">No logs found.</td></tr>';
