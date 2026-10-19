@@ -740,6 +740,7 @@
             }
         }
 
+        // FIXED: Explicitly getting inputs to prevent 'undefined' values
         function handleCourierAssignment(e) {
             e.preventDefault();
             const userName = document.getElementById('courierSelectUser').value;
@@ -799,7 +800,7 @@
             if (courier) {
                 courier.status = 'RECEIVED';
                 
-                const userObj = usersList.find(u => u.name.trim().toLowerCase() === courier.userName.trim().toLowerCase());
+                const userObj = usersList.find(u => u.name.trim().toLowerCase() === (courier.userName || courier.user_name || '').trim().toLowerCase());
                 const userEmail = userObj ? userObj.email : 'user@company.com';
                 
                 fetch('/api/courier/receive', {
@@ -814,9 +815,9 @@
                 alert("AUTO EMAIL SENT SUCCESSFULLY TO (" + userEmail + ")!\n\n" +
                       "Date: " + courier.date + "\n" +
                       "Courier Company: " + courier.company + "\n" +
-                      "Tracking Number: " + courier.trackingNo + "\n" +
-                      "From: " + courier.fromDetails + "\n" +
-                      "To: " + courier.toDetails);
+                      "Tracking Number: " + (courier.trackingNo || courier.tracking_no) + "\n" +
+                      "From: " + (courier.fromDetails || courier.from_details) + "\n" +
+                      "To: " + (courier.toDetails || courier.to_details));
             }
         }
 
@@ -1407,6 +1408,7 @@
                 });
         }
 
+        // FIXED: Handling both camelCase and snake_case properties from server DB
         function renderAll() {
             populateUserItemDropdown();
             populateCategoriesDropdown();
@@ -1415,18 +1417,25 @@
 
             const userLiveTbl = document.getElementById('userLiveCourierTable');
             if(userLiveTbl && currentUser) {
-                const myCouriers = couriersList.filter(c => String(c.userName).trim().toLowerCase() === String(currentUser.name).trim().toLowerCase());
+                const myCouriers = couriersList.filter(c => {
+                    const name = c.userName || c.user_name || '';
+                    return String(name).trim().toLowerCase() === String(currentUser.name).trim().toLowerCase();
+                });
                 if(myCouriers.length === 0) {
                     userLiveTbl.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-gray-400">No live courier assigned yet.</td></tr>';
                 } else {
                     let html = '';
                     myCouriers.forEach(c => {
+                        const tracking = c.trackingNo || c.tracking_no || 'N/A';
+                        const fromDet = c.fromDetails || c.from_details || 'N/A';
+                        const toDet = c.toDetails || c.to_details || 'N/A';
+
                         html += '<tr>' +
                             '<td class="p-3 text-xs font-semibold">' + c.date + '</td>' +
                             '<td class="p-3 font-bold text-blue-600">' + c.company + '</td>' +
-                            '<td class="p-3 font-mono text-xs">' + c.trackingNo + '</td>' +
-                            '<td class="p-3 text-xs">' + c.fromDetails + '</td>' +
-                            '<td class="p-3 text-xs">' + c.toDetails + '</td>' +
+                            '<td class="p-3 font-mono text-xs">' + tracking + '</td>' +
+                            '<td class="p-3 text-xs">' + fromDet + '</td>' +
+                            '<td class="p-3 text-xs">' + toDet + '</td>' +
                             '<td class="p-3 text-center"><a href="' + c.photo + '" target="_blank"><img src="' + c.photo + '" class="w-12 h-12 object-cover rounded mx-auto border shadow-sm hover:scale-105 transition" /></a></td>' +
                             '<td class="p-3 text-center">' +
                                 (c.status === 'DISPATCHED' ? '<button onclick="markCourierReceived(\'' + c.id + '\')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-bold shadow">Mark Received</button>' : '<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">RECEIVED</span>') +
@@ -1444,12 +1453,17 @@
                 } else {
                     let html = '';
                     couriersList.forEach(c => {
+                        const name = c.userName || c.user_name || 'N/A';
+                        const tracking = c.trackingNo || c.tracking_no || 'N/A';
+                        const fromDet = c.fromDetails || c.from_details || 'N/A';
+                        const toDet = c.toDetails || c.to_details || 'N/A';
+
                         html += '<tr>' +
-                            '<td class="p-3 font-bold">' + c.userName + '</td>' +
+                            '<td class="p-3 font-bold">' + name + '</td>' +
                             '<td class="p-3 text-xs">' + c.date + '</td>' +
                             '<td class="p-3 font-semibold text-blue-600">' + c.company + '</td>' +
-                            '<td class="p-3 font-mono text-xs">' + c.trackingNo + '</td>' +
-                            '<td class="p-3 text-xs">From: ' + c.fromDetails + '<br/>To: ' + c.toDetails + '</td>' +
+                            '<td class="p-3 font-mono text-xs">' + tracking + '</td>' +
+                            '<td class="p-3 text-xs">From: ' + fromDet + '<br/>To: ' + toDet + '</td>' +
                             '<td class="p-3 text-center"><a href="' + c.photo + '" target="_blank"><img src="' + c.photo + '" class="w-10 h-10 object-cover rounded mx-auto border shadow-sm" /></a></td>' +
                             '<td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold ' + (c.status === 'RECEIVED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800') + '">' + c.status + '</span></td>' +
                             '<td class="p-3 text-center"><button onclick="deleteCourierRecord(\'' + c.id + '\')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow"><i class="fa-solid fa-trash"></i></button></td>' +
