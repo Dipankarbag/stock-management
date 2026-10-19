@@ -604,6 +604,15 @@
         let receivedLogs = [];
         let couriersList = JSON.parse(localStorage.getItem('system_couriers')) || [];
 
+        // Auto background sync for online cross-device live updates
+        setInterval(() => {
+            const savedCouriers = JSON.parse(localStorage.getItem('system_couriers')) || [];
+            if (JSON.stringify(savedCouriers) !== JSON.stringify(couriersList)) {
+                couriersList = savedCouriers;
+                renderAll();
+            }
+        }, 2000);
+
         function handleLogin(e) {
             e.preventDefault();
             const emailInput = document.getElementById('loginUsername').value.trim();
@@ -769,7 +778,7 @@
                     localStorage.setItem('system_couriers', JSON.stringify(couriersList));
                     renderAll();
                     e.target.reset();
-                    alert("Courier assigned successfully! User can now see it live instantly.");
+                    alert("Courier assigned successfully! Online user panel will update live instantly.");
                 };
                 reader.readAsDataURL(photoInput.files[0]);
             } else {
@@ -1372,7 +1381,7 @@
             populateUserDropdown();
             populateCourierUserDropdown();
 
-            // Refresh couriers from localStorage for live sync
+            // Refresh couriers from localStorage for live sync across online devices
             couriersList = JSON.parse(localStorage.getItem('system_couriers')) || [];
 
             // Render User Live Courier Table with strict matching
