@@ -695,6 +695,7 @@
                 document.getElementById('userPanel').classList.remove('hidden');
                 document.getElementById('adminPanel').classList.add('hidden');
                 populateUserItemDropdown();
+                renderAll();
             } else {
                 document.getElementById('userPanel').classList.add('hidden');
                 document.getElementById('adminPanel').classList.remove('hidden');
@@ -783,7 +784,7 @@
                 localStorage.setItem('system_couriers', JSON.stringify(couriersList));
                 renderAll();
                 
-                const userObj = usersList.find(u => u.name === courier.userName);
+                const userObj = usersList.find(u => u.name.trim().toLowerCase() === courier.userName.trim().toLowerCase());
                 const userEmail = userObj ? userObj.email : 'user@company.com';
                 
                 alert("AUTO EMAIL SENT SUCCESSFULLY TO (" + userEmail + ")!\n\n" +
@@ -1374,7 +1375,7 @@
             // Refresh couriers from localStorage for live sync
             couriersList = JSON.parse(localStorage.getItem('system_couriers')) || [];
 
-            // Render User Live Courier Table
+            // Render User Live Courier Table with strict matching
             const userLiveTbl = document.getElementById('userLiveCourierTable');
             if(userLiveTbl && currentUser) {
                 const myCouriers = couriersList.filter(c => String(c.userName).trim().toLowerCase() === String(currentUser.name).trim().toLowerCase());
