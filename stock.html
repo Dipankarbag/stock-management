@@ -486,8 +486,17 @@
                         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs shadow">Assign & Send Live Courier</button>
                     </form>
 
-                    <div>
-                        <h3 class="font-bold text-gray-700 text-sm mb-3">All Assigned Couriers</h3>
+                    <!-- Assigned Couriers Section with User Filter -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center flex-wrap gap-3">
+                            <h3 class="font-bold text-gray-700 text-sm">All Assigned Couriers</h3>
+                            <div class="flex items-center space-x-2">
+                                <label class="text-xs font-bold text-gray-600">Filter User:</label>
+                                <select id="adminCourierUserFilter" onchange="renderAll()" class="border rounded p-1.5 text-xs bg-white font-semibold">
+                                    <option value="ALL">-- All Users --</option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                <thead>
@@ -510,7 +519,20 @@
 
                 <!-- ADMIN TAB 6: Outgoing Parcels Control -->
                 <div id="tabOutgoing" class="bg-white p-6 rounded-xl shadow-md border border-gray-200 hidden space-y-4">
-                    <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-paper-plane text-blue-600 mr-2"></i> User Outgoing Parcel Requests</h2>
+                    <div class="flex justify-between items-center flex-wrap gap-3 border-b pb-3">
+                        <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-paper-plane text-blue-600 mr-2"></i> User Outgoing Parcel Requests</h2>
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center space-x-2">
+                                <label class="text-xs font-bold text-gray-600">Filter User:</label>
+                                <select id="adminOutgoingUserFilter" onchange="renderAll()" class="border rounded p-1.5 text-xs bg-white font-semibold">
+                                    <option value="ALL">-- All Users --</option>
+                                </select>
+                            </div>
+                            <button onclick="exportOutgoingCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-bold shadow flex items-center">
+                                <i class="fa-solid fa-file-excel mr-1.5"></i> Export Report (CSV)
+                            </button>
+                        </div>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -876,11 +898,15 @@
                 })
             })
             .then(res => res.json())
-            .then(() => {
-                alert("Tracking Number updated! User panel updated live.");
-                fetchAppState();
+            .then(data => {
+                if(data.success) {
+                    alert("Tracking Number updated successfully! User panel updated live.");
+                    fetchAppState();
+                } else {
+                    alert("Error updating tracking number!");
+                }
             })
-            .catch(err => alert("Error updating tracking number!"));
+            .catch(err => alert("Server connection error!"));
         }
 
         function deleteOutgoingParcel(parcelId) {
@@ -889,6 +915,25 @@
                 .then(() => fetchAppState())
                 .catch(err => alert("Error deleting"));
             }
+        }
+
+        function exportOutgoingCSV() {
+            const selectedUser = document.getElementById('adminOutgoingUserFilter') ? document.getElementById('adminOutgoingUserFilter').value : 'ALL';
+            const list = outgoingParcelsList.filter(o => {
+                const uName = o.userName || o.user_name || '';
+                return selectedUser === 'ALL' || String(uName).trim().toLowerCase() === String(selectedUser).trim().toLowerCase();
+            });
+
+            if(list.length === 0) { alert("No outgoing parcel data available to export!"); return; }
+
+            let csv = "User Outgoing Parcel Requests Report\nRequested By User,Date,From Details,To Address Details,Courier Company,Tracking Number,Status\n";
+            list.forEach(o => {
+                csv += '"' + (o.userName || o.user_name || '') + '","' + (o.date || '') + '","' + (o.fromDetails || o.from_details || '') + '","' + (o.toDetails || o.to_details || '') + '","' + (o.courierCompany || o.courier_company || '') + '","' + (o.trackingNo || o.tracking_no || 'PENDING') + '","' + (o.status || '') + '"\n';
+            });
+            const link = document.createElement("a");
+            link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
+            link.download = "Outgoing_Parcel_Requests_" + new Date().toISOString().split('T')[0] + ".csv";
+            link.click();
         }
 
         function populateCourierUserDropdown() {
@@ -903,6 +948,30 @@
                 }
             });
             select.innerHTML = optionsHtml;
+        }
+
+        function populateAdminFilters() {
+            const courierFilter = document.getElementById('adminCourierUserFilter');
+            const outgoingFilter = document.getElementById('adminOutgoingUserFilter');
+
+            const currentCourierVal = courierFilter ? courierFilter.value : 'ALL';
+            const currentOutgoingVal = outgoingFilter ? outgoingFilter.value : 'ALL';
+
+            let optionsHtml = '<option value="ALL">-- All Users --</option>';
+            usersList.forEach(u => {
+                if(u.role !== 'ADMIN') {
+                    optionsHtml += '<option value="' + u.name + '">' + u.name + '</option>';
+                }
+            });
+
+            if(courierFilter) {
+                courierFilter.innerHTML = optionsHtml;
+                courierFilter.value = currentCourierVal;
+            }
+            if(outgoingFilter) {
+                outgoingFilter.innerHTML = optionsHtml;
+                outgoingFilter.value = currentOutgoingVal;
+            }
         }
 
         function validatePhotoSize(input) {
@@ -956,12 +1025,7 @@
                         e.target.reset();
                         alert("Courier assigned successfully! Online user panel will update live instantly.");
                     })
-                    .catch(err => {
-                        couriersList.unshift(newCourier);
-                        renderAll();
-                        e.target.reset();
-                        alert("Courier assigned locally!");
-                    });
+                    .catch(err => alert("Assignment error!"));
                 };
                 reader.readAsDataURL(photoInput.files[0]);
             } else {
@@ -995,10 +1059,7 @@
                 fetch('/api/courier/delete/' + courierId, { method: 'DELETE' })
                 .then(res => res.json())
                 .then(() => fetchAppState())
-                .catch(err => {
-                    couriersList = couriersList.filter(c => String(c.id) !== String(courierId));
-                    renderAll();
-                });
+                .catch(err => alert("Delete error"));
             }
         }
 
@@ -1026,10 +1087,6 @@
 
             const existingIndex = orderCart.findIndex(cartItem => String(cartItem.itemId) === String(itemId));
             if (existingIndex > -1) {
-                if (orderCart[existingIndex].qty + qty > item.current) {
-                    alert("Total cart quantity exceeds available stock!");
-                    return;
-                }
                 orderCart[existingIndex].qty += qty;
             } else {
                 orderCart.push({
@@ -1203,26 +1260,6 @@
             renderLedgerTableCustom(inventory);
         }
 
-        function editOpeningQuantity(itemId) {
-            const pwd = prompt("Security Access Required!\nPlease Enter Security Password to edit Opening Quantity:");
-            if (pwd === null) return;
-            
-            if (pwd === securityPassword) {
-                const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
-                const newOpeningStr = prompt("Enter New Opening Quantity for '" + item.name + "':", item.opening);
-                const newOpening = parseInt(newOpeningStr);
-
-                if (!isNaN(newOpening) && newOpening >= 0) {
-                    item.opening = newOpening;
-                    item.current = item.opening + item.received - item.issued;
-                    renderAll();
-                    alert("Opening Quantity updated successfully!");
-                }
-            } else {
-                alert("Incorrect Password! Access Denied.");
-            }
-        }
-
         function renderLedgerTableCustom(list) {
             currentFilteredLedger = list;
             const tbl = document.getElementById('adminStockTable');
@@ -1234,21 +1271,9 @@
                     '<td class="p-3 font-bold">' + i.name + '</td>' +
                     '<td class="p-3 text-xs">' + i.category + '</td>' +
                     '<td class="p-3 text-center font-semibold text-purple-700">' + (i.unit || 'pcs') + '</td>' +
-                    '<td class="p-3 text-center">' +
-                        '<button onclick="editOpeningQuantity(\'' + itemId + '\')" title="Click to edit Opening Quantity (Password Protected)" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-2.5 py-1 rounded border border-gray-300 text-xs">' +
-                            i.opening + ' <i class="fa-solid fa-lock text-[10px] text-amber-600 ml-1"></i>' +
-                        '</button>' +
-                    '</td>' +
-                    '<td class="p-3 text-center">' +
-                        '<button onclick="showReceivedBreakdown(\'' + itemId + '\')" title="Click to view received stock details" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-blue-300">' +
-                            '+' + i.received + ' <i class="fa-solid fa-circle-info ml-1 text-[10px]"></i>' +
-                        '</button>' +
-                    '</td>' +
-                    '<td class="p-3 text-center">' +
-                        '<button onclick="showIssuedBreakdown(\'' + itemId + '\')" title="Click to view issued user details" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-amber-300">' +
-                            '-' + i.issued + ' <i class="fa-solid fa-circle-info ml-1 text-[10px]"></i>' +
-                        '</button>' +
-                    '</td>' +
+                    '<td class="p-3 text-center">' + i.opening + '</td>' +
+                    '<td class="p-3 text-center">+' + i.received + '</td>' +
+                    '<td class="p-3 text-center">-' + i.issued + '</td>' +
                     '<td class="p-3 text-center text-emerald-700 font-extrabold">' + i.current + '</td>' +
                     '<td class="p-3 text-center text-xs text-gray-500">' + (i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')) + '</td>' +
                     '<td class="p-3 text-center space-x-1">' +
@@ -1280,61 +1305,6 @@
             printWin.document.write('<html><head><title>Inventory Movement Ledger Report</title><style>body { font-family: Arial, sans-serif; padding: 20px; color: #333; } table { width: 100%; border-collapse: collapse; margin-top: 15px; } th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 13px; } th { background-color: #0f172a; color: white; } .text-center { text-align: center; }</style></head><body><h2>Inventory Movement Ledger Report</h2><p>Generated Date: ' + new Date().toLocaleString() + '</p><hr/><table><thead><tr><th>Item Name</th><th>Category</th><th class="text-center">Unit</th><th class="text-center">Opening</th><th class="text-center">Received</th><th class="text-center">Issued</th><th class="text-center">Closing Balance</th><th class="text-center">Last Received Date</th></tr></thead><tbody>' + rows + '</tbody></table></body></html>');
             printWin.document.close(); printWin.focus(); setTimeout(() => { printWin.print(); }, 500);
         }
-
-        function showReceivedBreakdown(itemId) {
-            activeReceivedItemId = itemId;
-            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
-            document.getElementById('receivedItemTitle').innerText = item.name + ' (' + item.category + ')';
-            
-            const logsForNext = receivedLogs.filter(l => String(l.item_id !== undefined ? l.item_id : l.itemId) === String(itemId));
-            const tbody = document.getElementById('receivedDetailsTable');
-
-            if(logsForNext.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">No stock in records found for this item yet.</td></tr>';
-            } else {
-                let html = '';
-                logsForNext.forEach(l => {
-                    html += '<tr>' +
-                        '<td class="p-3 font-bold text-gray-800">' + (l.receiver_name || l.user) + '</td>' +
-                        '<td class="p-3 text-center font-bold text-blue-700 text-base">+' + l.qty + ' ' + (item.unit || 'pcs') + '</td>' +
-                        '<td class="p-3 text-xs text-gray-500">' + (l.date_only ? l.date_only.split('T')[0] : (l.dateOnly || '')) + ' (' + (l.time_str || l.time || '') + ')</td>' +
-                        '<td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800">RECEIVED</span></td>' +
-                    '</tr>';
-                });
-                tbody.innerHTML = html;
-            }
-            document.getElementById('receivedDetailsModal').classList.remove('hidden');
-        }
-
-        function closeReceivedDetailsModal() { activeReceivedItemId = null; document.getElementById('receivedDetailsModal').classList.add('hidden'); }
-
-        function showIssuedBreakdown(itemId) {
-            activeIssuedItemId = itemId;
-            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
-            document.getElementById('issuedItemTitle').innerText = item.name + ' (' + item.category + ')';
-            
-            const itemIssuedOrders = orders.filter(o => String(o.item_id !== undefined ? o.item_id : o.itemId) === String(itemId) && o.status === 'ISSUED');
-            const tbody = document.getElementById('issuedDetailsTable');
-
-            if(itemIssuedOrders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">No issued records found for this item yet.</td></tr>';
-            } else {
-                let html = '';
-                itemIssuedOrders.forEach(o => {
-                    html += '<tr>' +
-                        '<td class="p-3 font-bold text-gray-800">' + (o.user_name || o.user) + '</td>' +
-                        '<td class="p-3 font-bold text-blue-700">' + (o.issuer_name || o.issuer || 'System Admin') + '</td>' +
-                        '<td class="p-3 text-center font-bold text-amber-700 text-base">' + o.qty + ' ' + (item.unit || 'pcs') + '</td>' +
-                        '<td class="p-3 text-xs text-gray-500">' + (o.date_only ? o.date_only.split('T')[0] : (o.dateOnly || '')) + ' (' + (o.time_str || o.time || '') + ')</td>' +
-                        '<td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-800">ISSUED</span></td>' +
-                    '</tr>';
-                });
-                tbody.innerHTML = html;
-            }
-            document.getElementById('issuedDetailsModal').classList.remove('hidden');
-        }
-
-        function closeIssuedDetailsModal() { activeIssuedItemId = null; document.getElementById('issuedDetailsModal').classList.add('hidden'); }
 
         function openStockInModal(itemId) {
             const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
@@ -1464,6 +1434,7 @@
             populateCategoriesDropdown();
             populateUserDropdown();
             populateCourierUserDropdown();
+            populateAdminFilters();
 
             // Render User Page 1 (Incoming Live Courier)
             const userLiveTbl = document.getElementById('userLiveCourierTable');
@@ -1525,14 +1496,22 @@
                 }
             }
 
-            // Render Admin Tab: Outgoing Parcels
+            // Render Admin Tab: Outgoing Parcels with User Filter
             const adminOutTbl = document.getElementById('adminOutgoingTable');
+            const outgoingUserFilter = document.getElementById('adminOutgoingUserFilter');
+            const selectedOutgoingUser = outgoingUserFilter ? outgoingUserFilter.value : 'ALL';
+
             if(adminOutTbl) {
-                if(outgoingParcelsList.length === 0) {
-                    adminOutTbl.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">No outgoing parcel requests from users.</td></tr>';
+                const filteredOutgoing = outgoingParcelsList.filter(o => {
+                    const uName = o.userName || o.user_name || '';
+                    return selectedOutgoingUser === 'ALL' || String(uName).trim().toLowerCase() === String(selectedOutgoingUser).trim().toLowerCase();
+                });
+
+                if(filteredOutgoing.length === 0) {
+                    adminOutTbl.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">No outgoing parcel requests found.</td></tr>';
                 } else {
                     let html = '';
-                    outgoingParcelsList.forEach(o => {
+                    filteredOutgoing.forEach(o => {
                         const tracking = o.tracking_no || o.trackingNo || '';
                         const isPending = !tracking || tracking === 'PENDING ADMIN ASSIGNMENT';
 
@@ -1544,7 +1523,7 @@
                             '<td class="p-3 text-xs font-semibold">' + (o.courier_company || o.courierCompany || 'N/A') + '</td>' +
                             '<td class="p-3 font-mono text-xs">' + (isPending ? '<span class="text-amber-600">PENDING</span>' : tracking) + '</td>' +
                             '<td class="p-3 text-center">' +
-                                '<input type="text" id="trackInput_' + o.id + '" value="' + (isPending ? '' : tracking) + '" placeholder="Enter Tracking No." class="border rounded p-1 text-xs w-36 font-mono" />' +
+                                '<input type="text" id="trackInput_' + o.id + '" value="' + (isPending ? '' : tracking) + '" placeholder="Enter Tracking No." class="border rounded p-1 text-xs w-36 font-mono bg-white" />' +
                             '</td>' +
                             '<td class="p-3 text-center space-x-1">' +
                                 '<button onclick="adminUpdateTracking(\'' + o.id + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-xs font-bold shadow">Save Tracking</button>' +
@@ -1556,14 +1535,22 @@
                 }
             }
 
-            // Render Admin Assign Courier List
+            // Render Admin Assign Courier List with User Filter
             const adminCourierTbl = document.getElementById('adminCourierTable');
+            const courierUserFilter = document.getElementById('adminCourierUserFilter');
+            const selectedCourierUser = courierUserFilter ? courierUserFilter.value : 'ALL';
+
             if(adminCourierTbl) {
-                if(couriersList.length === 0) {
-                    adminCourierTbl.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">No couriers assigned.</td></tr>';
+                const filteredCouriers = couriersList.filter(c => {
+                    const name = c.userName || c.user_name || '';
+                    return selectedCourierUser === 'ALL' || String(name).trim().toLowerCase() === String(selectedCourierUser).trim().toLowerCase();
+                });
+
+                if(filteredCouriers.length === 0) {
+                    adminCourierTbl.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">No couriers found.</td></tr>';
                 } else {
                     let html = '';
-                    couriersList.forEach(c => {
+                    filteredCouriers.forEach(c => {
                         const name = c.userName || c.user_name || 'N/A';
                         const tracking = c.trackingNo || c.tracking_no || 'N/A';
                         const fromDet = c.fromDetails || c.from_details || 'N/A';
