@@ -28,6 +28,7 @@ function sendAutoEmail(toEmail, subject, message) {
         }
     });
 }
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -36,7 +37,10 @@ require('dotenv').config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+
+// Payload size limit badha di gayi hai taaki 413 error na aaye (Courier photo upload ke liye)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(express.static(__dirname));
 
@@ -90,6 +94,18 @@ async function initDB() {
                 date_only DATE,
                 time_str VARCHAR(50)
             );
+
+            CREATE TABLE IF NOT EXISTS couriers (
+                id VARCHAR(50) PRIMARY KEY,
+                user_name VARCHAR(100),
+                date VARCHAR(50),
+                company VARCHAR(100),
+                tracking_no VARCHAR(100),
+                from_details TEXT,
+                to_details TEXT,
+                photo TEXT,
+                status VARCHAR(50) DEFAULT 'DISPATCHED'
+            );
         `);
 
         await db.query(`
@@ -127,12 +143,14 @@ app.get('/api/state', async (req, res) => {
         const inventory = await db.query('SELECT * FROM inventory');
         const orders = await db.query('SELECT * FROM orders');
         const receivedLogs = await db.query('SELECT * FROM received_logs');
+        const couriers = await db.query('SELECT * FROM couriers');
 
         res.json({
             users: users.rows,
             inventory: inventory.rows,
             orders: orders.rows,
-            receivedLogs: receivedLogs.rows
+            receivedLogs: receivedLogs.rows,
+            couriers: couriers.rows
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -166,7 +184,6 @@ app.post('/api/users/register', async (req, res) => {
         const values = [userId || `USR-${Math.floor(100+Math.random()*900)}`, name, email, password, dept, phone, role || 'USER', status || 'ACTIVE'];
         const result = await db.query(query, values);
         
-        // Auto Email Trigger on Registration
         sendAutoEmail(
             email,
             'Account Registered - Stock Inventory System',
@@ -210,7 +227,6 @@ app.post('/api/orders/create', async (req, res) => {
         const values = [orderId, user, itemId, itemName, category, qty, timeStr, dateOnly || new Date().toISOString().split('T')[0]];
         const result = await db.query(query, values);
         
-        // Fetch user email to send auto-notification
         const userQuery = await db.query('SELECT email FROM users WHERE name = $1', [user]);
         if (userQuery.rows.length > 0 && userQuery.rows[0].email) {
             sendAutoEmail(
@@ -253,7 +269,6 @@ app.post('/api/orders/process', async (req, res) => {
             RETURNING *;
         `, [newStatus, issuerName, orderId]);
 
-        // Fetch user email to notify status update
         const userQuery = await db.query('SELECT email FROM users WHERE name = $1', [order.user_name]);
         if (userQuery.rows.length > 0 && userQuery.rows[0].email) {
             sendAutoEmail(
@@ -264,6 +279,45 @@ app.post('/api/orders/process', async (req, res) => {
         }
 
         res.json({ success: true, order: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Courier Handover API Endpoints
+app.post('/api/courier/assign', async (req, res) => {
+    const { id, userName, date, company, trackingNo, fromDetails, toDetails, photo, status } = req.body;
+    try {
+        const query = `
+            INSERT INTO couriers (id, user_name, date, company, tracking_no, from_details, to_details, photo, status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status
+            RETURNING *;
+        `;
+        const values = [id, userName, date, company, trackingNo, fromDetails, toDetails, photo, status || 'DISPATCHED'];
+        const result = await db.query(query, values);
+        res.json({ success: true, courier: result.rows[0] });
+    } catch (err) {
+        console.error('Assign Courier Error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/courier/receive', async (req, res) => {
+    const { courierId, email } = req.body;
+    try {
+        const result = await db.query('UPDATE couriers SET status = $1 WHERE id = $2 RETURNING *;', ['RECEIVED', courierId]);
+        res.json({ success: true, courier: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/courier/delete/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query('DELETE FROM couriers WHERE id = $1', [id]);
+        res.json({ success: true, message: 'Courier deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
