@@ -699,12 +699,11 @@
             if (panel === 'user') {
                 document.getElementById('userPanel').classList.remove('hidden');
                 document.getElementById('adminPanel').classList.add('hidden');
-                populateUserItemDropdown();
-                renderAll();
+                fetchAppState();
             } else {
                 document.getElementById('userPanel').classList.add('hidden');
                 document.getElementById('adminPanel').classList.remove('hidden');
-                populateCourierUserDropdown();
+                fetchAppState();
             }
         }
 
@@ -715,7 +714,7 @@
             });
             const target = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
             if(target) target.classList.remove('hidden');
-            if(tab === 'courier') populateCourierUserDropdown();
+            fetchAppState();
         }
 
         function populateCourierUserDropdown() {
@@ -1510,7 +1509,7 @@
                         '</td>' +
                     '</tr>';
                 });
-                adminUsersTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No users found.</td></tr>';
+                adminUsersTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No userss found.</td></tr>';
             }
 
             const adminLogsTbl = document.getElementById('adminLogsTable');
