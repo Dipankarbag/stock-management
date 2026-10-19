@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .active-tab { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: bold; }
-        .active-user-tab { background-color: #2563eb; color: white; font-weight: bold; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans min-h-screen">
@@ -123,25 +122,12 @@
         </nav>
 
         <div class="max-w-7xl mx-auto p-6">
-            <!-- USER PANEL (3 PAGES / TABS) -->
+            <!-- USER PANEL -->
             <div id="userPanel" class="space-y-6">
-                <!-- User Page Navigation Tabs -->
-                <div class="flex bg-white p-1.5 rounded-xl shadow border border-gray-200 gap-2">
-                    <button id="userTab1Btn" onclick="switchUserPage(1)" class="flex-1 py-2.5 rounded-lg text-xs font-bold transition active-user-tab">
-                        <i class="fa-solid fa-truck-fast mr-2"></i>Page 1: Live Incoming Couriers
-                    </button>
-                    <button id="userTab2Btn" onclick="switchUserPage(2)" class="flex-1 py-2.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-100 transition">
-                        <i class="fa-solid fa-paper-plane mr-2"></i>Page 2: Outgoing Parcel Request
-                    </button>
-                    <button id="userTab3Btn" onclick="switchUserPage(3)" class="flex-1 py-2.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-100 transition">
-                        <i class="fa-solid fa-cart-shopping mr-2"></i>Page 3: Requisition Cart & Orders
-                    </button>
-                </div>
-
-                <!-- USER PAGE 1: Live Incoming Couriers -->
-                <div id="userPage1" class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <!-- Live Courier Tracking Section for User -->
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
                     <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                        <i class="fa-solid fa-truck-fast text-blue-600 mr-2"></i> My Live Incoming Couriers
+                        <i class="fa-solid fa-truck-fast text-blue-600 mr-2"></i> My Live Courier (DIKHO)
                     </h2>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
@@ -163,132 +149,70 @@
                     </div>
                 </div>
 
-                <!-- USER PAGE 2: Outgoing Parcel Request -->
-                <div id="userPage2" class="space-y-6 hidden">
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 space-y-4">
-                        <h2 class="text-lg font-bold text-gray-800 flex items-center">
-                            <i class="fa-solid fa-paper-plane text-blue-600 mr-2"></i> Send Outgoing Parcel Request
-                        </h2>
-                        <form onsubmit="handleOutgoingParcelSubmit(event)" class="bg-slate-50 p-5 rounded-xl border border-gray-200 space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">From (Sender Name / Details)</label>
-                                    <input type="text" id="outgoingFromName" placeholder="Enter Sender Name / Branch" class="w-full border rounded p-2.5 text-xs bg-white" />
-                                    <p class="text-[11px] text-gray-400 mt-0.5">(Optionally leave blank or edit)</p>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">To Address Name / Receiver Details <span class="text-red-500">*</span></label>
-                                    <input type="text" id="outgoingToAddress" placeholder="e.g. Ramesh Kumar, ABC Pvt Ltd, Delhi" class="w-full border rounded p-2.5 text-xs bg-white" required />
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Parcel Contents Description</label>
-                                    <input type="text" id="outgoingDescription" placeholder="e.g. Important Documents / Laptop / Hardware" class="w-full border rounded p-2.5 text-xs bg-white" required />
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Dispatch Date</label>
-                                    <input type="date" id="outgoingDate" class="w-full border rounded p-2.5 text-xs bg-white" required />
-                                </div>
-                            </div>
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs shadow flex items-center">
-                                <i class="fa-solid fa-paper-plane mr-2"></i> Submit Outgoing Parcel Request to Admin
-                            </button>
-                        </form>
-                    </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fa-solid fa-cart-plus text-blue-600 mr-2"></i> Submit Multiple Items Requisition Cart
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-slate-50 p-4 rounded-xl border border-gray-200 mb-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Select Item</label>
+                            <select id="cartItemSelect" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800">
+                                <option value="" disabled selected>-- Choose Item --</option>
+                            </select>
+                        </div>
 
-                    <!-- Outgoing Requests History Table for User -->
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                        <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                            <i class="fa-solid fa-clock-rotate-left text-blue-600 mr-2"></i> My Outgoing Parcels & Live Tracking Status
-                        </h2>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
-                                        <th class="p-3">Request ID</th>
-                                        <th class="p-3">Date</th>
-                                        <th class="p-3">From Sender</th>
-                                        <th class="p-3">To Receiver</th>
-                                        <th class="p-3">Parcel Description</th>
-                                        <th class="p-3">Courier Company</th>
-                                        <th class="p-3">Tracking Number</th>
-                                        <th class="p-3 text-center">Live Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="userOutgoingTable" class="text-sm text-gray-700 divide-y">
-                                    <tr><td colspan="8" class="p-4 text-center text-gray-400">No outgoing parcel requests submitted yet.</td></tr>
-                                </tbody>
-                            </table>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Quantity Needed</label>
+                            <input type="number" id="cartItemQty" min="1" placeholder="Enter Qty" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800" />
+                        </div>
+
+                        <div>
+                            <button type="button" onclick="addToOrderCart()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg transition shadow flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-plus mr-1"></i> Add to Cart
+                            </button>
                         </div>
                     </div>
+
+                    <div class="overflow-x-auto mb-4">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
+                                    <th class="p-2.5">Item Name</th>
+                                    <th class="p-2.5">Category</th>
+                                    <th class="p-2.5 text-center">Quantity & Unit</th>
+                                    <th class="p-2.5 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orderCartTable" class="text-xs text-gray-700 divide-y">
+                                <tr><td colspan="4" class="p-4 text-center text-gray-400">Cart is empty. Add items above.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button id="submitCartBtn" onclick="submitBulkOrders()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-lg flex items-center justify-center text-sm hidden">
+                        <i class="fa-solid fa-paper-plane mr-2"></i> Submit All Cart Orders
+                    </button>
                 </div>
 
-                <!-- USER PAGE 3: Requisition Cart & Orders -->
-                <div id="userPage3" class="space-y-6 hidden">
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                        <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                            <i class="fa-solid fa-cart-plus text-blue-600 mr-2"></i> Submit Multiple Items Requisition Cart
-                        </h2>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-slate-50 p-4 rounded-xl border border-gray-200 mb-4">
-                            <div class="md:col-span-2">
-                                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Select Item</label>
-                                <select id="cartItemSelect" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800">
-                                    <option value="" disabled selected>-- Choose Item --</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Quantity Needed</label>
-                                <input type="number" id="cartItemQty" min="1" placeholder="Enter Qty" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800" />
-                            </div>
-
-                            <div>
-                                <button type="button" onclick="addToOrderCart()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg transition shadow flex items-center justify-center text-xs">
-                                    <i class="fa-solid fa-plus mr-1"></i> Add to Cart
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="overflow-x-auto mb-4">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
-                                        <th class="p-2.5">Item Name</th>
-                                        <th class="p-2.5">Category</th>
-                                        <th class="p-2.5 text-center">Quantity & Unit</th>
-                                        <th class="p-2.5 text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="orderCartTable" class="text-xs text-gray-700 divide-y">
-                                    <tr><td colspan="4" class="p-4 text-center text-gray-400">Cart is empty. Add items above.</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <button id="submitCartBtn" onclick="submitBulkOrders()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-lg flex items-center justify-center text-sm hidden">
-                            <i class="fa-solid fa-paper-plane mr-2"></i> Submit All Cart Orders
-                        </button>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                        <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                            <i class="fa-solid fa-clock-rotate-left text-blue-600 mr-2"></i> My Requisition Status & Orders
-                        </h2>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
-                                        <th class="p-3">Order ID</th>
-                                        <th class="p-3">Item Name</th>
-                                        <th class="p-3">Category</th>
-                                        <th class="p-3 text-center">Quantity</th>
-                                        <th class="p-3">Date & Time</th>
-                                        <th class="p-3 text-center">Live Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="userOrdersTable" class="text-sm text-gray-700 divide-y"></tbody>
-                            </table>
-                        </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-600 mr-2"></i> My Requisition Status & Orders
+                    </h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
+                                    <th class="p-3">Order ID</th>
+                                    <th class="p-3">Item Name</th>
+                                    <th class="p-3">Category</th>
+                                    <th class="p-3 text-center">Quantity</th>
+                                    <th class="p-3">Date & Time</th>
+                                    <th class="p-3 text-center">Live Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userOrdersTable" class="text-sm text-gray-700 divide-y"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -301,7 +225,6 @@
                     <button onclick="switchAdminTab('userOrders')" id="tabUserOrdersBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-file-invoice mr-2"></i>User Order Details & History</button>
                     <button onclick="switchAdminTab('users')" id="tabUsersBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-users mr-2"></i>Registered Users Control</button>
                     <button onclick="switchAdminTab('courier')" id="tabCourierBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-truck-fast mr-2"></i>Courier Handover</button>
-                    <button onclick="switchAdminTab('outgoing')" id="tabOutgoingBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-paper-plane mr-2"></i>Outgoing Parcels</button>
                     <button onclick="switchAdminTab('logs')" id="tabLogsBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-user-clock mr-2"></i>System Activity Logs</button>
                 </div>
 
@@ -515,36 +438,7 @@
                     </div>
                 </div>
 
-                <!-- ADMIN TAB 6: Outgoing Parcels Single Control Page -->
-                <div id="tabOutgoing" class="bg-white p-6 rounded-xl shadow-md border border-gray-200 hidden space-y-4">
-                    <h2 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
-                        <i class="fa-solid fa-paper-plane text-blue-600 mr-2"></i> User Outgoing Parcel Requests & Admin Tracking Update
-                    </h2>
-                    <p class="text-xs text-gray-500">View user outgoing requests and input tracking number to update live user panel.</p>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-800 text-white text-xs uppercase">
-                                    <th class="p-3">Request ID</th>
-                                    <th class="p-3">Requested By (User)</th>
-                                    <th class="p-3">Date</th>
-                                    <th class="p-3">From Sender</th>
-                                    <th class="p-3">To Address / Receiver</th>
-                                    <th class="p-3">Parcel Description</th>
-                                    <th class="p-3">Courier Company</th>
-                                    <th class="p-3">Tracking Number</th>
-                                    <th class="p-3 text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminOutgoingTable" class="text-sm divide-y">
-                                <tr><td colspan="9" class="p-4 text-center text-gray-400">No outgoing parcel requests.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ADMIN TAB 7: Activity Logs -->
+                <!-- ADMIN TAB 6: Activity Logs -->
                 <div id="tabLogs" class="bg-white p-6 rounded-xl shadow-md border border-gray-200 hidden">
                     <h2 class="text-lg font-bold text-gray-800 mb-4">Audit & Activity Logs</h2>
                     <div class="overflow-x-auto">
@@ -709,7 +603,6 @@
         let orders = [];
         let receivedLogs = [];
         let couriersList = [];
-        let outgoingParcelsList = [];
 
         setInterval(() => {
             fetchAppState();
@@ -805,7 +698,6 @@
             if (panel === 'user') {
                 document.getElementById('userPanel').classList.remove('hidden');
                 document.getElementById('adminPanel').classList.add('hidden');
-                switchUserPage(1);
                 fetchAppState();
             } else {
                 document.getElementById('userPanel').classList.add('hidden');
@@ -814,111 +706,14 @@
             }
         }
 
-        function switchUserPage(pageNo) {
-            [1, 2, 3].forEach(p => {
-                const pageEl = document.getElementById('userPage' + p);
-                const btnEl = document.getElementById('userTab' + p + 'Btn');
-                if(pageEl) pageEl.classList.add('hidden');
-                if(btnEl) {
-                    btnEl.classList.remove('active-user-tab');
-                    btnEl.classList.add('text-gray-600');
-                }
-            });
-
-            const activePage = document.getElementById('userPage' + pageNo);
-            const activeBtn = document.getElementById('userTab' + pageNo + 'Btn');
-            if(activePage) activePage.classList.remove('hidden');
-            if(activeBtn) {
-                activeBtn.classList.add('active-user-tab');
-                activeBtn.classList.remove('text-gray-600');
-            }
-            if(pageNo === 2) {
-                document.getElementById('outgoingDate').value = new Date().toISOString().split('T')[0];
-                document.getElementById('outgoingFromName').value = currentUser ? currentUser.name : '';
-            }
-        }
-
         function switchAdminTab(tab) {
-            ['requests', 'stock', 'userOrders', 'users', 'courier', 'outgoing', 'logs'].forEach(t => {
+            ['requests', 'stock', 'userOrders', 'users', 'courier', 'logs'].forEach(t => {
                 const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
                 if(el) el.classList.add('hidden');
             });
             const target = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
             if(target) target.classList.remove('hidden');
             fetchAppState();
-        }
-
-        function handleOutgoingParcelSubmit(e) {
-            e.preventDefault();
-            const fromName = document.getElementById('outgoingFromName').value.trim() || (currentUser ? currentUser.name : 'Unknown');
-            const toAddress = document.getElementById('outgoingToAddress').value.trim();
-            const description = document.getElementById('outgoingDescription').value.trim();
-            const date = document.getElementById('outgoingDate').value;
-
-            const newOutgoing = {
-                id: 'OUT-' + Math.floor(1000 + Math.random() * 9000),
-                userName: currentUser ? currentUser.name : 'User',
-                fromName: fromName,
-                toAddress: toAddress,
-                description: description,
-                date: date,
-                courierCompany: 'Pending Admin',
-                trackingNo: 'Pending Assignment',
-                status: 'REQUESTED'
-            };
-
-            fetch('/api/outgoing/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newOutgoing)
-            })
-            .then(res => res.json())
-            .then(() => {
-                alert("Outgoing parcel request submitted to Admin successfully!");
-                e.target.reset();
-                fetchAppState();
-            })
-            .catch(err => {
-                outgoingParcelsList.unshift(newOutgoing);
-                renderAll();
-                e.target.reset();
-                alert("Outgoing parcel request submitted locally!");
-            });
-        }
-
-        function updateOutgoingTracking(outId) {
-            const companyInput = document.getElementById('outComp_' + outId);
-            const trackingInput = document.getElementById('outTrack_' + outId);
-
-            if(!companyInput || !trackingInput) return;
-            const company = companyInput.value.trim();
-            const trackingNo = trackingInput.value.trim();
-
-            if(!company || !trackingNo) {
-                alert("Please enter both Courier Company and Tracking Number!");
-                return;
-            }
-
-            fetch('/api/outgoing/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: outId, courierCompany: company, trackingNo: trackingNo, status: 'DISPATCHED' })
-            })
-            .then(res => res.json())
-            .then(() => {
-                alert("Tracking number updated live for User!");
-                fetchAppState();
-            })
-            .catch(err => {
-                const item = outgoingParcelsList.find(o => String(o.id) === String(outId));
-                if(item) {
-                    item.courierCompany = company;
-                    item.trackingNo = trackingNo;
-                    item.status = 'DISPATCHED';
-                    renderAll();
-                    alert("Tracking number updated live for User!");
-                }
-            });
         }
 
         function populateCourierUserDropdown() {
@@ -945,6 +740,7 @@
             }
         }
 
+        // FIXED: Explicitly getting inputs to prevent 'undefined' values
         function handleCourierAssignment(e) {
             e.preventDefault();
             const userName = document.getElementById('courierSelectUser').value;
@@ -1604,21 +1400,21 @@
                     if(data.orders) orders = data.orders;
                     if(data.receivedLogs) receivedLogs = data.receivedLogs;
                     if(data.couriers) couriersList = data.couriers;
-                    if(data.outgoingParcels) outgoingParcelsList = data.outgoingParcels;
                     renderAll();
                 })
                 .catch(e => {
+                    console.log('State fetch error, maintaining local state');
                     renderAll();
                 });
         }
 
+        // FIXED: Handling both camelCase and snake_case properties from server DB
         function renderAll() {
             populateUserItemDropdown();
             populateCategoriesDropdown();
             populateUserDropdown();
             populateCourierUserDropdown();
 
-            // USER PAGE 1: Incoming Couriers
             const userLiveTbl = document.getElementById('userLiveCourierTable');
             if(userLiveTbl && currentUser) {
                 const myCouriers = couriersList.filter(c => {
@@ -1650,55 +1446,6 @@
                 }
             }
 
-            // USER PAGE 2: Outgoing Parcels Table
-            const userOutTbl = document.getElementById('userOutgoingTable');
-            if(userOutTbl && currentUser) {
-                const myOutgoing = outgoingParcelsList.filter(o => String(o.userName).trim().toLowerCase() === String(currentUser.name).trim().toLowerCase());
-                if(myOutgoing.length === 0) {
-                    userOutTbl.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">No outgoing parcel requests submitted yet.</td></tr>';
-                } else {
-                    let html = '';
-                    myOutgoing.forEach(o => {
-                        html += '<tr>' +
-                            '<td class="p-3 font-mono text-xs text-blue-600 font-bold">' + o.id + '</td>' +
-                            '<td class="p-3 text-xs">' + o.date + '</td>' +
-                            '<td class="p-3 font-semibold text-gray-800">' + (o.fromName || o.userName) + '</td>' +
-                            '<td class="p-3 text-xs font-semibold">' + o.toAddress + '</td>' +
-                            '<td class="p-3 text-xs">' + o.description + '</td>' +
-                            '<td class="p-3 text-xs font-bold text-indigo-600">' + (o.courierCompany || 'Pending Admin') + '</td>' +
-                            '<td class="p-3 font-mono text-xs font-bold text-emerald-600">' + (o.trackingNo || 'Pending Assignment') + '</td>' +
-                            '<td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold ' + (o.status === 'DISPATCHED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800') + '">' + o.status + '</span></td>' +
-                        '</tr>';
-                    });
-                    userOutTbl.innerHTML = html;
-                }
-            }
-
-            // ADMIN TAB: Outgoing Parcels Single Page
-            const adminOutTbl = document.getElementById('adminOutgoingTable');
-            if(adminOutTbl) {
-                if(outgoingParcelsList.length === 0) {
-                    adminOutTbl.innerHTML = '<tr><td colspan="9" class="p-4 text-center text-gray-400">No outgoing parcel requests.</td></tr>';
-                } else {
-                    let html = '';
-                    outgoingParcelsList.forEach(o => {
-                        html += '<tr>' +
-                            '<td class="p-3 font-mono text-xs text-blue-600 font-bold">' + o.id + '</td>' +
-                            '<td class="p-3 font-bold">' + o.userName + '</td>' +
-                            '<td class="p-3 text-xs">' + o.date + '</td>' +
-                            '<td class="p-3 text-xs font-semibold">' + (o.fromName || o.userName) + '</td>' +
-                            '<td class="p-3 text-xs">' + o.toAddress + '</td>' +
-                            '<td class="p-3 text-xs text-gray-600">' + o.description + '</td>' +
-                            '<td class="p-3"><input type="text" id="outComp_' + o.id + '" value="' + (o.courierCompany !== 'Pending Admin' ? o.courierCompany : '') + '" placeholder="e.g. DTDC / BlueDart" class="border rounded p-1 text-xs w-28" /></td>' +
-                            '<td class="p-3"><input type="text" id="outTrack_' + o.id + '" value="' + (o.trackingNo !== 'Pending Assignment' ? o.trackingNo : '') + '" placeholder="Tracking No" class="border rounded p-1 text-xs w-32 font-mono" /></td>' +
-                            '<td class="p-3 text-center"><button onclick="updateOutgoingTracking(\'' + o.id + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-xs font-bold shadow"><i class="fa-solid fa-floppy-disk mr-1"></i> Save Live</button></td>' +
-                        '</tr>';
-                    });
-                    adminOutTbl.innerHTML = html;
-                }
-            }
-
-            // ADMIN TAB: Incoming Couriers Assigned
             const adminCourierTbl = document.getElementById('adminCourierTable');
             if(adminCourierTbl) {
                 if(couriersList.length === 0) {
@@ -1740,4 +1487,69 @@
                         '<td class="p-3 text-center"><span class="px-2 py-1 text-xs rounded-full font-bold bg-amber-100 text-amber-700">' + o.status + '</span></td>' +
                     '</tr>';
                 });
-                uOrdersTbl.innerHTML = html ||
+                uOrdersTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No orders found.</td></tr>';
+            }
+
+            const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED');
+            const pCountEl = document.getElementById('pendingCount');
+            if(pCountEl) pCountEl.innerText = pending.length;
+            
+            const adminReqTbl = document.getElementById('adminRequestsTable');
+            if(adminReqTbl) {
+                let html = '';
+                pending.forEach(o => {
+                    html += '<tr>' +
+                        '<td class="p-3 font-semibold text-blue-600">' + (o.order_id || o.id) + '</td>' +
+                        '<td class="p-3 font-bold">' + (o.user_name || o.user) + '</td>' +
+                        '<td class="p-3">' + (o.item_name || o.itemName) + '</td>' +
+                        '<td class="p-3 text-center font-bold">' + o.qty + '</td>' +
+                        '<td class="p-3 text-center">Available</td>' +
+                        '<td class="p-3 text-center space-x-1">' +
+                            (o.status === 'UNDER PROCESS' ? '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'APPROVE\')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs">Approve</button>' : '') +
+                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'ISSUE\')" class="bg-green-600 text-white px-2 py-1 rounded text-xs">Issue</button>' +
+                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'REJECT\')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Reject</button>' +
+                        '</td>' +
+                    '</tr>';
+                });
+                adminReqTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No pending approvals.</td></tr>';
+            }
+
+            renderLedgerTableCustom(inventory);
+            renderUserHistoryTableCustom(orders);
+
+            const adminUsersTbl = document.getElementById('adminUsersTable');
+            if(adminUsersTbl) {
+                let html = '';
+                usersList.forEach(u => {
+                    html += '<tr>' +
+                        '<td class="p-3 font-mono text-xs">' + u.user_id + '</td>' +
+                        '<td class="p-3 font-bold">' + u.name + '</td>' +
+                        '<td class="p-3 text-xs text-blue-600">' + u.email + '</td>' +
+                        '<td class="p-3 text-xs">' + (u.dept || 'N/A') + '</td>' +
+                        '<td class="p-3 text-xs">' + (u.phone || 'N/A') + '</td>' +
+                        '<td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ' + (u.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800') + '">' + u.role + '</span></td>' +
+                        '<td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ' + (u.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') + '">' + u.status + '</span></td>' +
+                        '<td class="p-3 text-center space-x-1">' +
+                            (u.role !== 'ADMIN' ? '<button onclick="toggleUserStatus(\'' + u.user_id + '\', \'' + u.status + '\')" class="text-xs px-2 py-1 rounded ' + (u.status === 'ACTIVE' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') + ' font-bold">' + (u.status === 'ACTIVE' ? 'Disable' : 'Enable') + '</button><button onclick="deleteUserAccount(\'' + u.user_id + '\')" class="text-xs px-2 py-1 rounded bg-red-100 text-red-700 font-bold ml-1">Delete</button>' : '<span class="text-xs text-gray-400">Admin Account</span>') +
+                        '</td>' +
+                    '</tr>';
+                });
+                adminUsersTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No users found.</td></tr>';
+            }
+
+            const adminLogsTbl = document.getElementById('adminLogsTable');
+            if(adminLogsTbl) {
+                let html = '';
+                orders.forEach(o => {
+                    html += '<tr>' +
+                        '<td class="p-3 text-xs text-gray-400">' + (o.date_only ? o.date_only.split('T')[0] : '') + ' ' + (o.time_str || '') + '</td>' +
+                        '<td class="p-3 text-xs font-bold text-gray-700">' + (o.user_name || 'System User') + '</td>' +
+                        '<td class="p-3 text-xs text-gray-800">Order ' + o.order_id + ' for ' + o.item_name + ' (Qty: ' + o.qty + ') - Status: ' + o.status + '</td>' +
+                    '</tr>';
+                });
+                adminLogsTbl.innerHTML = html || '<tr><td colspan="3" class="p-4 text-center text-gray-400">No logs found.</td></tr>';
+            }
+        }
+    </script>
+</body>
+</html>
