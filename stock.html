@@ -602,15 +602,11 @@
         let inventory = [];
         let orders = [];
         let receivedLogs = [];
-        let couriersList = JSON.parse(localStorage.getItem('system_couriers')) || [];
+        let couriersList = [];
 
-        // Auto background sync for online cross-device live updates
+        // Auto poll state and couriers every 2 seconds for online cross-device live updates
         setInterval(() => {
-            const savedCouriers = JSON.parse(localStorage.getItem('system_couriers')) || [];
-            if (JSON.stringify(savedCouriers) !== JSON.stringify(couriersList)) {
-                couriersList = savedCouriers;
-                renderAll();
-            }
+            fetchAppState();
         }, 2000);
 
         function handleLogin(e) {
@@ -774,11 +770,23 @@
                         status: 'DISPATCHED'
                     };
                     
-                    couriersList.unshift(newCourier);
-                    localStorage.setItem('system_couriers', JSON.stringify(couriersList));
-                    renderAll();
-                    e.target.reset();
-                    alert("Courier assigned successfully! Online user panel will update live instantly.");
+                    fetch('/api/courier/assign', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newCourier)
+                    })
+                    .then(res => res.json())
+                    .then(() => {
+                        fetchAppState();
+                        e.target.reset();
+                        alert("Courier assigned successfully! Online user panel will update live instantly.");
+                    })
+                    .catch(err => {
+                        couriersList.unshift(newCourier);
+                        renderAll();
+                        e.target.reset();
+                        alert("Courier assigned locally!");
+                    });
                 };
                 reader.readAsDataURL(photoInput.files[0]);
             } else {
@@ -790,12 +798,19 @@
             const courier = couriersList.find(c => String(c.id) === String(courierId));
             if (courier) {
                 courier.status = 'RECEIVED';
-                localStorage.setItem('system_couriers', JSON.stringify(couriersList));
-                renderAll();
                 
                 const userObj = usersList.find(u => u.name.trim().toLowerCase() === courier.userName.trim().toLowerCase());
                 const userEmail = userObj ? userObj.email : 'user@company.com';
                 
+                fetch('/api/courier/receive', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ courierId: courierId, email: userEmail })
+                })
+                .then(res => res.json())
+                .then(() => fetchAppState())
+                .catch(err => renderAll());
+
                 alert("AUTO EMAIL SENT SUCCESSFULLY TO (" + userEmail + ")!\n\n" +
                       "Date: " + courier.date + "\n" +
                       "Courier Company: " + courier.company + "\n" +
@@ -807,9 +822,13 @@
 
         function deleteCourierRecord(courierId) {
             if (confirm("Are you sure you want to delete this courier record?")) {
-                couriersList = couriersList.filter(c => String(c.id) !== String(courierId));
-                localStorage.setItem('system_couriers', JSON.stringify(couriersList));
-                renderAll();
+                fetch('/api/courier/delete/' + courierId, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(() => fetchAppState())
+                .catch(err => {
+                    couriersList = couriersList.filter(c => String(c.id) !== String(courierId));
+                    renderAll();
+                });
             }
         }
 
@@ -1367,6 +1386,7 @@
                     if(data.inventory) inventory = data.inventory;
                     if(data.orders) orders = data.orders;
                     if(data.receivedLogs) receivedLogs = data.receivedLogs;
+                    if(data.couriers) couriersList = data.couriers;
                     renderAll();
                 })
                 .catch(e => {
@@ -1380,9 +1400,6 @@
             populateCategoriesDropdown();
             populateUserDropdown();
             populateCourierUserDropdown();
-
-            // Refresh couriers from localStorage for live sync across online devices
-            couriersList = JSON.parse(localStorage.getItem('system_couriers')) || [];
 
             // Render User Live Courier Table with strict matching
             const userLiveTbl = document.getElementById('userLiveCourierTable');
