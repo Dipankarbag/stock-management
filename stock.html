@@ -604,7 +604,6 @@
         let receivedLogs = [];
         let couriersList = [];
 
-        // Auto poll state and couriers every 2 seconds for online cross-device live updates
         setInterval(() => {
             fetchAppState();
         }, 2000);
@@ -720,10 +719,12 @@
         function populateCourierUserDropdown() {
             const select = document.getElementById('courierSelectUser');
             if(!select) return;
-            let optionsHtml = '<option value="" disabled selected>-- Choose User --</option>';
+            const currentSelected = select.value;
+            let optionsHtml = '<option value="" disabled ' + (!currentSelected ? 'selected' : '') + '>-- Choose User --</option>';
             usersList.forEach(u => {
                 if(u.role !== 'ADMIN') {
-                    optionsHtml += '<option value="' + u.name + '">' + u.name + ' (' + u.email + ')</option>';
+                    const isSelected = currentSelected === u.name ? 'selected' : '';
+                    optionsHtml += '<option value="' + u.name + '" ' + isSelected + '>' + u.name + ' (' + u.email + ')</option>';
                 }
             });
             select.innerHTML = optionsHtml;
@@ -731,7 +732,7 @@
 
         function validatePhotoSize(input) {
             if (input.files && input.files[0]) {
-                const fileSize = input.files[0].size / 1024; // in KB
+                const fileSize = input.files[0].size / 1024;
                 if (fileSize > 200) {
                     alert("File size exceeds 200KB limit! Please upload a smaller image.");
                     input.value = "";
@@ -834,10 +835,12 @@
         function populateUserItemDropdown() {
             const select = document.getElementById('cartItemSelect');
             if(!select) return;
-            let optionsHtml = '<option value="" disabled selected>-- Choose Item --</option>';
+            const currentSelected = select.value;
+            let optionsHtml = '<option value="" disabled ' + (!currentSelected ? 'selected' : '') + '>-- Choose Item --</option>';
             inventory.forEach(i => {
                 const itemId = i.item_id !== undefined ? i.item_id : i.id;
-                optionsHtml += '<option value="' + itemId + '">' + i.name + ' (' + i.category + ') - [Avail: ' + i.current + ' ' + (i.unit || 'pcs') + ']</option>';
+                const isSelected = String(currentSelected) === String(itemId) ? 'selected' : '';
+                optionsHtml += '<option value="' + itemId + '" ' + isSelected + '>' + i.name + ' (' + i.category + ') - [Avail: ' + i.current + ' ' + (i.unit || 'pcs') + ']</option>';
             });
             select.innerHTML = optionsHtml;
         }
@@ -994,11 +997,14 @@
         function populateCategoriesDropdown() {
             const select = document.getElementById('ledgerCategoryFilter');
             if(!select) return;
-            select.innerHTML = '<option value="ALL">-- All Categories --</option>';
+            const currentVal = select.value || 'ALL';
+            let optionsHtml = '<option value="ALL">-- All Categories --</option>';
             const cats = [...new Set(inventory.map(i => i.category))];
             cats.forEach(c => {
-                select.innerHTML += '<option value="' + c + '">' + c + '</option>';
+                const isSelected = currentVal === c ? 'selected' : '';
+                optionsHtml += '<option value="' + c + '" ' + isSelected + '>' + c + '</option>';
             });
+            select.innerHTML = optionsHtml;
         }
 
         function applyLedgerFilter() {
@@ -1327,8 +1333,15 @@
         function populateUserDropdown() {
             const select = document.getElementById('userFilterSelect');
             if(!select) return;
-            select.innerHTML = '<option value="ALL">-- All Users --</option>';
-            usersList.forEach(u => { if(u.role !== 'ADMIN') select.innerHTML += '<option value="' + u.name + '">' + u.name + '</option>'; });
+            const currentVal = select.value || 'ALL';
+            let optionsHtml = '<option value="ALL">-- All Users --</option>';
+            usersList.forEach(u => { 
+                if(u.role !== 'ADMIN') {
+                    const isSelected = currentVal === u.name ? 'selected' : '';
+                    optionsHtml += '<option value="' + u.name + '" ' + isSelected + '>' + u.name + '</option>';
+                }
+            });
+            select.innerHTML = optionsHtml;
         }
 
         function applyUserHistoryFilter() {
@@ -1400,7 +1413,6 @@
             populateUserDropdown();
             populateCourierUserDropdown();
 
-            // Render User Live Courier Table with strict matching
             const userLiveTbl = document.getElementById('userLiveCourierTable');
             if(userLiveTbl && currentUser) {
                 const myCouriers = couriersList.filter(c => String(c.userName).trim().toLowerCase() === String(currentUser.name).trim().toLowerCase());
@@ -1425,7 +1437,6 @@
                 }
             }
 
-            // Render Admin Courier Table
             const adminCourierTbl = document.getElementById('adminCourierTable');
             if(adminCourierTbl) {
                 if(couriersList.length === 0) {
@@ -1509,7 +1520,7 @@
                         '</td>' +
                     '</tr>';
                 });
-                adminUsersTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No userss found.</td></tr>';
+                adminUsersTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No users found.</td></tr>';
             }
 
             const adminLogsTbl = document.getElementById('adminLogsTable');
