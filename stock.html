@@ -124,6 +124,31 @@
         <div class="max-w-7xl mx-auto p-6">
             <!-- USER PANEL -->
             <div id="userPanel" class="space-y-6">
+                <!-- Live Courier Tracking Section for User -->
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fa-solid fa-truck-fast text-blue-600 mr-2"></i> My Live Courier (DIKHO)
+                    </h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
+                                    <th class="p-3">Date</th>
+                                    <th class="p-3">Courier Company</th>
+                                    <th class="p-3">Tracking Number</th>
+                                    <th class="p-3">From Details</th>
+                                    <th class="p-3">To Details</th>
+                                    <th class="p-3 text-center">Parcel Photo</th>
+                                    <th class="p-3 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userLiveCourierTable" class="text-sm text-gray-700 divide-y">
+                                <tr><td colspan="7" class="p-4 text-center text-gray-400">No live courier assigned.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
                     <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
                         <i class="fa-solid fa-cart-plus text-blue-600 mr-2"></i> Submit Multiple Items Requisition Cart
@@ -199,6 +224,7 @@
                     <button onclick="switchAdminTab('stock')" id="tabStockBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-boxes-stacked mr-2"></i>Inventory Movement Ledger</button>
                     <button onclick="switchAdminTab('userOrders')" id="tabUserOrdersBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-file-invoice mr-2"></i>User Order Details & History</button>
                     <button onclick="switchAdminTab('users')" id="tabUsersBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-users mr-2"></i>Registered Users Control</button>
+                    <button onclick="switchAdminTab('courier')" id="tabCourierBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-truck-fast mr-2"></i>Courier Handover</button>
                     <button onclick="switchAdminTab('logs')" id="tabLogsBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-user-clock mr-2"></i>System Activity Logs</button>
                 </div>
 
@@ -344,7 +370,75 @@
                     </div>
                 </div>
 
-                <!-- ADMIN TAB 5: Activity Logs -->
+                <!-- ADMIN TAB 5: Courier Handover -->
+                <div id="tabCourier" class="bg-white p-6 rounded-xl shadow-md border border-gray-200 hidden space-y-6">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-truck-fast text-blue-600 mr-2"></i> Courier Handover & Tracking Assignment</h2>
+                    </div>
+
+                    <!-- Assign Courier Form -->
+                    <form onsubmit="handleCourierAssignment(event)" class="bg-slate-50 p-5 rounded-xl border border-gray-200 space-y-4">
+                        <h3 class="font-bold text-gray-700 text-sm">Assign New Courier to User</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Select User</label>
+                                <select id="courierSelectUser" class="w-full border rounded p-2.5 text-xs font-semibold bg-white" required>
+                                    <option value="" disabled selected>-- Choose User --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Date</label>
+                                <input type="date" id="courierDate" class="w-full border rounded p-2.5 text-xs bg-white" required />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Courier Company</label>
+                                <input type="text" id="courierCompany" placeholder="e.g. Blue Dart / DTDC / Professional" class="w-full border rounded p-2.5 text-xs bg-white" required />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tracking Number</label>
+                                <input type="text" id="courierTrackingNo" placeholder="e.g. TRK987654321" class="w-full border rounded p-2.5 text-xs bg-white" required />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">From Details</label>
+                                <input type="text" id="courierFrom" placeholder="e.g. Head Office Mumbai" class="w-full border rounded p-2.5 text-xs bg-white" required />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">To Details</label>
+                                <input type="text" id="courierTo" placeholder="e.g. Branch Office Delhi" class="w-full border rounded p-2.5 text-xs bg-white" required />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Parcel Photo (Max 200KB)</label>
+                            <input type="file" id="courierPhoto" accept="image/*" onchange="validatePhotoSize(this)" class="w-full border rounded p-2 text-xs bg-white" required />
+                            <p class="text-[11px] text-gray-500 mt-1">Please upload parcel image smaller than 200KB.</p>
+                        </div>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs shadow">Assign & Send Live Courier</button>
+                    </form>
+
+                    <!-- Assigned Couriers List -->
+                    <div>
+                        <h3 class="font-bold text-gray-700 text-sm mb-3">All Assigned Couriers</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                               <thead>
+                                    <tr class="bg-gray-100 text-gray-600 text-xs uppercase border-b">
+                                        <th class="p-3">User Name</th>
+                                        <th class="p-3">Date</th>
+                                        <th class="p-3">Courier Company</th>
+                                        <th class="p-3">Tracking Number</th>
+                                        <th class="p-3">From -> To</th>
+                                        <th class="p-3 text-center">Photo</th>
+                                        <th class="p-3 text-center">Status</th>
+                                        <th class="p-3 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminCourierTable" class="text-sm divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADMIN TAB 6: Activity Logs -->
                 <div id="tabLogs" class="bg-white p-6 rounded-xl shadow-md border border-gray-200 hidden">
                     <h2 class="text-lg font-bold text-gray-800 mb-4">Audit & Activity Logs</h2>
                     <div class="overflow-x-auto">
@@ -508,6 +602,7 @@
         let inventory = [];
         let orders = [];
         let receivedLogs = [];
+        let couriersList = [];
 
         function handleLogin(e) {
             e.preventDefault();
@@ -603,16 +698,106 @@
             } else {
                 document.getElementById('userPanel').classList.add('hidden');
                 document.getElementById('adminPanel').classList.remove('hidden');
+                populateCourierUserDropdown();
             }
         }
 
         function switchAdminTab(tab) {
-            ['requests', 'stock', 'userOrders', 'users', 'logs'].forEach(t => {
+            ['requests', 'stock', 'userOrders', 'users', 'courier', 'logs'].forEach(t => {
                 const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
                 if(el) el.classList.add('hidden');
             });
             const target = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
             if(target) target.classList.remove('hidden');
+            if(tab === 'courier') populateCourierUserDropdown();
+        }
+
+        function populateCourierUserDropdown() {
+            const select = document.getElementById('courierSelectUser');
+            if(!select) return;
+            let optionsHtml = '<option value="" disabled selected>-- Choose User --</option>';
+            usersList.forEach(u => {
+                if(u.role !== 'ADMIN') {
+                    optionsHtml += '<option value="' + u.name + '">' + u.name + ' (' + u.email + ')</option>';
+                }
+            });
+            select.innerHTML = optionsHtml;
+        }
+
+        function validatePhotoSize(input) {
+            if (input.files && input.files[0]) {
+                const fileSize = input.files[0].size / 1024; // in KB
+                if (fileSize > 200) {
+                    alert("File size exceeds 200KB limit! Please upload a smaller image.");
+                    input.value = "";
+                }
+            }
+        }
+
+        function handleCourierAssignment(e) {
+            e.preventDefault();
+            const userName = document.getElementById('courierSelectUser').value;
+            const date = document.getElementById('courierDate').value;
+            const company = document.getElementById('courierCompany').value.trim();
+            const trackingNo = document.getElementById('courierTrackingNo').value.trim();
+            const fromDetails = document.getElementById('courierFrom').value.trim();
+            const toDetails = document.getElementById('courierTo').value.trim();
+            const photoInput = document.getElementById('courierPhoto');
+
+            if (!userName || !date || !company || !trackingNo || !fromDetails || !toDetails) {
+                alert("Please fill all required courier fields!");
+                return;
+            }
+
+            if (photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(uploadEvent) {
+                    const newCourier = {
+                        id: 'CR-' + Math.floor(1000 + Math.random() * 9000),
+                        userName: userName,
+                        date: date,
+                        company: company,
+                        trackingNo: trackingNo,
+                        fromDetails: fromDetails,
+                        toDetails: toDetails,
+                        photo: uploadEvent.target.result,
+                        status: 'DISPATCHED'
+                    };
+                    couriersList.unshift(newCourier);
+                    renderAll();
+                    e.target.reset();
+                    alert("Courier assigned successfully and visible to user live!");
+                };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                alert("Please upload parcel photo!");
+            }
+        }
+
+        function markCourierReceived(courierId) {
+            const courier = couriersList.find(c => String(c.id) === String(courierId));
+            if (courier) {
+                courier.status = 'RECEIVED';
+                renderAll();
+                
+                // Simulate Auto Email Notification
+                const userObj = usersList.find(u => u.name === courier.userName);
+                const userEmail = userObj ? userObj.email : 'user@company.com';
+                
+                alert("Auto Email Sent Successfully to (" + userEmail + ") with Courier Details:\n\n" +
+                      "Date: " + courier.date + "\n" +
+                      "Courier Company: " + courier.company + "\n" +
+                      "Tracking Number: " + courier.trackingNo + "\n" +
+                      "From: " + courier.fromDetails + "\n" +
+                      "To: " + courier.toDetails);
+            }
+        }
+
+        function deleteCourierRecord(courierId) {
+            if (confirm("Are you sure you want to delete this courier record?")) {
+                couriersList = couriersList.filter(c => String(c.id) !== String(courierId));
+                renderAll();
+            }
         }
 
         function populateUserItemDropdown() {
@@ -621,11 +806,7 @@
             let optionsHtml = '<option value="" disabled selected>-- Choose Item --</option>';
             inventory.forEach(i => {
                 const itemId = i.item_id !== undefined ? i.item_id : i.id;
-                const itemName = i.name;
-                const itemCat = i.category;
-                const itemCurrent = i.current;
-                const itemUnit = i.unit || 'pcs';
-                optionsHtml += '<option value="' + itemId + '">' + itemName + ' (' + itemCat + ') - [Avail: ' + itemCurrent + ' ' + itemUnit + ']</option>';
+                optionsHtml += '<option value="' + itemId + '">' + i.name + ' (' + i.category + ') - [Avail: ' + i.current + ' ' + (i.unit || 'pcs') + ']</option>';
             });
             select.innerHTML = optionsHtml;
         }
@@ -1182,6 +1363,55 @@
             populateUserItemDropdown();
             populateCategoriesDropdown();
             populateUserDropdown();
+            populateCourierUserDropdown();
+
+            // Render User Live Courier Table
+            const userLiveTbl = document.getElementById('userLiveCourierTable');
+            if(userLiveTbl && currentUser) {
+                const myCouriers = couriersList.filter(c => c.userName === currentUser.name);
+                if(myCouriers.length === 0) {
+                    userLiveTbl.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-gray-400">No live courier assigned yet.</td></tr>';
+                } else {
+                    let html = '';
+                    myCouriers.forEach(c => {
+                        html += '<tr>' +
+                            '<td class="p-3 text-xs font-semibold">' + c.date + '</td>' +
+                            '<td class="p-3 font-bold text-blue-600">' + c.company + '</td>' +
+                            '<td class="p-3 font-mono text-xs">' + c.trackingNo + '</td>' +
+                            '<td class="p-3 text-xs">' + c.fromDetails + '</td>' +
+                            '<td class="p-3 text-xs">' + c.toDetails + '</td>' +
+                            '<td class="p-3 text-center"><a href="' + c.photo + '" target="_blank"><img src="' + c.photo + '" class="w-12 h-12 object-cover rounded mx-auto border shadow-sm hover:scale-105 transition" /></a></td>' +
+                            '<td class="p-3 text-center">' +
+                                (c.status === 'DISPATCHED' ? '<button onclick="markCourierReceived(\'' + c.id + '\')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-bold shadow">Mark Received</button>' : '<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">RECEIVED</span>') +
+                            '</td>' +
+                        '</tr>';
+                    });
+                    userLiveTbl.innerHTML = html;
+                }
+            }
+
+            // Render Admin Courier Table
+            const adminCourierTbl = document.getElementById('adminCourierTable');
+            if(adminCourierTbl) {
+                if(couriersList.length === 0) {
+                    adminCourierTbl.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">No couriers assigned.</td></tr>';
+                } else {
+                    let html = '';
+                    couriersList.forEach(c => {
+                        html += '<tr>' +
+                            '<td class="p-3 font-bold">' + c.userName + '</td>' +
+                            '<td class="p-3 text-xs">' + c.date + '</td>' +
+                            '<td class="p-3 font-semibold text-blue-600">' + c.company + '</td>' +
+                            '<td class="p-3 font-mono text-xs">' + c.trackingNo + '</td>' +
+                            '<td class="p-3 text-xs">From: ' + c.fromDetails + '<br/>To: ' + c.toDetails + '</td>' +
+                            '<td class="p-3 text-center"><a href="' + c.photo + '" target="_blank"><img src="' + c.photo + '" class="w-10 h-10 object-cover rounded mx-auto border shadow-sm" /></a></td>' +
+                            '<td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold ' + (c.status === 'RECEIVED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800') + '">' + c.status + '</span></td>' +
+                            '<td class="p-3 text-center"><button onclick="deleteCourierRecord(\'' + c.id + '\')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs shadow"><i class="fa-solid fa-trash"></i></button></td>' +
+                        '</tr>';
+                    });
+                    adminCourierTbl.innerHTML = html;
+                }
+            }
 
             const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => (o.user_name === currentUser.name || o.user === currentUser.name)) : orders;
             const uOrdersTbl = document.getElementById('userOrdersTable');
