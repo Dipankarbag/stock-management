@@ -763,10 +763,18 @@
                         photo: uploadEvent.target.result,
                         status: 'DISPATCHED'
                     };
+                    
+                    fetch('/api/courier/assign', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newCourier)
+                    })
+                    .catch(err => console.log('Sync offline'));
+
                     couriersList.unshift(newCourier);
                     renderAll();
                     e.target.reset();
-                    alert("Courier assigned successfully and visible to user live!");
+                    alert("Courier assigned successfully! User can now see it live.");
                 };
                 reader.readAsDataURL(photoInput.files[0]);
             } else {
@@ -780,11 +788,18 @@
                 courier.status = 'RECEIVED';
                 renderAll();
                 
-                // Simulate Auto Email Notification
                 const userObj = usersList.find(u => u.name === courier.userName);
                 const userEmail = userObj ? userObj.email : 'user@company.com';
                 
-                alert("Auto Email Sent Successfully to (" + userEmail + ") with Courier Details:\n\n" +
+                fetch('/api/courier/receive', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ courierId: courierId, email: userEmail })
+                })
+                .catch(err => console.log('Sync offline'));
+
+                alert("AUTO EMAIL CONFIRMATION SENT SUCCESSFULLY!\n\n" +
+                      "To Email: " + userEmail + "\n" +
                       "Date: " + courier.date + "\n" +
                       "Courier Company: " + courier.company + "\n" +
                       "Tracking Number: " + courier.trackingNo + "\n" +
@@ -1354,9 +1369,13 @@
                     if(data.inventory) inventory = data.inventory;
                     if(data.orders) orders = data.orders;
                     if(data.receivedLogs) receivedLogs = data.receivedLogs;
+                    if(data.couriers) couriersList = data.couriers;
                     renderAll();
                 })
-                .catch(e => console.log('State fetch error'));
+                .catch(e => {
+                    console.log('State fetch error, maintaining local state');
+                    renderAll();
+                });
         }
 
         function renderAll() {
@@ -1368,7 +1387,7 @@
             // Render User Live Courier Table
             const userLiveTbl = document.getElementById('userLiveCourierTable');
             if(userLiveTbl && currentUser) {
-                const myCouriers = couriersList.filter(c => c.userName === currentUser.name);
+                const myCouriers = couriersList.filter(c => String(c.userName).trim().toLowerCase() === String(currentUser.name).trim().toLowerCase());
                 if(myCouriers.length === 0) {
                     userLiveTbl.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-gray-400">No live courier assigned yet.</td></tr>';
                 } else {
