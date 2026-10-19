@@ -11,7 +11,6 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Email bhejne ka function
 function sendAutoEmail(toEmail, subject, message) {
     const mailOptions = {
         from: 'dipankardag1987@gmail.com',
@@ -38,7 +37,6 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 
-// Payload size limit badha di gayi hai taaki 413 error na aaye (Courier photo upload ke liye)
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
@@ -106,6 +104,17 @@ async function initDB() {
                 photo TEXT,
                 status VARCHAR(50) DEFAULT 'DISPATCHED'
             );
+
+            CREATE TABLE IF NOT EXISTS outgoing_parcels (
+                id VARCHAR(50) PRIMARY KEY,
+                user_name VARCHAR(100),
+                from_details TEXT,
+                to_details TEXT,
+                courier_company VARCHAR(100),
+                tracking_no VARCHAR(100) DEFAULT 'PENDING ADMIN ASSIGNMENT',
+                date VARCHAR(50),
+                status VARCHAR(50) DEFAULT 'PENDING TRACKING'
+            );
         `);
 
         await db.query(`
@@ -126,7 +135,7 @@ async function initDB() {
             `);
         }
 
-        console.log('Database Tables Verified & Default Admin Ready!');
+        console.log('Database Tables Verified & Ready!');
     } catch (err) {
         console.error('Init DB Error:', err.message);
     }
@@ -144,13 +153,15 @@ app.get('/api/state', async (req, res) => {
         const orders = await db.query('SELECT * FROM orders');
         const receivedLogs = await db.query('SELECT * FROM received_logs');
         const couriers = await db.query('SELECT * FROM couriers');
+        const outgoing = await db.query('SELECT * FROM outgoing_parcels ORDER BY id DESC');
 
         res.json({
             users: users.rows,
             inventory: inventory.rows,
             orders: orders.rows,
             receivedLogs: receivedLogs.rows,
-            couriers: couriers.rows
+            couriers: couriers.rows,
+            outgoingParcels: outgoing.rows
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -187,7 +198,7 @@ app.post('/api/users/register', async (req, res) => {
         sendAutoEmail(
             email,
             'Account Registered - Stock Inventory System',
-            `Hello ${name},\n\nYour account has been successfully registered in the Inventory Portal.\nYour User ID: ${userId || 'User'}\n\nYou can now log in using your email and password.`
+            `Hello ${name},\n\nYour account has been successfully registered in the Inventory Portal.`
         );
 
         res.json({ success: true, user: result.rows[0] });
@@ -227,15 +238,6 @@ app.post('/api/orders/create', async (req, res) => {
         const values = [orderId, user, itemId, itemName, category, qty, timeStr, dateOnly || new Date().toISOString().split('T')[0]];
         const result = await db.query(query, values);
         
-        const userQuery = await db.query('SELECT email FROM users WHERE name = $1', [user]);
-        if (userQuery.rows.length > 0 && userQuery.rows[0].email) {
-            sendAutoEmail(
-                userQuery.rows[0].email,
-                `New Requisition Order Submitted - ${orderId}`,
-                `Hello ${user},\n\nYour requisition order for ${itemName} (Quantity: ${qty}) has been successfully submitted and is currently UNDER PROCESS.\n\nThank you.`
-            );
-        }
-
         res.json({ success: true, order: result.rows[0] });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -269,15 +271,6 @@ app.post('/api/orders/process', async (req, res) => {
             RETURNING *;
         `, [newStatus, issuerName, orderId]);
 
-        const userQuery = await db.query('SELECT email FROM users WHERE name = $1', [order.user_name]);
-        if (userQuery.rows.length > 0 && userQuery.rows[0].email) {
-            sendAutoEmail(
-                userQuery.rows[0].email,
-                `Order Status Updated: ${orderId} is ${newStatus}`,
-                `Hello ${order.user_name},\n\nYour order (${order.item_name}, Qty: ${order.qty}) status has been updated to: ${newStatus}.\nProcessed by: ${issuerName || 'System Admin'}`
-            );
-        }
-
         res.json({ success: true, order: result.rows[0] });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -298,7 +291,6 @@ app.post('/api/courier/assign', async (req, res) => {
         const result = await db.query(query, values);
         res.json({ success: true, courier: result.rows[0] });
     } catch (err) {
-        console.error('Assign Courier Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -323,6 +315,48 @@ app.delete('/api/courier/delete/:id', async (req, res) => {
     }
 });
 
+// Outgoing Parcel API Endpoints
+app.post('/api/outgoing/request', async (req, res) => {
+    const { id, userName, fromDetails, toDetails, courierCompany, date } = req.body;
+    try {
+        const query = `
+            INSERT INTO outgoing_parcels (id, user_name, from_details, to_details, courier_company, date, status)
+            VALUES ($1, $2, $3, $4, $5, $6, 'PENDING TRACKING')
+            RETURNING *;
+        `;
+        const values = [id, userName, fromDetails, toDetails, courierCompany, date || new Date().toISOString().split('T')[0]];
+        const result = await db.query(query, values);
+        res.json({ success: true, parcel: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/outgoing/update-tracking', async (req, res) => {
+    const { id, trackingNo, courierCompany } = req.body;
+    try {
+        const result = await db.query(`
+            UPDATE outgoing_parcels 
+            SET tracking_no = $1, courier_company = COALESCE($2, courier_company), status = 'DISPATCHED' 
+            WHERE id = $3 
+            RETURNING *;
+        `, [trackingNo, courierCompany, id]);
+        res.json({ success: true, parcel: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/outgoing/delete/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query('DELETE FROM outgoing_parcels WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.post('/api/inventory/add', async (req, res) => {
     const { name, category, unit, opening } = req.body;
     try {
@@ -336,7 +370,6 @@ app.post('/api/inventory/add', async (req, res) => {
         const result = await db.query(query, values);
         res.json({ success: true, item: result.rows[0] });
     } catch (err) {
-        console.error('Add Item Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -345,9 +378,8 @@ app.delete('/api/inventory/delete/:id', async (req, res) => {
     const { id } = req.params;
     try {
         await db.query('DELETE FROM inventory WHERE item_id = $1 OR id::text = $1', [id]);
-        res.json({ message: 'Item deleted successfully from database' });
+        res.json({ message: 'Item deleted successfully' });
     } catch (err) {
-        console.error('Delete Item Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -356,9 +388,8 @@ app.delete('/api/orders/delete/:orderId', async (req, res) => {
     const { orderId } = req.params;
     try {
         await db.query('DELETE FROM orders WHERE order_id = $1', [orderId]);
-        res.json({ message: 'Order deleted successfully from database' });
+        res.json({ message: 'Order deleted successfully' });
     } catch (err) {
-        console.error('Delete Order Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
