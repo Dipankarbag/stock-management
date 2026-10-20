@@ -572,7 +572,7 @@
         </div>
     </div>
 
-    <!-- MODALS -->
+    <!-- BREAKDOWN MODALS (DETAILS & REPORTS) -->
     <div id="issuedDetailsModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-3xl border border-gray-200 space-y-4">
             <div class="flex justify-between items-center border-b pb-3">
@@ -598,8 +598,8 @@
             </div>
             <div class="flex justify-between items-center pt-3 border-t">
                 <div class="flex space-x-2">
-                    <button onclick="exportIssuedModalCSV()" class="bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow">Export CSV</button>
-                    <button onclick="printIssuedModalReport()" class="bg-indigo-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow">Print Report</button>
+                    <button onclick="exportIssuedModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow"><i class="fa-solid fa-file-excel mr-1"></i> Export CSV</button>
+                    <button onclick="printIssuedModalReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow"><i class="fa-solid fa-print mr-1"></i> Print Report</button>
                 </div>
                 <button onclick="closeIssuedDetailsModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-lg text-xs shadow">Close</button>
             </div>
@@ -630,14 +630,15 @@
             </div>
             <div class="flex justify-between items-center pt-3 border-t">
                 <div class="flex space-x-2">
-                    <button onclick="exportReceivedModalCSV()" class="bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow">Export CSV</button>
-                    <button onclick="printReceivedModalReport()" class="bg-indigo-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow">Print Report</button>
+                    <button onclick="exportReceivedModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow"><i class="fa-solid fa-file-excel mr-1"></i> Export CSV</button>
+                    <button onclick="printReceivedModalReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow"><i class="fa-solid fa-print mr-1"></i> Print Report</button>
                 </div>
                 <button onclick="closeReceivedDetailsModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-lg text-xs shadow">Close</button>
             </div>
         </div>
     </div>
 
+    <!-- STOCK IN MODAL -->
     <div id="stockInModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 space-y-4">
             <div class="flex justify-between items-center border-b pb-3">
@@ -668,6 +669,7 @@
         </div>
     </div>
 
+    <!-- ADD ITEM MODAL -->
     <div id="addItemModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md border border-gray-200 space-y-4">
             <div class="flex justify-between items-center border-b pb-3">
@@ -934,6 +936,141 @@
             link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
             link.download = "Outgoing_Parcel_Requests_" + new Date().toISOString().split('T')[0] + ".csv";
             link.click();
+        }
+
+        function editOpeningQuantity(itemId) {
+            const pwd = prompt("Security Access Required!\nPlease enter Security Password to edit Opening Quantity:");
+            if (pwd === null) return;
+            
+            if (pwd === securityPassword) {
+                const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
+                const newOpeningStr = prompt("Enter New Opening Quantity for '" + item.name + "':", item.opening);
+                const newOpening = parseInt(newOpeningStr);
+
+                if (!isNaN(newOpening) && newOpening >= 0) {
+                    item.opening = newOpening;
+                    item.current = item.opening + item.received - item.issued;
+                    renderAll();
+                    alert("Opening Quantity updated successfully!");
+                }
+            } else {
+                alert("Incorrect Security Password! Access Denied.");
+            }
+        }
+
+        function showReceivedBreakdown(itemId) {
+            activeReceivedItemId = itemId;
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
+            document.getElementById('receivedItemTitle').innerText = item.name + ' (' + item.category + ')';
+            
+            const logsForNext = receivedLogs.filter(l => String(l.item_id !== undefined ? l.item_id : l.itemId) === String(itemId));
+            const tbody = document.getElementById('receivedDetailsTable');
+
+            if(logsForNext.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">No stock in records found for this item yet.</td></tr>';
+            } else {
+                let html = '';
+                logsForNext.forEach(l => {
+                    html += '<tr>' +
+                        '<td class="p-3 font-bold text-gray-800">' + (l.receiver_name || l.user || 'Admin') + '</td>' +
+                        '<td class="p-3 text-center font-bold text-blue-700 text-base">+' + l.qty + ' ' + (item.unit || 'pcs') + '</td>' +
+                        '<td class="p-3 text-xs text-gray-500">' + (l.date_only ? l.date_only.split('T')[0] : (l.dateOnly || '')) + ' (' + (l.time_str || l.time || '') + ')</td>' +
+                        '<td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800">RECEIVED</span></td>' +
+                    '</tr>';
+                });
+                tbody.innerHTML = html;
+            }
+            document.getElementById('receivedDetailsModal').classList.remove('hidden');
+        }
+
+        function closeReceivedDetailsModal() { activeReceivedItemId = null; document.getElementById('receivedDetailsModal').classList.add('hidden'); }
+
+        function exportReceivedModalCSV() {
+            if(!activeReceivedItemId) return;
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(activeReceivedItemId));
+            const logs = receivedLogs.filter(l => String(l.item_id !== undefined ? l.item_id : l.itemId) === String(activeReceivedItemId));
+            if(logs.length === 0) { alert("No received log data to export!"); return; }
+
+            let csv = "Stock Received Report - " + item.name + "\nReceived By,Received Qty,Unit,Date,Time,Status\n";
+            logs.forEach(l => {
+                csv += '"' + (l.receiver_name || l.user || 'Admin') + '","+' + l.qty + '","' + (item.unit || 'pcs') + '","' + (l.date_only ? l.date_only.split('T')[0] : (l.dateOnly || '')) + '","' + (l.time_str || l.time || '') + '","RECEIVED"\n';
+            });
+            const link = document.createElement("a");
+            link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
+            link.download = "Received_Log_" + item.name.replace(/ /g, "_") + ".csv";
+            link.click();
+        }
+
+        function printReceivedModalReport() {
+            if(!activeReceivedItemId) return;
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(activeReceivedItemId));
+            const logs = receivedLogs.filter(l => String(l.item_id !== undefined ? l.item_id : l.itemId) === String(activeReceivedItemId));
+            
+            const printWin = window.open('', '_blank');
+            let rows = '';
+            logs.forEach(l => {
+                rows += '<tr><td>' + (l.receiver_name || l.user || 'Admin') + '</td><td class="text-center">+' + l.qty + ' ' + (item.unit || 'pcs') + '</td><td>' + (l.date_only ? l.date_only.split('T')[0] : (l.dateOnly || '')) + ' ' + (l.time_str || l.time || '') + '</td><td class="text-center">RECEIVED</td></tr>';
+            });
+            printWin.document.write('<html><head><title>Stock Received Log Report</title><style>body { font-family: Arial, sans-serif; padding: 20px; } table { width: 100%; border-collapse: collapse; margin-top: 15px; } th, td { border: 1px solid #ccc; padding: 8px; font-size: 13px; } th { background: #0f172a; color: white; } .text-center { text-align: center; }</style></head><body><h2>Stock Received Log - ' + item.name + '</h2><p>Generated: ' + new Date().toLocaleString() + '</p><hr/><table><thead><tr><th>Received By</th><th class="text-center">Qty</th><th>Date & Time</th><th class="text-center">Status</th></tr></thead><tbody>' + (rows || '<tr><td colspan="4">No logs</td></tr>') + '</tbody></table></body></html>');
+            printWin.document.close(); printWin.focus(); setTimeout(() => { printWin.print(); }, 500);
+        }
+
+        function showIssuedBreakdown(itemId) {
+            activeIssuedItemId = itemId;
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
+            document.getElementById('issuedItemTitle').innerText = item.name + ' (' + item.category + ')';
+            
+            const itemIssuedOrders = orders.filter(o => String(o.item_id !== undefined ? o.item_id : o.itemId) === String(itemId) && o.status === 'ISSUED');
+            const tbody = document.getElementById('issuedDetailsTable');
+
+            if(itemIssuedOrders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">No issued records found for this item yet.</td></tr>';
+            } else {
+                let html = '';
+                itemIssuedOrders.forEach(o => {
+                    html += '<tr>' +
+                        '<td class="p-3 font-bold text-gray-800">' + (o.user_name || o.user) + '</td>' +
+                        '<td class="p-3 font-bold text-blue-700">' + (o.issuer_name || o.issuer || 'System Admin') + '</td>' +
+                        '<td class="p-3 text-center font-bold text-amber-700 text-base">' + o.qty + ' ' + (item.unit || 'pcs') + '</td>' +
+                        '<td class="p-3 text-xs text-gray-500">' + (o.date_only ? o.date_only.split('T')[0] : (o.dateOnly || '')) + ' (' + (o.time_str || o.time || '') + ')</td>' +
+                        '<td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-800">ISSUED</span></td>' +
+                    '</tr>';
+                });
+                tbody.innerHTML = html;
+            }
+            document.getElementById('issuedDetailsModal').classList.remove('hidden');
+        }
+
+        function closeIssuedDetailsModal() { activeIssuedItemId = null; document.getElementById('issuedDetailsModal').classList.add('hidden'); }
+
+        function exportIssuedModalCSV() {
+            if(!activeIssuedItemId) return;
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(activeIssuedItemId));
+            const itemIssuedOrders = orders.filter(o => String(o.item_id !== undefined ? o.item_id : o.itemId) === String(activeIssuedItemId) && o.status === 'ISSUED');
+            if(itemIssuedOrders.length === 0) { alert("No issued log data to export!"); return; }
+
+            let csv = "Stock Issued Breakdown Report - " + item.name + "\nIssued To,Issued By,Issued Qty,Unit,Date,Time,Status\n";
+            itemIssuedOrders.forEach(o => {
+                csv += '"' + (o.user_name || o.user) + '","' + (o.issuer_name || o.issuer || 'System Admin') + '","' + o.qty + '","' + (item.unit || 'pcs') + '","' + (o.date_only ? o.date_only.split('T')[0] : (o.dateOnly || '')) + '","' + (o.time_str || o.time || '') + '","ISSUED"\n';
+            });
+            const link = document.createElement("a");
+            link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
+            link.download = "Issued_Log_" + item.name.replace(/ /g, "_") + ".csv";
+            link.click();
+        }
+
+        function printIssuedModalReport() {
+            if(!activeIssuedItemId) return;
+            const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(activeIssuedItemId));
+            const itemIssuedOrders = orders.filter(o => String(o.item_id !== undefined ? o.item_id : o.itemId) === String(activeIssuedItemId) && o.status === 'ISSUED');
+            
+            const printWin = window.open('', '_blank');
+            let rows = '';
+            itemIssuedOrders.forEach(o => {
+                rows += '<tr><td>' + (o.user_name || o.user) + '</td><td>' + (o.issuer_name || o.issuer || 'System Admin') + '</td><td class="text-center">' + o.qty + ' ' + (item.unit || 'pcs') + '</td><td>' + (o.date_only ? o.date_only.split('T')[0] : (o.dateOnly || '')) + ' ' + (o.time_str || o.time || '') + '</td><td class="text-center">ISSUED</td></tr>';
+            });
+            printWin.document.write('<html><head><title>Stock Issued Log Report</title><style>body { font-family: Arial, sans-serif; padding: 20px; } table { width: 100%; border-collapse: collapse; margin-top: 15px; } th, td { border: 1px solid #ccc; padding: 8px; font-size: 13px; } th { background: #0f172a; color: white; } .text-center { text-align: center; }</style></head><body><h2>Stock Issued Log - ' + item.name + '</h2><p>Generated: ' + new Date().toLocaleString() + '</p><hr/><table><thead><tr><th>Issued To</th><th>Issued By</th><th class="text-center">Qty</th><th>Date & Time</th><th class="text-center">Status</th></tr></thead><tbody>' + (rows || '<tr><td colspan="5">No logs</td></tr>') + '</tbody></table></body></html>');
+            printWin.document.close(); printWin.focus(); setTimeout(() => { printWin.print(); }, 500);
         }
 
         function populateCourierUserDropdown() {
@@ -1271,9 +1408,21 @@
                     '<td class="p-3 font-bold">' + i.name + '</td>' +
                     '<td class="p-3 text-xs">' + i.category + '</td>' +
                     '<td class="p-3 text-center font-semibold text-purple-700">' + (i.unit || 'pcs') + '</td>' +
-                    '<td class="p-3 text-center">' + i.opening + '</td>' +
-                    '<td class="p-3 text-center">+' + i.received + '</td>' +
-                    '<td class="p-3 text-center">-' + i.issued + '</td>' +
+                    '<td class="p-3 text-center">' +
+                        '<button onclick="editOpeningQuantity(\'' + itemId + '\')" title="Click to edit Opening Quantity (Security Code Required)" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-2.5 py-1 rounded border border-gray-300 text-xs shadow-sm">' +
+                            i.opening + ' <i class="fa-solid fa-lock text-[10px] text-amber-600 ml-1"></i>' +
+                        '</button>' +
+                    '</td>' +
+                    '<td class="p-3 text-center">' +
+                        '<button onclick="showReceivedBreakdown(\'' + itemId + '\')" title="Click to view stock received breakdown details" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-blue-300">' +
+                            '+' + i.received + ' <i class="fa-solid fa-circle-info ml-1 text-[10px]"></i>' +
+                        '</button>' +
+                    '</td>' +
+                    '<td class="p-3 text-center">' +
+                        '<button onclick="showIssuedBreakdown(\'' + itemId + '\')" title="Click to view stock issued details" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-amber-300">' +
+                            '-' + i.issued + ' <i class="fa-solid fa-circle-info ml-1 text-[10px]"></i>' +
+                        '</button>' +
+                    '</td>' +
                     '<td class="p-3 text-center text-emerald-700 font-extrabold">' + i.current + '</td>' +
                     '<td class="p-3 text-center text-xs text-gray-500">' + (i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')) + '</td>' +
                     '<td class="p-3 text-center space-x-1">' +
@@ -1415,7 +1564,6 @@
         }
 
         function fetchAppState() {
-            // Agar admin kisi tracking input box me type kar raha hai, toh background fetch rok do taaki focus ya text erase na ho
             const activeEl = document.activeId || document.activeElement;
             if(activeEl && activeEl.id && activeEl.id.startsWith('trackInput_')) {
                 return;
@@ -1502,13 +1650,12 @@
                 }
             }
 
-            // Render Admin Tab: Outgoing Parcels with User Filter and Preservation of Active Input
+            // Render Admin Tab: Outgoing Parcels
             const adminOutTbl = document.getElementById('adminOutgoingTable');
             const outgoingUserFilter = document.getElementById('adminOutgoingUserFilter');
             const selectedOutgoingUser = outgoingUserFilter ? outgoingUserFilter.value : 'ALL';
 
             if(adminOutTbl) {
-                // Save any active typing value currently in the DOM
                 let activeInputId = null;
                 let activeInputValue = '';
                 const activeEl = document.activeElement;
@@ -1553,7 +1700,6 @@
                     });
                     adminOutTbl.innerHTML = html;
 
-                    // Restore focus if it was active
                     if(activeInputId) {
                         const restoredInput = document.getElementById(activeInputId);
                         if(restoredInput) {
@@ -1564,7 +1710,7 @@
                 }
             }
 
-            // Render Admin Assign Courier List with User Filter
+            // Render Admin Assign Courier List
             const adminCourierTbl = document.getElementById('adminCourierTable');
             const courierUserFilter = document.getElementById('adminCourierUserFilter');
             const selectedCourierUser = courierUserFilter ? courierUserFilter.value : 'ALL';
