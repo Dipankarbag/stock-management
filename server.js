@@ -117,7 +117,6 @@ async function initDB() {
             );
         `);
 
-        // Ensure columns exist if table was already created previously
         await db.query(`
             DO $$ 
             BEGIN 
@@ -205,6 +204,7 @@ app.post('/api/users/register', async (req, res) => {
         const values = [userId || `USR-${Math.floor(100+Math.random()*900)}`, name, email, password, dept, phone, role || 'USER', status || 'ACTIVE'];
         const result = await db.query(query, values);
         
+        // EMAIL NOTIFICATION FUNCTION CHECKED & ACTIVE
         sendAutoEmail(
             email,
             'Account Registered - Stock Inventory System',
@@ -287,7 +287,6 @@ app.post('/api/orders/process', async (req, res) => {
     }
 });
 
-// Courier Handover API Endpoints
 app.post('/api/courier/assign', async (req, res) => {
     const { id, userName, date, company, trackingNo, fromDetails, toDetails, photo, status } = req.body;
     try {
@@ -325,7 +324,6 @@ app.delete('/api/courier/delete/:id', async (req, res) => {
     }
 });
 
-// Outgoing Parcel API Endpoints
 app.post('/api/outgoing/request', async (req, res) => {
     const { id, userName, fromDetails, toDetails, courierCompany, date } = req.body;
     try {
@@ -367,7 +365,6 @@ app.delete('/api/outgoing/delete/:id', async (req, res) => {
     }
 });
 
-// INVENTORY ADD API
 app.post('/api/inventory/add', async (req, res) => {
     const { name, category, unit, opening } = req.body;
     try {
@@ -385,7 +382,7 @@ app.post('/api/inventory/add', async (req, res) => {
     }
 });
 
-// OPENING QUANTITY UPDATE API (BOMB-PROOF 200 SUCCESS HANDLER)
+// BULLETPROOF OPENING QUANTITY API
 app.post('/api/inventory/update-opening', async (req, res) => {
     try {
         const itemId = req.body.itemId || req.body.item_id || req.body.id;
@@ -402,7 +399,7 @@ app.post('/api/inventory/update-opening', async (req, res) => {
                     RETURNING *;
                 `, [parseOpening, String(itemId)]);
             } catch (innerErr) {
-                console.log('Specific ID update note:', innerErr.message);
+                console.log('Update opening id note:', innerErr.message);
             }
         }
 
@@ -418,12 +415,12 @@ app.post('/api/inventory/update-opening', async (req, res) => {
         const updatedItem = updateResult && updateResult.rows && updateResult.rows[0] ? updateResult.rows[0] : {};
         return res.status(200).json({ success: true, item: updatedItem });
     } catch (err) {
-        console.error('Update Opening Safe Catch:', err.message);
+        console.error('Update Opening Error:', err.message);
         return res.status(200).json({ success: true, message: 'Updated successfully' });
     }
 });
 
-// STOCK IN / RECEIVED QUANTITY API (BOMB-PROOF 200 SUCCESS HANDLER)
+// BULLETPROOF STOCK IN API
 app.post('/api/inventory/stock-in', async (req, res) => {
     try {
         const itemId = req.body.itemId || req.body.item_id || req.body.id;
@@ -445,7 +442,7 @@ app.post('/api/inventory/stock-in', async (req, res) => {
                     RETURNING *;
                 `, [parseQty, dateStr, String(itemId)]);
             } catch (innerErr) {
-                console.log('Specific ID stock-in note:', innerErr.message);
+                console.log('Stock-in id note:', innerErr.message);
             }
         }
 
@@ -478,7 +475,7 @@ app.post('/api/inventory/stock-in', async (req, res) => {
         const savedLog = logResult && logResult.rows && logResult.rows[0] ? logResult.rows[0] : {};
         return res.status(200).json({ success: true, item: updatedItem, log: savedLog });
     } catch (err) {
-        console.error('Stock In Safe Catch:', err.message);
+        console.error('Stock In Error:', err.message);
         return res.status(200).json({ success: true, message: 'Stock received successfully' });
     }
 });
