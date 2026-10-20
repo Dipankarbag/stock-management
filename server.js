@@ -269,7 +269,7 @@ app.post('/api/orders/process', async (req, res) => {
         if (action === 'ISSUE') {
             await db.query(`
                 UPDATE inventory 
-                SET issued = issued + $1, current = current - $1 
+                SET issued = COALESCE(issued, '0')::integer + $1, current = current - $1 
                 WHERE item_id::text = $2::text OR id::text = $2::text
             `, [order.qty, order.item_id]);
         }
@@ -385,14 +385,14 @@ app.post('/api/inventory/add', async (req, res) => {
     }
 });
 
-// OPENING QUANTITY UPDATE API (FIXED WITH SAFE CASTING)
+// OPENING QUANTITY UPDATE API (SAFE INTEGER CASTING)
 app.post('/api/inventory/update-opening', async (req, res) => {
     const { itemId, opening } = req.body;
     try {
         const parseOpening = parseInt(opening) || 0;
         const result = await db.query(`
             UPDATE inventory 
-            SET opening = $1, current = $1 + COALESCE(received, 0) - COALESCE(issued, 0) 
+            SET opening = $1, current = $1 + COALESCE(received, '0')::integer - COALESCE(issued, '0')::integer 
             WHERE item_id::text = $2::text OR id::text = $2::text 
             RETURNING *;
         `, [parseOpening, String(itemId)]);
@@ -408,18 +408,18 @@ app.post('/api/inventory/update-opening', async (req, res) => {
     }
 });
 
-// STOCK IN / RECEIVED QUANTITY API (FIXED WITH SAFE CASTING)
+// STOCK IN / RECEIVED QUANTITY API (SAFE INTEGER CASTING)
 app.post('/api/inventory/stock-in', async (req, res) => {
     const { itemId, qty, dateStr, receiverName } = req.body;
     try {
         const parseQty = parseInt(qty) || 0;
         const validDate = dateStr || new Date().toISOString().split('T')[0];
 
-        // Update Inventory received stock and current balance securely
+        // Update Inventory received stock and current balance securely with integer casting
         const updateResult = await db.query(`
             UPDATE inventory 
-            SET received = COALESCE(received, 0) + $1, 
-                current = COALESCE(opening, 0) + COALESCE(received, 0) + $1 - COALESCE(issued, 0), 
+            SET received = COALESCE(received, '0')::integer + $1, 
+                current = COALESCE(opening, '0')::integer + COALESCE(received, '0')::integer + $1 - COALESCE(issued, '0')::integer, 
                 last_date = $2 
             WHERE item_id::text = $3::text OR id::text = $3::text
             RETURNING *;
