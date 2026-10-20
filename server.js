@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const fs = require('fs');
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -42,6 +43,12 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(express.static(__dirname));
 
+// Ensure uploads folder exists for saving PNG files
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 async function initDB() {
     try {
         await db.query(`
@@ -58,7 +65,8 @@ async function initDB() {
             );
 
             CREATE TABLE IF NOT EXISTS inventory (
-                item_id VARCHAR(50) PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
+                item_id VARCHAR(50) UNIQUE NOT NULL,
                 name VARCHAR(100) NOT NULL,
                 category VARCHAR(100) NOT NULL,
                 unit VARCHAR(20) DEFAULT 'pcs',
@@ -285,19 +293,35 @@ app.post('/api/orders/process', async (req, res) => {
     }
 });
 
+// COURIER ASSIGN & TEXT PHOTO TO PNG FILE CONVERTER
 app.post('/api/courier/assign', async (req, res) => {
     const { id, userName, date, company, trackingNo, fromDetails, toDetails, photo, status } = req.body;
     try {
+        let savedPhotoPath = photo;
+
+        // If photo is a base64 text string, decode and save as a .png file in uploads folder
+        if (photo && typeof photo === 'string' && photo.startsWith('data:image')) {
+            const matches = photo.match(/^data:image\/([A-Za-z-+]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+                const base64Data = matches[2];
+                const fileName = `courier_${id || Date.now()}.png`;
+                const filePath = path.join(uploadDir, fileName);
+                fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
+                savedPhotoPath = `/uploads/${fileName}`; // Save relative path or keep base64 as preferred
+            }
+        }
+
         const query = `
             INSERT INTO couriers (id, user_name, date, company, tracking_no, from_details, to_details, photo, status)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status
+            ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status, photo = EXCLUDED.photo
             RETURNING *;
         `;
-        const values = [id, userName, date, company, trackingNo, fromDetails, toDetails, photo, status || 'DISPATCHED'];
+        const values = [id, userName, date, company, trackingNo, fromDetails, toDetails, savedPhotoPath, status || 'DISPATCHED'];
         const result = await db.query(query, values);
         res.json({ success: true, courier: result.rows[0] });
     } catch (err) {
+        console.error('Courier Assign Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -380,7 +404,7 @@ app.post('/api/inventory/add', async (req, res) => {
     }
 });
 
-// OPENING QUANTITY UPDATE API (STRICTLY ITEM_ID BASED)
+// OPENING QUANTITY UPDATE API
 app.post('/api/inventory/update-opening', async (req, res) => {
     try {
         const itemId = req.body.itemId || req.body.item_id;
@@ -414,7 +438,7 @@ app.post('/api/inventory/update-opening', async (req, res) => {
     }
 });
 
-// STOCK IN / RECEIVED QUANTITY API (STRICTLY ITEM_ID BASED)
+// STOCK IN API
 app.post('/api/inventory/stock-in', async (req, res) => {
     try {
         const itemId = req.body.itemId || req.body.item_id;
