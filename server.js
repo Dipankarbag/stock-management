@@ -357,6 +357,7 @@ app.delete('/api/outgoing/delete/:id', async (req, res) => {
     }
 });
 
+// INVENTORY ADD API
 app.post('/api/inventory/add', async (req, res) => {
     const { name, category, unit, opening } = req.body;
     try {
@@ -369,6 +370,48 @@ app.post('/api/inventory/add', async (req, res) => {
         const values = [itemId, name, category, unit || 'pcs', opening || 0];
         const result = await db.query(query, values);
         res.json({ success: true, item: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// OPENING QUANTITY UPDATE API (ADDED)
+app.post('/api/inventory/update-opening', async (req, res) => {
+    const { itemId, opening } = req.body;
+    try {
+        const result = await db.query(`
+            UPDATE inventory 
+            SET opening = $1, current = $1 + received - issued 
+            WHERE item_id = $2 OR id::text = $2 
+            RETURNING *;
+        `, [opening, itemId]);
+        res.json({ success: true, item: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// STOCK IN / RECEIVED QUANTITY API (ADDED)
+app.post('/api/inventory/stock-in', async (req, res) => {
+    const { itemId, qty, dateStr, receiverName } = req.body;
+    try {
+        // Update Inventory received stock and current balance
+        await db.query(`
+            UPDATE inventory 
+            SET received = received + $1, current = opening + received + $1 - issued, last_date = $2 
+            WHERE item_id = $3 OR id::text = $3
+        `, [qty, dateStr || new Date().toISOString().split('T')[0], itemId]);
+
+        // Insert log in received_logs table for breakdown modal popup
+        const logQuery = `
+            INSERT INTO received_logs (item_id, receiver_name, qty, date_only, time_str)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING *;
+        `;
+        const timeStr = new Date().toLocaleTimeString();
+        const logResult = await db.query(logQuery, [itemId, receiverName, qty, dateStr, timeStr]);
+
+        res.json({ success: true, log: logResult.rows[0] });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
