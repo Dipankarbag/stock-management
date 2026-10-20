@@ -270,7 +270,7 @@ app.post('/api/orders/process', async (req, res) => {
             await db.query(`
                 UPDATE inventory 
                 SET issued = issued + $1, current = current - $1 
-                WHERE item_id = $2 OR id::text = $2
+                WHERE item_id::text = $2::text OR id::text = $2::text
             `, [order.qty, order.item_id]);
         }
 
@@ -385,55 +385,69 @@ app.post('/api/inventory/add', async (req, res) => {
     }
 });
 
-// OPENING QUANTITY UPDATE API (FIXED)
+// OPENING QUANTITY UPDATE API (FIXED WITH SAFE CASTING)
 app.post('/api/inventory/update-opening', async (req, res) => {
     const { itemId, opening } = req.body;
     try {
+        const parseOpening = parseInt(opening) || 0;
         const result = await db.query(`
             UPDATE inventory 
             SET opening = $1, current = $1 + COALESCE(received, 0) - COALESCE(issued, 0) 
-            WHERE item_id = $2 OR id::text = $2 
+            WHERE item_id::text = $2::text OR id::text = $2::text 
             RETURNING *;
-        `, [opening, itemId]);
+        `, [parseOpening, String(itemId)]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Item not found' });
+        }
+
         res.json({ success: true, item: result.rows[0] });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('Update Opening Error:', err);
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
-// STOCK IN / RECEIVED QUANTITY API (FIXED)
+// STOCK IN / RECEIVED QUANTITY API (FIXED WITH SAFE CASTING)
 app.post('/api/inventory/stock-in', async (req, res) => {
     const { itemId, qty, dateStr, receiverName } = req.body;
     try {
+        const parseQty = parseInt(qty) || 0;
+        const validDate = dateStr || new Date().toISOString().split('T')[0];
+
         // Update Inventory received stock and current balance securely
         const updateResult = await db.query(`
             UPDATE inventory 
             SET received = COALESCE(received, 0) + $1, 
                 current = COALESCE(opening, 0) + COALESCE(received, 0) + $1 - COALESCE(issued, 0), 
                 last_date = $2 
-            WHERE item_id = $3 OR id::text = $3
+            WHERE item_id::text = $3::text OR id::text = $3::text
             RETURNING *;
-        `, [qty, dateStr || new Date().toISOString().split('T')[0], itemId]);
+        `, [parseQty, validDate, String(itemId)]);
+
+        if (updateResult.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Item not found' });
+        }
 
         // Insert log in received_logs table
-        const logQuery = `
+        const timeStr = new Date().toLocaleTimeString();
+        const logResult = await db.query(`
             INSERT INTO received_logs (item_id, receiver_name, qty, date_only, time_str)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING *;
-        `;
-        const timeStr = new Date().toLocaleTimeString();
-        const logResult = await db.query(logQuery, [itemId, receiverName, qty, dateStr, timeStr]);
+        `, [String(itemId), receiverName || 'Admin', parseQty, validDate, timeStr]);
 
         res.json({ success: true, item: updateResult.rows[0], log: logResult.rows[0] });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('Stock In Error:', err);
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
 app.delete('/api/inventory/delete/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        await db.query('DELETE FROM inventory WHERE item_id = $1 OR id::text = $1', [id]);
+        await db.query('DELETE FROM inventory WHERE item_id::text = $1::text OR id::text = $1::text', [String(id)]);
         res.json({ message: 'Item deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
