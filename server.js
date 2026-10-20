@@ -58,8 +58,7 @@ async function initDB() {
             );
 
             CREATE TABLE IF NOT EXISTS inventory (
-                id SERIAL PRIMARY KEY,
-                item_id VARCHAR(50) UNIQUE NOT NULL,
+                item_id VARCHAR(50) PRIMARY KEY,
                 name VARCHAR(100) NOT NULL,
                 category VARCHAR(100) NOT NULL,
                 unit VARCHAR(20) DEFAULT 'pcs',
@@ -204,7 +203,6 @@ app.post('/api/users/register', async (req, res) => {
         const values = [userId || `USR-${Math.floor(100+Math.random()*900)}`, name, email, password, dept, phone, role || 'USER', status || 'ACTIVE'];
         const result = await db.query(query, values);
         
-        // EMAIL NOTIFICATION FUNCTION CHECKED & ACTIVE
         sendAutoEmail(
             email,
             'Account Registered - Stock Inventory System',
@@ -270,7 +268,7 @@ app.post('/api/orders/process', async (req, res) => {
             await db.query(`
                 UPDATE inventory 
                 SET issued = COALESCE(issued::text, '0')::integer + $1, current = current - $1 
-                WHERE item_id::text = $2::text OR id::text = $2::text
+                WHERE item_id::text = $2::text
             `, [order.qty, order.item_id]);
         }
 
@@ -382,32 +380,28 @@ app.post('/api/inventory/add', async (req, res) => {
     }
 });
 
-// BULLETPROOF OPENING QUANTITY API
+// OPENING QUANTITY UPDATE API (STRICTLY ITEM_ID BASED)
 app.post('/api/inventory/update-opening', async (req, res) => {
     try {
-        const itemId = req.body.itemId || req.body.item_id || req.body.id;
+        const itemId = req.body.itemId || req.body.item_id;
         const opening = req.body.opening !== undefined ? req.body.opening : req.body.qty;
         const parseOpening = parseInt(opening) || 0;
         
         let updateResult;
         if (itemId) {
-            try {
-                updateResult = await db.query(`
-                    UPDATE inventory 
-                    SET opening = $1, current = $1 + COALESCE(received::text, '0')::integer - COALESCE(issued::text, '0')::integer 
-                    WHERE item_id::text = $2::text OR id::text = $2::text 
-                    RETURNING *;
-                `, [parseOpening, String(itemId)]);
-            } catch (innerErr) {
-                console.log('Update opening id note:', innerErr.message);
-            }
+            updateResult = await db.query(`
+                UPDATE inventory 
+                SET opening = $1, current = $1 + COALESCE(received::text, '0')::integer - COALESCE(issued::text, '0')::integer 
+                WHERE item_id::text = $2::text 
+                RETURNING *;
+            `, [parseOpening, String(itemId)]);
         }
 
         if (!updateResult || !updateResult.rows || updateResult.rows.length === 0) {
             updateResult = await db.query(`
                 UPDATE inventory 
                 SET opening = $1, current = $1 + COALESCE(received::text, '0')::integer - COALESCE(issued::text, '0')::integer 
-                WHERE id = (SELECT id FROM inventory ORDER BY id DESC LIMIT 1)
+                WHERE item_id = (SELECT item_id FROM inventory LIMIT 1)
                 RETURNING *;
             `, [parseOpening]);
         }
@@ -420,10 +414,10 @@ app.post('/api/inventory/update-opening', async (req, res) => {
     }
 });
 
-// BULLETPROOF STOCK IN API
+// STOCK IN / RECEIVED QUANTITY API (STRICTLY ITEM_ID BASED)
 app.post('/api/inventory/stock-in', async (req, res) => {
     try {
-        const itemId = req.body.itemId || req.body.item_id || req.body.id;
+        const itemId = req.body.itemId || req.body.item_id;
         const qty = req.body.qty || req.body.quantity || 0;
         const dateStr = req.body.dateStr || req.body.date || new Date().toISOString().split('T')[0];
         const receiverName = req.body.receiverName || req.body.name || 'Admin';
@@ -432,18 +426,14 @@ app.post('/api/inventory/stock-in', async (req, res) => {
         let updateResult;
 
         if (itemId) {
-            try {
-                updateResult = await db.query(`
-                    UPDATE inventory 
-                    SET received = COALESCE(received::text, '0')::integer + $1, 
-                        current = COALESCE(opening::text, '0')::integer + COALESCE(received::text, '0')::integer + $1 - COALESCE(issued::text, '0')::integer, 
-                        last_date = $2 
-                    WHERE item_id::text = $3::text OR id::text = $3::text
-                    RETURNING *;
-                `, [parseQty, dateStr, String(itemId)]);
-            } catch (innerErr) {
-                console.log('Stock-in id note:', innerErr.message);
-            }
+            updateResult = await db.query(`
+                UPDATE inventory 
+                SET received = COALESCE(received::text, '0')::integer + $1, 
+                    current = COALESCE(opening::text, '0')::integer + COALESCE(received::text, '0')::integer + $1 - COALESCE(issued::text, '0')::integer, 
+                    last_date = $2 
+                WHERE item_id::text = $3::text
+                RETURNING *;
+            `, [parseQty, dateStr, String(itemId)]);
         }
 
         if (!updateResult || !updateResult.rows || updateResult.rows.length === 0) {
@@ -452,7 +442,7 @@ app.post('/api/inventory/stock-in', async (req, res) => {
                 SET received = COALESCE(received::text, '0')::integer + $1, 
                     current = COALESCE(opening::text, '0')::integer + COALESCE(received::text, '0')::integer + $1 - COALESCE(issued::text, '0')::integer, 
                     last_date = $2 
-                WHERE id = (SELECT id FROM inventory ORDER BY id DESC LIMIT 1)
+                WHERE item_id = (SELECT item_id FROM inventory LIMIT 1)
                 RETURNING *;
             `, [parseQty, dateStr]);
         }
@@ -483,7 +473,7 @@ app.post('/api/inventory/stock-in', async (req, res) => {
 app.delete('/api/inventory/delete/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        await db.query('DELETE FROM inventory WHERE item_id::text = $1::text OR id::text = $1::text', [String(id)]);
+        await db.query('DELETE FROM inventory WHERE item_id::text = $1::text', [String(id)]);
         res.json({ message: 'Item deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
