@@ -117,11 +117,21 @@ async function initDB() {
             );
         `);
 
+        // Ensure columns exist if table was already created previously
         await db.query(`
             DO $$ 
             BEGIN 
                 IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory' and column_name='unit') THEN
                     ALTER TABLE inventory ADD COLUMN unit VARCHAR(20) DEFAULT 'pcs';
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory' and column_name='received') THEN
+                    ALTER TABLE inventory ADD COLUMN received INT DEFAULT 0;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory' and column_name='issued') THEN
+                    ALTER TABLE inventory ADD COLUMN issued INT DEFAULT 0;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory' and column_name='opening') THEN
+                    ALTER TABLE inventory ADD COLUMN opening INT DEFAULT 0;
                 END IF;
             END $$;
         `);
@@ -260,7 +270,7 @@ app.post('/api/orders/process', async (req, res) => {
             await db.query(`
                 UPDATE inventory 
                 SET issued = issued + $1, current = current - $1 
-                WHERE item_id = $2
+                WHERE item_id = $2 OR id::text = $2
             `, [order.qty, order.item_id]);
         }
 
@@ -375,13 +385,13 @@ app.post('/api/inventory/add', async (req, res) => {
     }
 });
 
-// OPENING QUANTITY UPDATE API (ADDED)
+// OPENING QUANTITY UPDATE API (FIXED)
 app.post('/api/inventory/update-opening', async (req, res) => {
     const { itemId, opening } = req.body;
     try {
         const result = await db.query(`
             UPDATE inventory 
-            SET opening = $1, current = $1 + received - issued 
+            SET opening = $1, current = $1 + COALESCE(received, 0) - COALESCE(issued, 0) 
             WHERE item_id = $2 OR id::text = $2 
             RETURNING *;
         `, [opening, itemId]);
@@ -391,18 +401,21 @@ app.post('/api/inventory/update-opening', async (req, res) => {
     }
 });
 
-// STOCK IN / RECEIVED QUANTITY API (ADDED)
+// STOCK IN / RECEIVED QUANTITY API (FIXED)
 app.post('/api/inventory/stock-in', async (req, res) => {
     const { itemId, qty, dateStr, receiverName } = req.body;
     try {
-        // Update Inventory received stock and current balance
-        await db.query(`
+        // Update Inventory received stock and current balance securely
+        const updateResult = await db.query(`
             UPDATE inventory 
-            SET received = received + $1, current = opening + received + $1 - issued, last_date = $2 
+            SET received = COALESCE(received, 0) + $1, 
+                current = COALESCE(opening, 0) + COALESCE(received, 0) + $1 - COALESCE(issued, 0), 
+                last_date = $2 
             WHERE item_id = $3 OR id::text = $3
+            RETURNING *;
         `, [qty, dateStr || new Date().toISOString().split('T')[0], itemId]);
 
-        // Insert log in received_logs table for breakdown modal popup
+        // Insert log in received_logs table
         const logQuery = `
             INSERT INTO received_logs (item_id, receiver_name, qty, date_only, time_str)
             VALUES ($1, $2, $3, $4, $5)
@@ -411,7 +424,7 @@ app.post('/api/inventory/stock-in', async (req, res) => {
         const timeStr = new Date().toLocaleTimeString();
         const logResult = await db.query(logQuery, [itemId, receiverName, qty, dateStr, timeStr]);
 
-        res.json({ success: true, log: logResult.rows[0] });
+        res.json({ success: true, item: updateResult.rows[0], log: logResult.rows[0] });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
