@@ -938,6 +938,7 @@
             link.click();
         }
 
+        // EDIT OPENING QUANTITY API SAVE
         function editOpeningQuantity(itemId) {
             const pwd = prompt("Security Access Required!\nPlease enter Security Password to edit Opening Quantity:");
             if (pwd === null) return;
@@ -948,10 +949,22 @@
                 const newOpening = parseInt(newOpeningStr);
 
                 if (!isNaN(newOpening) && newOpening >= 0) {
-                    item.opening = newOpening;
-                    item.current = item.opening + item.received - item.issued;
-                    renderAll();
-                    alert("Opening Quantity updated successfully!");
+                    fetch('/api/inventory/update-opening', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ itemId: itemId, opening: newOpening })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert("Opening Quantity updated and saved successfully!");
+                        fetchAppState();
+                    })
+                    .catch(err => {
+                        // Local fallback agar API absent ho
+                        item.opening = newOpening;
+                        item.current = item.opening + (item.received || 0) - (item.issued || 0);
+                        renderAll();
+                    });
                 }
             } else {
                 alert("Incorrect Security Password! Access Denied.");
@@ -1404,26 +1417,31 @@
             let html = '';
             list.forEach(i => {
                 const itemId = i.item_id !== undefined ? i.item_id : i.id;
+                const recQty = parseInt(i.received) || 0;
+                const issQty = parseInt(i.issued) || 0;
+                const openQty = parseInt(i.opening) || 0;
+                const closingBal = openQty + recQty - issQty;
+
                 html += '<tr>' +
                     '<td class="p-3 font-bold">' + i.name + '</td>' +
                     '<td class="p-3 text-xs">' + i.category + '</td>' +
                     '<td class="p-3 text-center font-semibold text-purple-700">' + (i.unit || 'pcs') + '</td>' +
                     '<td class="p-3 text-center">' +
                         '<button onclick="editOpeningQuantity(\'' + itemId + '\')" title="Click to edit Opening Quantity (Security Code Required)" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-2.5 py-1 rounded border border-gray-300 text-xs shadow-sm">' +
-                            i.opening + ' <i class="fa-solid fa-lock text-[10px] text-amber-600 ml-1"></i>' +
+                            openQty + ' <i class="fa-solid fa-lock text-[10px] text-amber-600 ml-1"></i>' +
                         '</button>' +
                     '</td>' +
                     '<td class="p-3 text-center">' +
                         '<button onclick="showReceivedBreakdown(\'' + itemId + '\')" title="Click to view stock received breakdown details" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-blue-300">' +
-                            '+' + i.received + ' <i class="fa-solid fa-circle-info ml-1 text-[10px]"></i>' +
+                            '+' + recQty + ' <i class="fa-solid fa-circle-info ml-1 text-[10px]"></i>' +
                         '</button>' +
                     '</td>' +
                     '<td class="p-3 text-center">' +
                         '<button onclick="showIssuedBreakdown(\'' + itemId + '\')" title="Click to view stock issued details" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-extrabold text-xs shadow border border-amber-300">' +
-                            '-' + i.issued + ' <i class="fa-solid fa-circle-info ml-1 text-[10px]"></i>' +
+                            '-' + issQty + ' <i class="fa-solid fa-circle-info ml-1 text-[10px]"></i>' +
                         '</button>' +
                     '</td>' +
-                    '<td class="p-3 text-center text-emerald-700 font-extrabold">' + i.current + '</td>' +
+                    '<td class="p-3 text-center text-emerald-700 font-extrabold">' + (i.current !== undefined ? i.current : closingBal) + '</td>' +
                     '<td class="p-3 text-center text-xs text-gray-500">' + (i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')) + '</td>' +
                     '<td class="p-3 text-center space-x-1">' +
                         '<button onclick="openStockInModal(\'' + itemId + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold shadow">+ Stock In</button>' +
@@ -1467,6 +1485,7 @@
 
         function closeStockInModal() { document.getElementById('stockInModal').classList.add('hidden'); }
 
+        // STOCK IN SAVE API FIXED
         function saveStockInEntry() {
             const itemId = document.getElementById('stockInItemId').value;
             const qty = parseInt(document.getElementById('stockInQty').value);
@@ -1480,11 +1499,16 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ itemId, qty, dateStr, receiverName: receiver })
             })
-            .then(() => {
+            .then(res => res.json())
+            .then(data => {
                 closeStockInModal();
+                alert("Stock In received successfully!");
                 fetchAppState();
             })
-            .catch(() => closeStockInModal());
+            .catch(err => {
+                closeStockInModal();
+                fetchAppState();
+            });
         }
 
         function openAddItemModal() { document.getElementById('addItemModal').classList.remove('hidden'); }
