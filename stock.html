@@ -1415,6 +1415,12 @@
         }
 
         function fetchAppState() {
+            // Agar admin kisi tracking input box me type kar raha hai, toh background fetch rok do taaki focus ya text erase na ho
+            const activeEl = document.activeId || document.activeElement;
+            if(activeEl && activeEl.id && activeEl.id.startsWith('trackInput_')) {
+                return;
+            }
+
             fetch('/api/state')
                 .then(res => res.json())
                 .then(data => {
@@ -1496,12 +1502,21 @@
                 }
             }
 
-            // Render Admin Tab: Outgoing Parcels with User Filter
+            // Render Admin Tab: Outgoing Parcels with User Filter and Preservation of Active Input
             const adminOutTbl = document.getElementById('adminOutgoingTable');
             const outgoingUserFilter = document.getElementById('adminOutgoingUserFilter');
             const selectedOutgoingUser = outgoingUserFilter ? outgoingUserFilter.value : 'ALL';
 
             if(adminOutTbl) {
+                // Save any active typing value currently in the DOM
+                let activeInputId = null;
+                let activeInputValue = '';
+                const activeEl = document.activeElement;
+                if(activeEl && activeEl.id && activeEl.id.startsWith('trackInput_')) {
+                    activeInputId = activeEl.id;
+                    activeInputValue = activeEl.value;
+                }
+
                 const filteredOutgoing = outgoingParcelsList.filter(o => {
                     const uName = o.userName || o.user_name || '';
                     return selectedOutgoingUser === 'ALL' || String(uName).trim().toLowerCase() === String(selectedOutgoingUser).trim().toLowerCase();
@@ -1514,6 +1529,11 @@
                     filteredOutgoing.forEach(o => {
                         const tracking = o.tracking_no || o.trackingNo || '';
                         const isPending = !tracking || tracking === 'PENDING ADMIN ASSIGNMENT';
+                        const inputId = 'trackInput_' + o.id;
+                        let valToDisplay = isPending ? '' : tracking;
+                        if(activeInputId === inputId) {
+                            valToDisplay = activeInputValue;
+                        }
 
                         html += '<tr>' +
                             '<td class="p-3 font-bold text-blue-600">' + (o.user_name || o.userName || 'N/A') + '</td>' +
@@ -1523,7 +1543,7 @@
                             '<td class="p-3 text-xs font-semibold">' + (o.courier_company || o.courierCompany || 'N/A') + '</td>' +
                             '<td class="p-3 font-mono text-xs">' + (isPending ? '<span class="text-amber-600">PENDING</span>' : tracking) + '</td>' +
                             '<td class="p-3 text-center">' +
-                                '<input type="text" id="trackInput_' + o.id + '" value="' + (isPending ? '' : tracking) + '" placeholder="Enter Tracking No." class="border rounded p-1 text-xs w-36 font-mono bg-white" />' +
+                                '<input type="text" id="' + inputId + '" value="' + valToDisplay + '" placeholder="Enter Tracking No." class="border rounded p-1 text-xs w-36 font-mono bg-white" />' +
                             '</td>' +
                             '<td class="p-3 text-center space-x-1">' +
                                 '<button onclick="adminUpdateTracking(\'' + o.id + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-xs font-bold shadow">Save Tracking</button>' +
@@ -1532,6 +1552,15 @@
                         '</tr>';
                     });
                     adminOutTbl.innerHTML = html;
+
+                    // Restore focus if it was active
+                    if(activeInputId) {
+                        const restoredInput = document.getElementById(activeInputId);
+                        if(restoredInput) {
+                            restoredInput.focus();
+                            restoredInput.setSelectionRange(restoredInput.value.length, restoredInput.value.length);
+                        }
+                    }
                 }
             }
 
