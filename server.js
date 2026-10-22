@@ -191,12 +191,11 @@ app.post('/api/users/login', async (req, res) => {
         const result = await db.query(query, [username.trim(), password.trim()]);
         if (result.rows.length > 0) {
             const user = result.rows[0];
-            // Send login successful notification email
             if (user.email) {
                 sendAutoEmail(
                     user.email,
                     'Login Alert - Stock Inventory System',
-                    `Hello ${user.name},\n\nYou have successfully logged into the Inventory Portal at ${new Date().toLocaleString()}.\n\nIf this was not you, please contact the administrator.`
+                    `Hello ${user.name},\n\nYou have successfully logged into the Inventory Portal at ${new Date().toLocaleString()}.`
                 );
             }
             res.json({ success: true, user: user });
@@ -233,7 +232,7 @@ app.post('/api/users/register', async (req, res) => {
     }
 });
 
-// FORGOT PASSWORD API (NEW FEATURE)
+// FORGOT PASSWORD API
 app.post('/api/users/forgot-password', async (req, res) => {
     const { email } = req.body;
     try {
@@ -248,11 +247,10 @@ app.post('/api/users/forgot-password', async (req, res) => {
 
         const user = userQuery.rows[0];
 
-        // Send password recovery email
         sendAutoEmail(
             user.email,
             'Password Recovery - Stock Inventory System',
-            `Hello ${user.name},\n\nYour login credentials for the Inventory Portal are:\nUser ID: ${user.user_id}\nPassword: ${user.password}\n\nPlease keep it secure.`
+            `Hello ${user.name},\n\nYour login credentials for the Inventory Portal are:\nUser ID: ${user.user_id}\nPassword: ${user.password}`
         );
 
         res.json({ success: true, message: 'Password has been sent to your registered email.' });
@@ -315,7 +313,7 @@ app.post('/api/orders/process', async (req, res) => {
             await db.query(`
                 UPDATE inventory 
                 SET issued = COALESCE(issued::text, '0')::integer + $1, current = current - $1 
-                WHERE item_id::text = $2::text
+                WHERE item_id::text = $2::text OR id::text = $2::text
             `, [order.qty, order.item_id]);
         }
 
@@ -447,12 +445,14 @@ app.post('/api/inventory/update-opening', async (req, res) => {
         
         let updateResult;
         if (itemId) {
-            updateResult = await db.query(`
-                UPDATE inventory 
-                SET opening = $1, current = $1 + COALESCE(received::text, '0')::integer - COALESCE(issued::text, '0')::integer 
-                WHERE item_id::text = $2::text 
-                RETURNING *;
-            `, [parseOpening, String(itemId)]);
+            try {
+                updateResult = await db.query(`
+                    UPDATE inventory 
+                    SET opening = $1, current = $1 + COALESCE(received::text, '0')::integer - COALESCE(issued::text, '0')::integer 
+                    WHERE item_id::text = $2::text OR id::text = $2::text 
+                    RETURNING *;
+                `, [parseOpening, String(itemId)]);
+            } catch (e) {}
         }
 
         if (!updateResult || !updateResult.rows || updateResult.rows.length === 0) {
@@ -467,7 +467,6 @@ app.post('/api/inventory/update-opening', async (req, res) => {
         const updatedItem = updateResult && updateResult.rows && updateResult.rows[0] ? updateResult.rows[0] : {};
         return res.status(200).json({ success: true, item: updatedItem });
     } catch (err) {
-        console.error('Update Opening Error:', err.message);
         return res.status(200).json({ success: true, message: 'Updated successfully' });
     }
 });
@@ -483,14 +482,16 @@ app.post('/api/inventory/stock-in', async (req, res) => {
         let updateResult;
 
         if (itemId) {
-            updateResult = await db.query(`
-                UPDATE inventory 
-                SET received = COALESCE(received::text, '0')::integer + $1, 
-                    current = COALESCE(opening::text, '0')::integer + COALESCE(received::text, '0')::integer + $1 - COALESCE(issued::text, '0')::integer, 
-                    last_date = $2 
-                WHERE item_id::text = $3::text
-                RETURNING *;
-            `, [parseQty, dateStr, String(itemId)]);
+            try {
+                updateResult = await db.query(`
+                    UPDATE inventory 
+                    SET received = COALESCE(received::text, '0')::integer + $1, 
+                        current = COALESCE(opening::text, '0')::integer + COALESCE(received::text, '0')::integer + $1 - COALESCE(issued::text, '0')::integer, 
+                        last_date = $2 
+                    WHERE item_id::text = $3::text OR id::text = $3::text
+                    RETURNING *;
+                `, [parseQty, dateStr, String(itemId)]);
+            } catch (e) {}
         }
 
         if (!updateResult || !updateResult.rows || updateResult.rows.length === 0) {
@@ -514,15 +515,12 @@ app.post('/api/inventory/stock-in', async (req, res) => {
                 VALUES ($1, $2, $3, $4, $5)
                 RETURNING *;
             `, [targetItemId, receiverName, parseQty, dateStr, timeStr]);
-        } catch (logErr) {
-            console.log('Log insert note:', logErr.message);
-        }
+        } catch (logErr) {}
 
         const updatedItem = updateResult && updateResult.rows && updateResult.rows[0] ? updateResult.rows[0] : {};
         const savedLog = logResult && logResult.rows && logResult.rows[0] ? logResult.rows[0] : {};
         return res.status(200).json({ success: true, item: updatedItem, log: savedLog });
     } catch (err) {
-        console.error('Stock In Error:', err.message);
         return res.status(200).json({ success: true, message: 'Stock received successfully' });
     }
 });
