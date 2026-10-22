@@ -175,7 +175,7 @@ app.get('/api/state', async (req, res) => {
     try {
         const users = await db.query('SELECT * FROM users');
         const inventory = await db.query('SELECT * FROM inventory');
-        const orders = await db.query('SELECT * FROM orders');
+        const orders = await db.query('SELECT * FROM orders ORDER BY id DESC');
         const receivedLogs = await db.query('SELECT * FROM received_logs');
         const couriers = await db.query('SELECT * FROM couriers');
         const outgoing = await db.query('SELECT * FROM outgoing_parcels ORDER BY id DESC');
@@ -273,77 +273,7 @@ app.post('/api/users/forgot-password', async (req, res) => {
     }
 });
 
-// COMPLAINTS API
-app.post('/api/complaints/add', async (req, res) => {
-    const { userName, issue, location } = req.body;
-    try {
-        const complaintId = `CMP-${Math.floor(1000 + Math.random() * 9000)}`;
-        const dateStr = new Date().toISOString().split('T')[0];
-        const query = `
-            INSERT INTO complaints (complaint_id, user_name, issue, location, status, date)
-            VALUES ($1, $2, $3, $4, 'PENDING', $5)
-            RETURNING *;
-        `;
-        const values = [complaintId, userName || 'User', issue, location, dateStr];
-        const result = await db.query(query, values);
-        res.json({ success: true, complaint: result.rows[0] });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-app.post('/api/complaints/status', async (req, res) => {
-    const { complaintId, status } = req.body;
-    try {
-        const result = await db.query(`
-            UPDATE complaints 
-            SET status = $1 
-            WHERE complaint_id = $2 
-            RETURNING *;
-        `, [status, complaintId]);
-        res.json({ success: true, complaint: result.rows[0] });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-app.post('/api/users/status', async (req, res) => {
-    const { userId, status } = req.body;
-    try {
-        const result = await db.query('UPDATE users SET status = $1 WHERE user_id = $2 RETURNING *;', [status, userId]);
-        res.json({ success: true, user: result.rows[0] });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.delete('/api/users/delete/:userId', async (req, res) => {
-    const { userId } = req.params;
-    try {
-        await db.query('DELETE FROM users WHERE user_id = $1', [userId]);
-        res.json({ success: true, message: 'User deleted successfully' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.post('/api/orders/create', async (req, res) => {
-    const { orderId, user, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
-    try {
-        const query = `
-            INSERT INTO orders (order_id, user_name, issuer_name, item_id, item_name, category, qty, time_str, date_only, status)
-            VALUES ($1, $2, 'System Admin', $3, $4, $5, $6, $7, $8, 'UNDER PROCESS')
-            RETURNING *;
-        `;
-        const values = [orderId, user, itemId, itemName, category, qty, timeStr, dateOnly || new Date().toISOString().split('T')[0]];
-        const result = await db.query(query, values);
-        
-        res.json({ success: true, order: result.rows[0] });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
+// ORDER PROCESS API (APPROVE, ISSUE, REJECT FIXED)
 app.post('/api/orders/process', async (req, res) => {
     const { orderId, action, issuerName } = req.body;
     try {
@@ -354,7 +284,7 @@ app.post('/api/orders/process', async (req, res) => {
 
         const orderQuery = await db.query('SELECT * FROM orders WHERE order_id = $1', [orderId]);
         if (orderQuery.rows.length === 0) {
-            return res.status(200).json({ success: true, message: 'Order already processed' });
+            return res.status(404).json({ success: false, message: 'Order not found' });
         }
         const order = orderQuery.rows[0];
 
@@ -379,9 +309,27 @@ app.post('/api/orders/process', async (req, res) => {
             RETURNING *;
         `, [newStatus, issuerName || 'System Admin', orderId]);
 
-        return res.status(200).json({ success: true, order: result.rows[0] || {} });
+        return res.status(200).json({ success: true, order: result.rows[0] });
     } catch (err) {
-        return res.status(200).json({ success: true, message: 'Order updated successfully' });
+        console.error('Order Process Error:', err.message);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.post('/api/orders/create', async (req, res) => {
+    const { orderId, user, itemId, itemName, category, qty, timeStr, dateOnly } = req.body;
+    try {
+        const query = `
+            INSERT INTO orders (order_id, user_name, issuer_name, item_id, item_name, category, qty, time_str, date_only, status)
+            VALUES ($1, $2, 'System Admin', $3, $4, $5, $6, $7, $8, 'UNDER PROCESS')
+            RETURNING *;
+        `;
+        const values = [orderId, user, itemId, itemName, category, qty, timeStr, dateOnly || new Date().toISOString().split('T')[0]];
+        const result = await db.query(query, values);
+        
+        res.json({ success: true, order: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -498,31 +446,17 @@ app.post('/api/inventory/update-opening', async (req, res) => {
         const opening = req.body.opening !== undefined ? req.body.opening : req.body.qty;
         const parseOpening = parseInt(opening) || 0;
         
-        let updateResult;
-        if (itemId) {
-            try {
-                updateResult = await db.query(`
-                    UPDATE inventory 
-                    SET opening = $1, current = $1 + COALESCE(received, 0) - COALESCE(issued, 0) 
-                    WHERE item_id::text = $2::text 
-                    RETURNING *;
-                `, [parseOpening, String(itemId)]);
-            } catch (e) {}
-        }
+        let updateResult = await db.query(`
+            UPDATE inventory 
+            SET opening = $1, current = $1 + COALESCE(received, 0) - COALESCE(issued, 0) 
+            WHERE item_id::text = $2::text 
+            RETURNING *;
+        `, [parseOpening, String(itemId)]);
 
-        if (!updateResult || !updateResult.rows || updateResult.rows.length === 0) {
-            updateResult = await db.query(`
-                UPDATE inventory 
-                SET opening = $1, current = $1 + COALESCE(received, 0) - COALESCE(issued, 0) 
-                WHERE item_id = (SELECT item_id FROM inventory LIMIT 1)
-                RETURNING *;
-            `, [parseOpening]);
-        }
-
-        const updatedItem = updateResult && updateResult.rows && updateResult.rows[0] ? updateResult.rows[0] : {};
+        const updatedItem = updateResult.rows[0] || {};
         return res.status(200).json({ success: true, item: updatedItem });
     } catch (err) {
-        return res.status(200).json({ success: true, message: 'Updated successfully' });
+        return res.status(500).json({ success: false, message: err.message });
     }
 });
 
@@ -534,49 +468,28 @@ app.post('/api/inventory/stock-in', async (req, res) => {
         const receiverName = req.body.receiverName || req.body.name || 'Admin';
 
         const parseQty = parseInt(qty) || 0;
-        let updateResult;
 
-        if (itemId) {
-            try {
-                updateResult = await db.query(`
-                    UPDATE inventory 
-                    SET received = COALESCE(received, 0) + $1, 
-                        current = COALESCE(opening, 0) + COALESCE(received, 0) + $1 - COALESCE(issued, 0), 
-                        last_date = $2 
-                    WHERE item_id::text = $3::text
-                    RETURNING *;
-                `, [parseQty, dateStr, String(itemId)]);
-            } catch (e) {}
-        }
+        const updateResult = await db.query(`
+            UPDATE inventory 
+            SET received = COALESCE(received, 0) + $1, 
+                current = COALESCE(opening, 0) + COALESCE(received, 0) + $1 - COALESCE(issued, 0), 
+                last_date = $2 
+            WHERE item_id::text = $3::text
+            RETURNING *;
+        `, [parseQty, dateStr, String(itemId)]);
 
-        if (!updateResult || !updateResult.rows || updateResult.rows.length === 0) {
-            updateResult = await db.query(`
-                UPDATE inventory 
-                SET received = COALESCE(received, 0) + $1, 
-                    current = COALESCE(opening, 0) + COALESCE(received, 0) + $1 - COALESCE(issued, 0), 
-                    last_date = $2 
-                WHERE item_id = (SELECT item_id FROM inventory LIMIT 1)
-                RETURNING *;
-            `, [parseQty, dateStr]);
-        }
-
-        const targetItemId = updateResult && updateResult.rows && updateResult.rows[0] ? updateResult.rows[0].item_id : String(itemId || '1');
+        const targetItemId = updateResult.rows[0] ? updateResult.rows[0].item_id : String(itemId);
         const timeStr = new Date().toLocaleTimeString();
         
-        let logResult;
-        try {
-            logResult = await db.query(`
-                INSERT INTO received_logs (item_id, receiver_name, qty, date_only, time_str)
-                VALUES ($1, $2, $3, $4, $5)
-                RETURNING *;
-            `, [targetItemId, receiverName, parseQty, dateStr, timeStr]);
-        } catch (logErr) {}
+        const logResult = await db.query(`
+            INSERT INTO received_logs (item_id, receiver_name, qty, date_only, time_str)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING *;
+        `, [targetItemId, receiverName, parseQty, dateStr, timeStr]);
 
-        const updatedItem = updateResult && updateResult.rows && updateResult.rows[0] ? updateResult.rows[0] : {};
-        const savedLog = logResult && logResult.rows && logResult.rows[0] ? logResult.rows[0] : {};
-        return res.status(200).json({ success: true, item: updatedItem, log: savedLog });
+        return res.status(200).json({ success: true, item: updateResult.rows[0], log: logResult.rows[0] });
     } catch (err) {
-        return res.status(200).json({ success: true, message: 'Stock received successfully' });
+        return res.status(500).json({ success: false, error: err.message });
     }
 });
 
@@ -595,6 +508,26 @@ app.delete('/api/orders/delete/:orderId', async (req, res) => {
     try {
         await db.query('DELETE FROM orders WHERE order_id = $1', [orderId]);
         res.json({ message: 'Order deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/users/status', async (req, res) => {
+    const { userId, status } = req.body;
+    try {
+        const result = await db.query('UPDATE users SET status = $1 WHERE user_id = $2 RETURNING *;', [status, userId]);
+        res.json({ success: true, user: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/users/delete/:userId', async (req, res) => {
+    const { userId } = req.params;
+    try {
+        await db.query('DELETE FROM users WHERE user_id = $1', [userId]);
+        res.json({ success: true, message: 'User deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
