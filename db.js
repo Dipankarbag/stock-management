@@ -1,22 +1,11 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+PORT=5000
+DB_USER=postgres
+DB_HOST=localhost
+DB_NAME=stockflow_db
+DB_PASSWORD=bag@1991A
+DB_PORT=5432
+SECURITY_PASSWORD=admin123
 
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
-
-pool.on('connect', () => {
-    console.log('Successfully connected to Local PostgreSQL database!');
-});
-
-pool.on('error', (err) => {
-    console.error('Unexpected PostgreSQL Error:', err.message);
-});
-
-module.exports = {
-    query: (text, params) => pool.query(text, params),
-};
+# Email Configs
+EMAIL_USER=dipankardag1987@gmail.com
+EMAIL_PASS=ziiiwcdjjczdfero
