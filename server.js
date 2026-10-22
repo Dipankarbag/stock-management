@@ -27,6 +27,19 @@ function sendAutoEmail(toEmail, subject, message) {
             console.log('Email sent: ' + info.response);
         }
     });
+    fetch('/api/users/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: userEmailInput })
+})
+.then(res => res.json())
+.then(data => {
+    if(data.success) {
+        alert(data.message);
+    } else {
+        alert(data.message || 'Error occurred');
+    }
+});
 }
 
 const express = require('express');
