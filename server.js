@@ -64,8 +64,7 @@ async function initDB() {
             );
 
             CREATE TABLE IF NOT EXISTS inventory (
-                id SERIAL PRIMARY KEY,
-                item_id VARCHAR(50) UNIQUE NOT NULL,
+                item_id VARCHAR(50) PRIMARY KEY,
                 name VARCHAR(100) NOT NULL,
                 category VARCHAR(100) NOT NULL,
                 unit VARCHAR(20) DEFAULT 'pcs',
@@ -195,7 +194,6 @@ app.get('/api/state', async (req, res) => {
     }
 });
 
-// USER LOGIN WITH EMAIL NOTIFICATION
 app.post('/api/users/login', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -219,7 +217,6 @@ app.post('/api/users/login', async (req, res) => {
     }
 });
 
-// USER REGISTER WITH EMAIL NOTIFICATION
 app.post('/api/users/register', async (req, res) => {
     const { userId, name, email, password, dept, phone, role, status } = req.body;
     try {
@@ -244,7 +241,6 @@ app.post('/api/users/register', async (req, res) => {
     }
 });
 
-// FORGOT PASSWORD API
 app.post('/api/users/forgot-password', async (req, res) => {
     const { email } = req.body;
     try {
@@ -272,7 +268,6 @@ app.post('/api/users/forgot-password', async (req, res) => {
     }
 });
 
-// COMPLAINTS / RAISE ISSUE API (NEW ADDON)
 app.post('/api/complaints/add', async (req, res) => {
     const { userName, issue, location } = req.body;
     try {
@@ -292,7 +287,6 @@ app.post('/api/complaints/add', async (req, res) => {
     }
 });
 
-// UPDATE COMPLAINT STATUS API
 app.post('/api/complaints/status', async (req, res) => {
     const { complaintId, status } = req.body;
     try {
@@ -345,6 +339,7 @@ app.post('/api/orders/create', async (req, res) => {
     }
 });
 
+// ORDERS PROCESS API (FULLY FIXED - NO ID COLUMN REFERENCE)
 app.post('/api/orders/process', async (req, res) => {
     const { orderId, action, issuerName } = req.body;
     try {
@@ -360,9 +355,10 @@ app.post('/api/orders/process', async (req, res) => {
         if (action === 'ISSUE') {
             await db.query(`
                 UPDATE inventory 
-                SET issued = COALESCE(issued::text, '0')::integer + $1, current = current - $1 
-                WHERE item_id::text = $2::text OR id::text = $2::text
-            `, [order.qty, order.item_id]);
+                SET issued = COALESCE(issued, 0) + $1, 
+                    current = COALESCE(opening, 0) + COALESCE(received, 0) - (COALESCE(issued, 0) + $1) 
+                WHERE item_id::text = $2::text OR name::text = $3::text
+            `, [order.qty, String(order.item_id), String(order.item_name)]);
         }
 
         const result = await db.query(`
@@ -370,10 +366,11 @@ app.post('/api/orders/process', async (req, res) => {
             SET status = $1, issuer_name = $2 
             WHERE order_id = $3 
             RETURNING *;
-        `, [newStatus, issuerName, orderId]);
+        `, [newStatus, issuerName || 'System Admin', orderId]);
 
         res.json({ success: true, order: result.rows[0] });
     } catch (err) {
+        console.error('Order Process Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -493,20 +490,18 @@ app.post('/api/inventory/update-opening', async (req, res) => {
         
         let updateResult;
         if (itemId) {
-            try {
-                updateResult = await db.query(`
-                    UPDATE inventory 
-                    SET opening = $1, current = $1 + COALESCE(received::text, '0')::integer - COALESCE(issued::text, '0')::integer 
-                    WHERE item_id::text = $2::text OR id::text = $2::text 
-                    RETURNING *;
-                `, [parseOpening, String(itemId)]);
-            } catch (e) {}
+            updateResult = await db.query(`
+                UPDATE inventory 
+                SET opening = $1, current = $1 + COALESCE(received, 0) - COALESCE(issued, 0) 
+                WHERE item_id::text = $2::text 
+                RETURNING *;
+            `, [parseOpening, String(itemId)]);
         }
 
         if (!updateResult || !updateResult.rows || updateResult.rows.length === 0) {
             updateResult = await db.query(`
                 UPDATE inventory 
-                SET opening = $1, current = $1 + COALESCE(received::text, '0')::integer - COALESCE(issued::text, '0')::integer 
+                SET opening = $1, current = $1 + COALESCE(received, 0) - COALESCE(issued, 0) 
                 WHERE item_id = (SELECT item_id FROM inventory LIMIT 1)
                 RETURNING *;
             `, [parseOpening]);
@@ -530,23 +525,21 @@ app.post('/api/inventory/stock-in', async (req, res) => {
         let updateResult;
 
         if (itemId) {
-            try {
-                updateResult = await db.query(`
-                    UPDATE inventory 
-                    SET received = COALESCE(received::text, '0')::integer + $1, 
-                        current = COALESCE(opening::text, '0')::integer + COALESCE(received::text, '0')::integer + $1 - COALESCE(issued::text, '0')::integer, 
-                        last_date = $2 
-                    WHERE item_id::text = $3::text OR id::text = $3::text
-                    RETURNING *;
-                `, [parseQty, dateStr, String(itemId)]);
-            } catch (e) {}
+            updateResult = await db.query(`
+                UPDATE inventory 
+                SET received = COALESCE(received, 0) + $1, 
+                    current = COALESCE(opening, 0) + COALESCE(received, 0) + $1 - COALESCE(issued, 0), 
+                    last_date = $2 
+                WHERE item_id::text = $3::text
+                RETURNING *;
+            `, [parseQty, dateStr, String(itemId)]);
         }
 
         if (!updateResult || !updateResult.rows || updateResult.rows.length === 0) {
             updateResult = await db.query(`
                 UPDATE inventory 
-                SET received = COALESCE(received::text, '0')::integer + $1, 
-                    current = COALESCE(opening::text, '0')::integer + COALESCE(received::text, '0')::integer + $1 - COALESCE(issued::text, '0')::integer, 
+                SET received = COALESCE(received, 0) + $1, 
+                    current = COALESCE(opening, 0) + COALESCE(received, 0) + $1 - COALESCE(issued, 0), 
                     last_date = $2 
                 WHERE item_id = (SELECT item_id FROM inventory LIMIT 1)
                 RETURNING *;
