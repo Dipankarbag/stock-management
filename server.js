@@ -121,6 +121,16 @@ async function initDB() {
                 date VARCHAR(50),
                 status VARCHAR(50) DEFAULT 'PENDING TRACKING'
             );
+
+            CREATE TABLE IF NOT EXISTS complaints (
+                id SERIAL PRIMARY KEY,
+                complaint_id VARCHAR(50) UNIQUE NOT NULL,
+                user_name VARCHAR(100),
+                issue TEXT,
+                location VARCHAR(255),
+                status VARCHAR(50) DEFAULT 'PENDING',
+                date VARCHAR(50)
+            );
         `);
 
         await db.query(`
@@ -169,6 +179,7 @@ app.get('/api/state', async (req, res) => {
         const receivedLogs = await db.query('SELECT * FROM received_logs');
         const couriers = await db.query('SELECT * FROM couriers');
         const outgoing = await db.query('SELECT * FROM outgoing_parcels ORDER BY id DESC');
+        const complaints = await db.query('SELECT * FROM complaints ORDER BY id DESC');
 
         res.json({
             users: users.rows,
@@ -176,7 +187,8 @@ app.get('/api/state', async (req, res) => {
             orders: orders.rows,
             receivedLogs: receivedLogs.rows,
             couriers: couriers.rows,
-            outgoingParcels: outgoing.rows
+            outgoingParcels: outgoing.rows,
+            complaints: complaints.rows
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -256,6 +268,42 @@ app.post('/api/users/forgot-password', async (req, res) => {
         res.json({ success: true, message: 'Password has been sent to your registered email.' });
     } catch (err) {
         console.error('Forgot Password Error:', err.message);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// COMPLAINTS / RAISE ISSUE API (NEW ADDON)
+app.post('/api/complaints/add', async (req, res) => {
+    const { userName, issue, location } = req.body;
+    try {
+        const complaintId = `CMP-${Math.floor(1000 + Math.random() * 9000)}`;
+        const dateStr = new Date().toISOString().split('T')[0];
+        const query = `
+            INSERT INTO complaints (complaint_id, user_name, issue, location, status, date)
+            VALUES ($1, $2, $3, $4, 'PENDING', $5)
+            RETURNING *;
+        `;
+        const values = [complaintId, userName || 'User', issue, location, dateStr];
+        const result = await db.query(query, values);
+        res.json({ success: true, complaint: result.rows[0] });
+    } catch (err) {
+        console.error('Complaint Add Error:', err.message);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// UPDATE COMPLAINT STATUS API
+app.post('/api/complaints/status', async (req, res) => {
+    const { complaintId, status } = req.body;
+    try {
+        const result = await db.query(`
+            UPDATE complaints 
+            SET status = $1 
+            WHERE complaint_id = $2 
+            RETURNING *;
+        `, [status, complaintId]);
+        res.json({ success: true, complaint: result.rows[0] });
+    } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
 });
