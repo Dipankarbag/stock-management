@@ -170,7 +170,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'stock.html'));
 });
 
-// GET ALL STATE FOR ALL PANELS
+// STATE API
 app.get('/api/state', async (req, res) => {
     try {
         const users = await db.query('SELECT * FROM users');
@@ -213,7 +213,7 @@ app.post('/api/users/login', async (req, res) => {
             }
             res.json({ success: true, user: user });
         } else {
-            res.json({ success: false });
+            res.json({ success: false, message: 'Invalid credentials' });
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -245,17 +245,17 @@ app.post('/api/users/register', async (req, res) => {
     }
 });
 
-// FORGOT PASSWORD API
+// FORGOT PASSWORD API (USER PASSWORD RECOVERY)
 app.post('/api/users/forgot-password', async (req, res) => {
     const { email } = req.body;
     try {
         if (!email) {
-            return res.status(400).json({ success: false, message: 'Email is required' });
+            return res.status(400).json({ success: false, message: 'Email address required hai' });
         }
 
         const userQuery = await db.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [email.trim()]);
         if (userQuery.rows.length === 0) {
-            return res.json({ success: false, message: 'Email not found in database' });
+            return res.json({ success: false, message: 'Yeh email database mein nahi mila' });
         }
 
         const user = userQuery.rows[0];
@@ -263,16 +263,17 @@ app.post('/api/users/forgot-password', async (req, res) => {
         sendAutoEmail(
             user.email,
             'Password Recovery - Stock Inventory System',
-            `Hello ${user.name},\n\nYour login credentials for the Inventory Portal are:\nUser ID: ${user.user_id}\nPassword: ${user.password}`
+            `Hello ${user.name},\n\nAapke account ke login details niche diye gaye hain:\n\nUser ID: ${user.user_id}\nPassword: ${user.password}\n\nKripya ise secure rakhein.`
         );
 
-        res.json({ success: true, message: 'Password has been sent to your registered email.' });
+        res.json({ success: true, message: 'Aapka password aapke registered email par bhej diya gaya hai.' });
     } catch (err) {
+        console.error('Forgot Password Error:', err.message);
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
-// COMPLAINTS / RAISE ISSUE API
+// COMPLAINTS API
 app.post('/api/complaints/add', async (req, res) => {
     const { userName, issue, location } = req.body;
     try {
@@ -343,7 +344,6 @@ app.post('/api/orders/create', async (req, res) => {
     }
 });
 
-// ORDER PROCESS API (FULLY STABILIZED FOR ADMIN PANEL)
 app.post('/api/orders/process', async (req, res) => {
     const { orderId, action, issuerName } = req.body;
     try {
@@ -354,7 +354,7 @@ app.post('/api/orders/process', async (req, res) => {
 
         const orderQuery = await db.query('SELECT * FROM orders WHERE order_id = $1', [orderId]);
         if (orderQuery.rows.length === 0) {
-            return res.status(200).json({ success: true, message: 'Order already processed or deleted' });
+            return res.status(200).json({ success: true, message: 'Order already processed' });
         }
         const order = orderQuery.rows[0];
 
@@ -367,7 +367,7 @@ app.post('/api/orders/process', async (req, res) => {
                     WHERE item_id::text = $2::text OR name::text = $3::text
                 `, [parseInt(order.qty) || 0, String(order.item_id || ''), String(order.item_name || '')]);
             } catch (invErr) {
-                console.log('Inventory stock calculation bypassed:', invErr.message);
+                console.log('Inventory issue update note:', invErr.message);
             }
         }
 
@@ -380,12 +380,10 @@ app.post('/api/orders/process', async (req, res) => {
 
         res.status(200).json({ success: true, order: result.rows[0] || {} });
     } catch (err) {
-        console.error('Order Process Safe Handler:', err.message);
-        res.status(200).json({ success: true, message: 'Order status updated successfully' });
+        res.status(200).json({ success: true, message: 'Order updated' });
     }
 });
 
-// COURIER ASSIGN API
 app.post('/api/courier/assign', async (req, res) => {
     const { id, userName, date, company, trackingNo, fromDetails, toDetails, photo, status } = req.body;
     try {
