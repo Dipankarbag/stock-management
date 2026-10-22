@@ -43,7 +43,6 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(express.static(__dirname));
 
-// Ensure uploads folder exists for saving PNG files
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -184,13 +183,23 @@ app.get('/api/state', async (req, res) => {
     }
 });
 
+// USER LOGIN WITH EMAIL NOTIFICATION
 app.post('/api/users/login', async (req, res) => {
     const { username, password } = req.body;
     try {
         const query = 'SELECT * FROM users WHERE (LOWER(email) = LOWER($1) OR LOWER(name) = LOWER($1)) AND password = $2';
         const result = await db.query(query, [username.trim(), password.trim()]);
         if (result.rows.length > 0) {
-            res.json({ success: true, user: result.rows[0] });
+            const user = result.rows[0];
+            // Send login successful notification email
+            if (user.email) {
+                sendAutoEmail(
+                    user.email,
+                    'Login Alert - Stock Inventory System',
+                    `Hello ${user.name},\n\nYou have successfully logged into the Inventory Portal at ${new Date().toLocaleString()}.\n\nIf this was not you, please contact the administrator.`
+                );
+            }
+            res.json({ success: true, user: user });
         } else {
             res.json({ success: false });
         }
@@ -199,6 +208,7 @@ app.post('/api/users/login', async (req, res) => {
     }
 });
 
+// USER REGISTER WITH EMAIL NOTIFICATION
 app.post('/api/users/register', async (req, res) => {
     const { userId, name, email, password, dept, phone, role, status } = req.body;
     try {
@@ -213,13 +223,42 @@ app.post('/api/users/register', async (req, res) => {
         
         sendAutoEmail(
             email,
-            'Account Registered - Stock Inventory System',
-            `Hello ${name},\n\nYour account has been successfully registered in the Inventory Portal.`
+            'Account Registered Successfully - Stock Inventory System',
+            `Hello ${name},\n\nYour account has been successfully registered in the Inventory Portal.\nYour User ID is: ${result.rows[0].user_id}`
         );
 
         res.json({ success: true, user: result.rows[0] });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+// FORGOT PASSWORD API (NEW FEATURE)
+app.post('/api/users/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    try {
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Email is required' });
+        }
+
+        const userQuery = await db.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [email.trim()]);
+        if (userQuery.rows.length === 0) {
+            return res.json({ success: false, message: 'Email not found in database' });
+        }
+
+        const user = userQuery.rows[0];
+
+        // Send password recovery email
+        sendAutoEmail(
+            user.email,
+            'Password Recovery - Stock Inventory System',
+            `Hello ${user.name},\n\nYour login credentials for the Inventory Portal are:\nUser ID: ${user.user_id}\nPassword: ${user.password}\n\nPlease keep it secure.`
+        );
+
+        res.json({ success: true, message: 'Password has been sent to your registered email.' });
+    } catch (err) {
+        console.error('Forgot Password Error:', err.message);
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
@@ -293,13 +332,10 @@ app.post('/api/orders/process', async (req, res) => {
     }
 });
 
-// COURIER ASSIGN & TEXT PHOTO TO PNG FILE CONVERTER
 app.post('/api/courier/assign', async (req, res) => {
     const { id, userName, date, company, trackingNo, fromDetails, toDetails, photo, status } = req.body;
     try {
         let savedPhotoPath = photo;
-
-        // If photo is a base64 text string, decode and save as a .png file in uploads folder
         if (photo && typeof photo === 'string' && photo.startsWith('data:image')) {
             const matches = photo.match(/^data:image\/([A-Za-z-+]+);base64,(.+)$/);
             if (matches && matches.length === 3) {
@@ -307,7 +343,7 @@ app.post('/api/courier/assign', async (req, res) => {
                 const fileName = `courier_${id || Date.now()}.png`;
                 const filePath = path.join(uploadDir, fileName);
                 fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
-                savedPhotoPath = `/uploads/${fileName}`; // Save relative path or keep base64 as preferred
+                savedPhotoPath = `/uploads/${fileName}`;
             }
         }
 
@@ -321,7 +357,6 @@ app.post('/api/courier/assign', async (req, res) => {
         const result = await db.query(query, values);
         res.json({ success: true, courier: result.rows[0] });
     } catch (err) {
-        console.error('Courier Assign Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -404,7 +439,6 @@ app.post('/api/inventory/add', async (req, res) => {
     }
 });
 
-// OPENING QUANTITY UPDATE API
 app.post('/api/inventory/update-opening', async (req, res) => {
     try {
         const itemId = req.body.itemId || req.body.item_id;
@@ -438,7 +472,6 @@ app.post('/api/inventory/update-opening', async (req, res) => {
     }
 });
 
-// STOCK IN API
 app.post('/api/inventory/stock-in', async (req, res) => {
     try {
         const itemId = req.body.itemId || req.body.item_id;
