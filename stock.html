@@ -38,6 +38,11 @@
                     <input type="password" id="loginPassword" placeholder="123" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
                 </div>
 
+                <!-- FORGOT PASSWORD LINK -->
+                <div class="text-right">
+                    <button type="button" onclick="handleForgotPassword()" class="text-xs text-blue-600 hover:underline font-semibold">Forgot Password?</button>
+                </div>
+
                 <div id="loginError" class="hidden text-xs text-red-600 font-semibold text-center bg-red-50 p-2 rounded border border-red-200">
                     Invalid Email or Password!
                 </div>
@@ -767,6 +772,30 @@
             .catch(err => alert("Login connection error!"));
         }
 
+        // FORGOT PASSWORD FUNCTION (FRONTEND)
+        function handleForgotPassword() {
+            const userEmail = prompt("Apna registered email address enter karein:");
+            if (!userEmail) return;
+
+            fetch('/api/users/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                } else {
+                    alert(data.message || 'Kuch error aa gaya hai!');
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                alert('Server se connect karne me error aayi.');
+            });
+        }
+
         function toggleAuthMode(mode) {
             if (mode === 'register') {
                 document.getElementById('loginForm').classList.add('hidden');
@@ -938,7 +967,6 @@
             link.click();
         }
 
-        // EDIT OPENING QUANTITY API SAVE
         function editOpeningQuantity(itemId) {
             const pwd = prompt("Security Access Required!\nPlease enter Security Password to edit Opening Quantity:");
             if (pwd === null) return;
@@ -960,7 +988,6 @@
                         fetchAppState();
                     })
                     .catch(err => {
-                        // Local fallback agar API absent ho
                         item.opening = newOpening;
                         item.current = item.opening + (item.received || 0) - (item.issued || 0);
                         renderAll();
@@ -1485,7 +1512,6 @@
 
         function closeStockInModal() { document.getElementById('stockInModal').classList.add('hidden'); }
 
-        // STOCK IN SAVE API FIXED
         function saveStockInEntry() {
             const itemId = document.getElementById('stockInItemId').value;
             const qty = parseInt(document.getElementById('stockInQty').value);
@@ -1614,7 +1640,6 @@
             populateCourierUserDropdown();
             populateAdminFilters();
 
-            // Render User Page 1 (Incoming Live Courier)
             const userLiveTbl = document.getElementById('userLiveCourierTable');
             if(userLiveTbl && currentUser) {
                 const myCouriers = couriersList.filter(c => {
@@ -1646,7 +1671,6 @@
                 }
             }
 
-            // Render User Page 2 (My Outgoing Parcels)
             const userOutTbl = document.getElementById('userOutgoingTable');
             if(userOutTbl && currentUser) {
                 const myOutgoing = outgoingParcelsList.filter(o => {
@@ -1674,7 +1698,6 @@
                 }
             }
 
-            // Render Admin Tab: Outgoing Parcels
             const adminOutTbl = document.getElementById('adminOutgoingTable');
             const outgoingUserFilter = document.getElementById('adminOutgoingUserFilter');
             const selectedOutgoingUser = outgoingUserFilter ? outgoingUserFilter.value : 'ALL';
@@ -1734,7 +1757,6 @@
                 }
             }
 
-            // Render Admin Assign Courier List
             const adminCourierTbl = document.getElementById('adminCourierTable');
             const courierUserFilter = document.getElementById('adminCourierUserFilter');
             const selectedCourierUser = courierUserFilter ? courierUserFilter.value : 'ALL';
