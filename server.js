@@ -13,6 +13,7 @@ const transporter = nodemailer.createTransport({
 });
 
 function sendAutoEmail(toEmail, subject, message) {
+    if (!toEmail) return;
     const mailOptions = {
         from: 'dipankardag1987@gmail.com',
         to: toEmail,
@@ -344,7 +345,7 @@ app.post('/api/orders/create', async (req, res) => {
     }
 });
 
-// ORDER PROCESS API
+// SINGLE ORDER PROCESS API
 app.post('/api/orders/process', async (req, res) => {
     const { orderId, action, issuerName } = req.body;
     try {
@@ -370,6 +371,13 @@ app.post('/api/orders/process', async (req, res) => {
             } catch (invErr) {
                 console.log('Inventory stock calculation bypassed:', invErr.message);
             }
+
+            // Send single item issue email
+            const userQuery = await db.query('SELECT email FROM users WHERE LOWER(name) = LOWER($1)', [order.user_name]);
+            if (userQuery.rows.length > 0 && userQuery.rows[0].email) {
+                const mailText = `Hello ${order.user_name},\n\nYour Requisition Order has been ISSUED by ${issuerName || 'Admin'}.\n\nOrder Details:\nOrder ID: ${order.order_id}\nItem Name: ${order.item_name}\nCategory: ${order.category}\nQuantity: ${order.qty}\n\nThank you,\nStock Management System`;
+                sendAutoEmail(userQuery.rows[0].email, 'Requisition Item Issued - Stock Inventory', mailText);
+            }
         }
 
         const result = await db.query(`
@@ -383,6 +391,62 @@ app.post('/api/orders/process', async (req, res) => {
     } catch (err) {
         console.error('Order Process Safe Handler:', err.message);
         res.status(200).json({ success: true, message: 'Order status updated successfully' });
+    }
+});
+
+// BULK REQUISITION ISSUE API (COMBINES ALL CART ITEMS INTO 1 SINGLE EMAIL)
+app.post('/api/orders/issue-bulk', async (req, res) => {
+    const { issuerName } = req.body;
+    try {
+        const pendingQuery = await db.query("SELECT * FROM orders WHERE status = 'UNDER PROCESS' OR status = 'APPROVED'");
+        const pendingOrders = pendingQuery.rows || [];
+
+        if (pendingOrders.length === 0) {
+            return res.json({ success: true, message: 'No pending orders found.' });
+        }
+
+        // Group orders by user_name
+        const userGroups = {};
+        for (let order of pendingOrders) {
+            const uName = order.user_name || 'User';
+            if (!userGroups[uName]) userGroups[uName] = [];
+            userGroups[uName].push(order);
+
+            // Update inventory
+            try {
+                await db.query(`
+                    UPDATE inventory 
+                    SET issued = COALESCE(issued, 0) + $1, 
+                        current = COALESCE(opening, 0) + COALESCE(received, 0) - (COALESCE(issued, 0) + $1) 
+                    WHERE item_id::text = $2::text OR name::text = $3::text
+                `, [parseInt(order.qty) || 0, String(order.item_id || ''), String(order.item_name || '')]);
+            } catch (invErr) {}
+
+            // Update order status
+            await db.query(`UPDATE orders SET status = 'ISSUED', issuer_name = $1 WHERE order_id = $2`, [issuerName || 'System Admin', order.order_id]);
+        }
+
+        // Send ONLY 1 Combined Email per user containing all cart items
+        for (let uName in userGroups) {
+            const userOrders = userGroups[uName];
+            const userQuery = await db.query('SELECT email FROM users WHERE LOWER(name) = LOWER($1)', [uName]);
+            
+            if (userQuery.rows.length > 0 && userQuery.rows[0].email) {
+                let itemListText = '';
+                userOrders.forEach((o, idx) => {
+                    itemListText += `${idx + 1}. Item: ${o.item_name} | Qty: ${o.qty} | Order ID: ${o.order_id}\n`;
+                });
+
+                const combinedMailText = `Hello ${uName},\n\nYour Requisition Cart containing ${userOrders.length} items has been ISSUED by ${issuerName || 'Admin'}.\n\nIssued Items List:\n----------------------------------------\n${itemListText}----------------------------------------\n\nThank you,\nStock Management System`;
+
+                sendAutoEmail(userQuery.rows[0].email, `Requisition Cart Issued (${userOrders.length} Items) - Stock Inventory`, combinedMailText);
+            }
+        }
+
+        res.json({ success: true, message: `Successfully issued ${pendingOrders.length} orders and sent single combined emails!` });
+    } catch (err) {
+        console.error('Bulk Issue Error:', err.message);
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
@@ -416,10 +480,23 @@ app.post('/api/courier/assign', async (req, res) => {
     }
 });
 
+// COURIER MARK RECEIVED API (SENDS DETAILED EMAIL TO USER)
 app.post('/api/courier/receive', async (req, res) => {
-    const { courierId, email } = req.body;
+    const { courierId, email, userName, company, trackingNo, date, fromDetails, toDetails } = req.body;
     try {
         const result = await db.query('UPDATE couriers SET status = $1 WHERE id = $2 RETURNING *;', ['RECEIVED', courierId]);
+        
+        let targetEmail = email;
+        if (!targetEmail) {
+            const userQuery = await db.query('SELECT email FROM users WHERE LOWER(name) = LOWER($1)', [userName]);
+            if (userQuery.rows.length > 0) targetEmail = userQuery.rows[0].email;
+        }
+
+        if (targetEmail) {
+            const courierDetailsMail = `Hello ${userName || 'User'},\n\nYour Courier Parcel has been marked as RECEIVED in the system.\n\nCourier Receipt Details:\n----------------------------------------\nCourier Company: ${company || 'N/A'}\nTracking Number: ${trackingNo || 'N/A'}\nDispatch Date: ${date || 'N/A'}\nFrom Details: ${fromDetails || 'N/A'}\nTo Details: ${toDetails || 'N/A'}\nStatus: RECEIVED\n----------------------------------------\n\nThank you,\nStock Management System`;
+            sendAutoEmail(targetEmail, 'Courier Received Confirmation - Stock Inventory', courierDetailsMail);
+        }
+
         res.json({ success: true, courier: result.rows[0] });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -559,7 +636,7 @@ app.post('/api/inventory/stock-in', async (req, res) => {
                     last_date = $2 
                 WHERE item_id = (SELECT item_id FROM inventory LIMIT 1)
                 RETURNING *;
-            `, [parseQty, dateStr]);
+            `, [parseQty]);
         }
 
         const targetItemId = updateResult && updateResult.rows && updateResult.rows[0] ? updateResult.rows[0].item_id : String(itemId || '1');
