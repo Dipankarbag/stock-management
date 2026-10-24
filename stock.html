@@ -777,7 +777,7 @@
             }
         });
 
-        // Superfast Optimized Polling Interval (Every 3 seconds to handle 200 users smoothly without hanging)
+        // Superfast Optimized Polling Interval (Every 3 seconds)
         setInterval(() => {
             fetchAppState();
         }, 3000);
@@ -870,6 +870,7 @@
             .catch(err => alert("Error connecting to server. Please try again."));
         }
 
+        // REGISTER FUNCTION WITH DUPLICATE EMAIL CHECK
         function handleRegister(e) {
             e.preventDefault();
             const name = document.getElementById('regName').value.trim();
@@ -877,6 +878,14 @@
             const dept = document.getElementById('regDept').value.trim();
             const phone = document.getElementById('regPhone').value.trim();
             const password = document.getElementById('regPassword').value.trim();
+
+            // CHECK IF EMAIL IS ALREADY REGISTERED IN USERS LIST
+            const isEmailExists = usersList.some(u => String(u.email).trim().toLowerCase() === email);
+
+            if (isEmailExists) {
+                alert("This Email ID is already registered! Please use a different email or login.");
+                return;
+            }
 
             const newUser = {
                 userId: "USR-00" + Math.floor(100 + Math.random() * 900),
@@ -889,10 +898,15 @@
                 body: JSON.stringify(newUser)
             })
             .then(res => res.json())
-            .then(() => {
+            .then(data => {
+                if (data.success === false) {
+                    alert(data.message || "This Email ID is already registered!");
+                    return;
+                }
                 alert("Registration successful! You can now login.");
                 toggleAuthMode('login');
                 document.getElementById('registerForm').reset();
+                fetchAppState();
             })
             .catch(err => alert("Registration error!"));
         }
