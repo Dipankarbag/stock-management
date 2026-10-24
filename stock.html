@@ -1032,7 +1032,7 @@
             const list = outgoingParcelsList.filter(o => {
                 const uName = o.userName || o.user_name || '';
                 return selectedUser === 'ALL' || String(uName).trim().toLowerCase() === String(selectedUser).trim().toLowerCase();
-            });
+            }).slice().reverse();
 
             if(list.length === 0) { alert("No outgoing parcel data available to export!"); return; }
 
@@ -1082,7 +1082,7 @@
             const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
             document.getElementById('receivedItemTitle').innerText = item.name + ' (' + item.category + ')';
             
-            const logsForNext = receivedLogs.filter(l => String(l.item_id !== undefined ? l.item_id : l.itemId) === String(itemId));
+            const logsForNext = receivedLogs.filter(l => String(l.item_id !== undefined ? l.item_id : l.itemId) === String(itemId)).slice().reverse();
             const tbody = document.getElementById('receivedDetailsTable');
 
             if(logsForNext.length === 0) {
@@ -1107,7 +1107,7 @@
         function exportReceivedModalCSV() {
             if(!activeReceivedItemId) return;
             const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(activeReceivedItemId));
-            const logs = receivedLogs.filter(l => String(l.item_id !== undefined ? l.item_id : l.itemId) === String(activeReceivedItemId));
+            const logs = receivedLogs.filter(l => String(l.item_id !== undefined ? l.item_id : l.itemId) === String(activeReceivedItemId)).slice().reverse();
             if(logs.length === 0) { alert("No received log data to export!"); return; }
 
             let csv = "Stock Received Report - " + item.name + "\nReceived By,Received Qty,Unit,Date,Time,Status\n";
@@ -1123,7 +1123,7 @@
         function printReceivedModalReport() {
             if(!activeReceivedItemId) return;
             const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(activeReceivedItemId));
-            const logs = receivedLogs.filter(l => String(l.item_id !== undefined ? l.item_id : l.itemId) === String(activeReceivedItemId));
+            const logs = receivedLogs.filter(l => String(l.item_id !== undefined ? l.item_id : l.itemId) === String(activeReceivedItemId)).slice().reverse();
             
             const printWin = window.open('', '_blank');
             let rows = '';
@@ -1139,7 +1139,7 @@
             const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
             document.getElementById('issuedItemTitle').innerText = item.name + ' (' + item.category + ')';
             
-            const itemIssuedOrders = orders.filter(o => String(o.item_id !== undefined ? o.item_id : o.itemId) === String(itemId) && o.status === 'ISSUED');
+            const itemIssuedOrders = orders.filter(o => String(o.item_id !== undefined ? o.item_id : o.itemId) === String(itemId) && o.status === 'ISSUED').slice().reverse();
             const tbody = document.getElementById('issuedDetailsTable');
 
             if(itemIssuedOrders.length === 0) {
@@ -1165,7 +1165,7 @@
         function exportIssuedModalCSV() {
             if(!activeIssuedItemId) return;
             const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(activeIssuedItemId));
-            const itemIssuedOrders = orders.filter(o => String(o.item_id !== undefined ? o.item_id : o.itemId) === String(activeIssuedItemId) && o.status === 'ISSUED');
+            const itemIssuedOrders = orders.filter(o => String(o.item_id !== undefined ? o.item_id : o.itemId) === String(activeIssuedItemId) && o.status === 'ISSUED').slice().reverse();
             if(itemIssuedOrders.length === 0) { alert("No issued log data to export!"); return; }
 
             let csv = "Stock Issued Breakdown Report - " + item.name + "\nIssued To,Issued By,Issued Qty,Unit,Date,Time,Status\n";
@@ -1181,7 +1181,7 @@
         function printIssuedModalReport() {
             if(!activeIssuedItemId) return;
             const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(activeIssuedItemId));
-            const itemIssuedOrders = orders.filter(o => String(o.item_id !== undefined ? o.item_id : o.itemId) === String(activeIssuedItemId) && o.status === 'ISSUED');
+            const itemIssuedOrders = orders.filter(o => String(o.item_id !== undefined ? o.item_id : o.itemId) === String(activeIssuedItemId) && o.status === 'ISSUED').slice().reverse();
             
             const printWin = window.open('', '_blank');
             let rows = '';
@@ -1328,7 +1328,6 @@
             }
         }
 
-        // FIXED PROPERLY WORKING DROPDOWN FOR REQUISITION CART
         function populateUserItemDropdown() {
             const select = document.getElementById('cartItemSelect');
             if(!select) return;
@@ -1387,7 +1386,7 @@
 
             submitBtn.classList.remove('hidden');
             let html = '';
-            orderCart.forEach((item, index) => {
+            orderCart.slice().reverse().forEach((item, index) => {
                 html += '<tr>' +
                     '<td class="p-2 font-bold text-xs">' + item.itemName + '</td>' +
                     '<td class="p-2 text-xs text-gray-500">' + item.category + '</td>' +
@@ -1512,7 +1511,6 @@
             }
         }
 
-        // STABLE CATEGORIES DROPDOWN PRESERVING SELECTED OPTION
         function populateCategoriesDropdown() {
             const select = document.getElementById('ledgerCategoryFilter');
             if(!select) return;
@@ -1553,13 +1551,12 @@
             renderLedgerTableCustom(inventory);
         }
 
-        // COMPACT & SMART LEDGER TABLE RENDERING
         function renderLedgerTableCustom(list) {
             currentFilteredLedger = list;
             const tbl = document.getElementById('adminStockTable');
             if(!tbl) return;
             let html = '';
-            list.forEach(i => {
+            list.slice().reverse().forEach(i => {
                 const itemId = i.item_id !== undefined ? i.item_id : i.id;
                 const recQty = parseInt(i.received) || 0;
                 const issQty = parseInt(i.issued) || 0;
@@ -1599,7 +1596,7 @@
         function exportLedgerCSV() {
             if(currentFilteredLedger.length === 0) { alert("No ledger data available to export!"); return; }
             let csv = "Inventory Movement Ledger Report\nItem Name,Category,Unit,Opening Stock,Received Stock,Issued Stock,Closing Balance,Last Received Date\n";
-            currentFilteredLedger.forEach(i => { csv += '"' + i.name + '","' + i.category + '","' + (i.unit || 'pcs') + '","' + i.opening + '","' + i.received + '","' + i.issued + '","' + i.current + '","' + (i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')) + '"\n'; });
+            currentFilteredLedger.slice().reverse().forEach(i => { csv += '"' + i.name + '","' + i.category + '","' + (i.unit || 'pcs') + '","' + i.opening + '","' + i.received + '","' + i.issued + '","' + i.current + '","' + (i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')) + '"\n'; });
             const link = document.createElement("a");
             link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
             link.download = "Inventory_Movement_Ledger_" + new Date().toISOString().split('T')[0] + ".csv";
@@ -1610,7 +1607,7 @@
             if(currentFilteredLedger.length === 0) { alert("No ledger data available to print!"); return; }
             const printWin = window.open('', '_blank');
             let rows = '';
-            currentFilteredLedger.forEach(i => {
+            currentFilteredLedger.slice().reverse().forEach(i => {
                 rows += '<tr><td class="font-bold">' + i.name + '</td><td>' + i.category + '</td><td class="text-center">' + (i.unit || 'pcs') + '</td><td class="text-center">' + i.opening + '</td><td class="text-center">+' + i.received + '</td><td class="text-center">-' + i.issued + '</td><td class="text-center font-bold">' + i.current + '</td><td class="text-center">' + (i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')) + '</td></tr>';
             });
             printWin.document.write('<html><head><title>Inventory Movement Ledger Report</title><style>body { font-family: Arial, sans-serif; padding: 20px; color: #333; } table { width: 100%; border-collapse: collapse; margin-top: 15px; } th, td { border: 1px solid #cbd5e1; padding: 6px; text-align: left; font-size: 12px; } th { background-color: #0f172a; color: white; } .text-center { text-align: center; }</style></head><body><h2>Inventory Movement Ledger Report</h2><p>Generated Date: ' + new Date().toLocaleString() + '</p><hr/><table><thead><tr><th>Item Name</th><th>Category</th><th class="text-center">Unit</th><th class="text-center">Opening</th><th class="text-center">Received</th><th class="text-center">Issued</th><th class="text-center">Closing Balance</th><th class="text-center">Last Received Date</th></tr></thead><tbody>' + rows + '</tbody></table></body></html>');
@@ -1713,7 +1710,7 @@
             const tbl = document.getElementById('adminUserOrdersHistoryTable');
             if(!tbl) return;
             let html = '';
-            list.forEach(o => {
+            list.slice().reverse().forEach(o => {
                 html += '<tr>' +
                     '<td class="p-2 text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
                     '<td class="p-2 font-bold text-xs">' + (o.user_name || o.user) + '</td>' +
@@ -1791,13 +1788,13 @@
                 }
             }
 
-            // Render User Page 2 (My Outgoing Parcels)
+            // Render User Page 2 (My Outgoing Parcels) - LATEST ON TOP
             const userOutTbl = document.getElementById('userOutgoingTable');
             if(userOutTbl && currentUser) {
                 const myOutgoing = outgoingParcelsList.filter(o => {
                     const name = o.userName || o.user_name || '';
                     return String(name).trim().toLowerCase() === String(currentUser.name).trim().toLowerCase();
-                });
+                }).slice().reverse();
 
                 if(myOutgoing.length === 0) {
                     userOutTbl.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-gray-400">No outgoing requests submitted.</td></tr>';
@@ -1819,7 +1816,7 @@
                 }
             }
 
-            // Render Admin Tab: Outgoing Parcels
+            // Render Admin Tab: Outgoing Parcels - LATEST ON TOP
             const adminOutTbl = document.getElementById('adminOutgoingTable');
             const outgoingUserFilter = document.getElementById('adminOutgoingUserFilter');
             const selectedOutgoingUser = outgoingUserFilter ? outgoingUserFilter.value : 'ALL';
@@ -1836,7 +1833,7 @@
                 const filteredOutgoing = outgoingParcelsList.filter(o => {
                     const uName = o.userName || o.user_name || '';
                     return selectedOutgoingUser === 'ALL' || String(uName).trim().toLowerCase() === String(selectedOutgoingUser).trim().toLowerCase();
-                });
+                }).slice().reverse();
 
                 if(filteredOutgoing.length === 0) {
                     adminOutTbl.innerHTML = '<tr><td colspan="8" class="p-3 text-center text-gray-400">No outgoing parcel requests found.</td></tr>';
@@ -1915,7 +1912,8 @@
                 }
             }
 
-            const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => (o.user_name === currentUser.name || o.user === currentUser.name)) : orders;
+            // Render User Orders Table - LATEST ON TOP
+            const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => (o.user_name === currentUser.name || o.user === currentUser.name)).slice().reverse() : orders.slice().reverse();
             const uOrdersTbl = document.getElementById('userOrdersTable');
             if(uOrdersTbl) {
                 let html = '';
@@ -1932,10 +1930,11 @@
                 uOrdersTbl.innerHTML = html || '<tr><td colspan="6" class="p-3 text-center text-gray-400">No orders found.</td></tr>';
             }
 
-            const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED');
+            const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED').slice().reverse();
             const pCountEl = document.getElementById('pendingCount');
             if(pCountEl) pCountEl.innerText = pending.length;
             
+            // Render Admin Pending Approvals - LATEST ON TOP
             const adminReqTbl = document.getElementById('adminRequestsTable');
             if(adminReqTbl) {
                 let html = '';
@@ -1963,7 +1962,7 @@
             const adminUsersTbl = document.getElementById('adminUsersTable');
             if(adminUsersTbl) {
                 let html = '';
-                usersList.forEach(u => {
+                usersList.slice().reverse().forEach(u => {
                     html += '<tr>' +
                         '<td class="p-2 font-mono text-xs">' + u.user_id + '</td>' +
                         '<td class="p-2 font-bold text-xs">' + u.name + '</td>' +
@@ -1980,10 +1979,11 @@
                 adminUsersTbl.innerHTML = html || '<tr><td colspan="8" class="p-3 text-center text-gray-400">No users found.</td></tr>';
             }
 
+            // Render Admin System Activity Logs - LATEST ON TOP
             const adminLogsTbl = document.getElementById('adminLogsTable');
             if(adminLogsTbl) {
                 let html = '';
-                orders.forEach(o => {
+                orders.slice().reverse().forEach(o => {
                     html += '<tr>' +
                         '<td class="p-2 text-[11px] text-gray-400">' + (o.date_only ? o.date_only.split('T')[0] : '') + ' ' + (o.time_str || '') + '</td>' +
                         '<td class="p-2 text-xs font-bold text-gray-700">' + (o.user_name || 'System User') + '</td>' +
