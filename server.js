@@ -220,7 +220,7 @@ app.post('/api/users/login', async (req, res) => {
     }
 });
 
-// USER FORGOT PASSWORD API (UPDATED & VERIFIED)
+// USER FORGOT PASSWORD API
 app.post('/api/users/forgot-password', async (req, res) => {
     const { email } = req.body;
     try {
@@ -230,19 +230,18 @@ app.post('/api/users/forgot-password', async (req, res) => {
 
         const userQuery = await db.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [email.trim()]);
         if (userQuery.rows.length === 0) {
-            return res.json({ success: false, message: 'This email is not registered in our system.' });
+            return res.json({ success: false, message: 'This email address is not registered in our system.' });
         }
 
         const user = userQuery.rows[0];
 
-        // Send login credentials via email
         sendAutoEmail(
             user.email,
             'Password Recovery - Stock Inventory System',
-            `Hello ${user.name},\n\nWe received a password recovery request for your account.\n\nYour Login Credentials:\nUser ID: ${user.user_id}\nRegistered Email: ${user.email}\nPassword: ${user.password}\n\nPlease keep your credentials safe and do not share them with anyone.`
+            `Hello ${user.name},\n\nWe received a password recovery request for your account.\n\nYour Login Credentials:\nUser ID: ${user.user_id}\nRegistered Email: ${user.email}\nPassword: ${user.password}\n\nPlease keep your credentials safe.`
         );
 
-        res.json({ success: true, message: 'Your password has been successfully sent to your email.' });
+        res.json({ success: true, message: 'Your password has been successfully sent to your registered email.' });
     } catch (err) {
         console.error('Forgot Password Error:', err.message);
         res.status(500).json({ success: false, error: err.message });
