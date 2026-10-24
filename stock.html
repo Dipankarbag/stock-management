@@ -567,14 +567,14 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-gray-100 text-gray-600 text-[11px] uppercase border-b">
-                                    <th class="p-2">Requested By User</th>
-                                    <th class="p-2">Date</th>
-                                    <th class="p-2">From Details</th>
-                                    <th class="p-2">To Address Details</th>
-                                    <th class="p-2">Courier Company</th>
-                                    <th class="p-2 font-mono">Tracking Number</th>
-                                    <th class="p-2 text-center">Admin Input Tracking</th>
-                                    <th class="p-2 text-center">Action</th>
+                                    <th class="p-2 py-1.5">Requested By User</th>
+                                    <th class="p-2 py-1.5">Date</th>
+                                    <th class="p-2 py-1.5">From Details</th>
+                                    <th class="p-2 py-1.5">To Address Details</th>
+                                    <th class="p-2 py-1.5">Courier Company</th>
+                                    <th class="p-2 py-1.5 font-mono">Tracking Number</th>
+                                    <th class="p-2 py-1.5 text-center">Admin Input Tracking</th>
+                                    <th class="p-2 py-1.5 text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="adminOutgoingTable" class="text-xs divide-y"></tbody>
@@ -1388,10 +1388,10 @@
             let html = '';
             orderCart.slice().reverse().forEach((item, index) => {
                 html += '<tr>' +
-                    '<td class="p-2 font-bold text-xs">' + item.itemName + '</td>' +
-                    '<td class="p-2 text-xs text-gray-500">' + item.category + '</td>' +
-                    '<td class="p-2 text-center font-bold text-blue-600 text-xs">' + item.qty + '</td>' +
-                    '<td class="p-2 text-center">' +
+                    '<td class="p-1.5 font-bold text-xs">' + item.itemName + '</td>' +
+                    '<td class="p-1.5 text-xs text-gray-500">' + item.category + '</td>' +
+                    '<td class="p-1.5 text-center font-bold text-blue-600 text-xs">' + item.qty + '</td>' +
+                    '<td class="p-1.5 text-center">' +
                         '<button onclick="removeFromCart(' + index + ')" class="bg-red-100 text-red-600 hover:bg-red-200 px-2 py-0.5 rounded text-xs font-bold">' +
                             '<i class="fa-solid fa-trash mr-1"></i>Remove' +
                         '</button>' +
@@ -1564,27 +1564,27 @@
                 const closingBal = openQty + recQty - issQty;
 
                 html += '<tr>' +
-                    '<td class="p-2 py-1.5 font-bold text-gray-800">' + i.name + '</td>' +
-                    '<td class="p-2 py-1.5 text-[11px] text-gray-500">' + i.category + '</td>' +
-                    '<td class="p-2 py-1.5 text-center font-semibold text-purple-700 text-[11px]">' + (i.unit || 'pcs') + '</td>' +
-                    '<td class="p-2 py-1.5 text-center">' +
+                    '<td class="p-1.5 font-bold text-gray-800">' + i.name + '</td>' +
+                    '<td class="p-1.5 text-[11px] text-gray-500">' + i.category + '</td>' +
+                    '<td class="p-1.5 text-center font-semibold text-purple-700 text-[11px]">' + (i.unit || 'pcs') + '</td>' +
+                    '<td class="p-1.5 text-center">' +
                         '<button onclick="editOpeningQuantity(\'' + itemId + '\')" title="Click to edit Opening Quantity" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-2 py-0.5 rounded border border-gray-300 text-[11px] shadow-sm">' +
                             openQty + ' <i class="fa-solid fa-lock text-[9px] text-amber-600 ml-0.5"></i>' +
                         '</button>' +
                     '</td>' +
-                    '<td class="p-2 py-1.5 text-center">' +
-                        '<button onclick="showReceivedBreakdown(\'' + itemId + '\')" title="Click to view stock received breakdown details" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-2.5 py-0.5 rounded-full font-extrabold text-[11px] shadow-sm border border-blue-300">' +
+                    '<td class="p-1.5 text-center">' +
+                        '<button onclick="showReceivedBreakdown(\'' + itemId + '\')" title="Click to view stock received breakdown details" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full font-extrabold text-[11px] shadow-sm border border-blue-300">' +
                             '+' + recQty + ' <i class="fa-solid fa-circle-info ml-0.5 text-[9px]"></i>' +
                         '</button>' +
                     '</td>' +
-                    '<td class="p-2 py-1.5 text-center">' +
-                        '<button onclick="showIssuedBreakdown(\'' + itemId + '\')" title="Click to view stock issued details" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-2.5 py-0.5 rounded-full font-extrabold text-[11px] shadow-sm border border-amber-300">' +
+                    '<td class="p-1.5 text-center">' +
+                        '<button onclick="showIssuedBreakdown(\'' + itemId + '\')" title="Click to view stock issued details" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-extrabold text-[11px] shadow-sm border border-amber-300">' +
                             '-' + issQty + ' <i class="fa-solid fa-circle-info ml-0.5 text-[9px]"></i>' +
                         '</button>' +
                     '</td>' +
-                    '<td class="p-2 py-1.5 text-center text-emerald-700 font-extrabold text-xs">' + (i.current !== undefined ? i.current : closingBal) + '</td>' +
-                    '<td class="p-2 py-1.5 text-center text-[11px] text-gray-500">' + (i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')) + '</td>' +
-                    '<td class="p-2 py-1.5 text-center space-x-1">' +
+                    '<td class="p-1.5 text-center text-emerald-700 font-extrabold text-xs">' + (i.current !== undefined ? i.current : closingBal) + '</td>' +
+                    '<td class="p-1.5 text-center text-[11px] text-gray-500">' + (i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')) + '</td>' +
+                    '<td class="p-1.5 text-center space-x-1">' +
                         '<button onclick="openStockInModal(\'' + itemId + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded text-[11px] font-bold shadow-sm">+ Stock In</button>' +
                         '<button onclick="deleteInventoryItem(\'' + itemId + '\')" title="Delete Item" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-[11px] font-bold shadow-sm"><i class="fa-solid fa-trash"></i></button>' +
                     '</td>' +
@@ -1712,13 +1712,13 @@
             let html = '';
             list.slice().reverse().forEach(o => {
                 html += '<tr>' +
-                    '<td class="p-2 text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
-                    '<td class="p-2 font-bold text-xs">' + (o.user_name || o.user) + '</td>' +
-                    '<td class="p-2 text-xs">' + (o.item_name || o.itemName) + '</td>' +
-                    '<td class="p-2 text-xs text-gray-500">' + o.category + '</td>' +
-                    '<td class="p-2 text-center font-bold text-xs">' + o.qty + '</td>' +
-                    '<td class="p-2 text-[11px] text-gray-400">' + (o.time_str || o.time) + '</td>' +
-                    '<td class="p-2 text-center space-x-1">' +
+                    '<td class="p-1.5 text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
+                    '<td class="p-1.5 font-bold text-xs">' + (o.user_name || o.user) + '</td>' +
+                    '<td class="p-1.5 text-xs">' + (o.item_name || o.itemName) + '</td>' +
+                    '<td class="p-1.5 text-xs text-gray-500">' + o.category + '</td>' +
+                    '<td class="p-1.5 text-center font-bold text-xs">' + o.qty + '</td>' +
+                    '<td class="p-1.5 text-[11px] text-gray-400">' + (o.time_str || o.time) + '</td>' +
+                    '<td class="p-1.5 text-center space-x-1">' +
                         '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">' + o.status + '</span>' +
                         '<button onclick="deleteOrderRecord(\'' + (o.order_id || o.id) + '\')" title="Delete Order" class="bg-red-600 hover:bg-red-700 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 shadow-sm"><i class="fa-solid fa-trash"></i></button>' +
                     '</td>' +
@@ -1773,14 +1773,14 @@
                         const toDet = c.toDetails || c.to_details || 'N/A';
 
                         html += '<tr>' +
-                            '<td class="p-2 text-xs font-semibold">' + c.date + '</td>' +
-                            '<td class="p-2 font-bold text-blue-600 text-xs">' + c.company + '</td>' +
-                            '<td class="p-2 font-mono text-xs">' + tracking + '</td>' +
-                            '<td class="p-2 text-xs">' + fromDet + '</td>' +
-                            '<td class="p-2 text-xs">' + toDet + '</td>' +
-                            '<td class="p-2 text-center"><a href="' + c.photo + '" target="_blank"><img src="' + c.photo + '" class="w-10 h-10 object-cover rounded mx-auto border shadow-sm hover:scale-105 transition" /></a></td>' +
-                            '<td class="p-2 text-center">' +
-                                (c.status === 'DISPATCHED' ? '<button onclick="markCourierReceived(\'' + c.id + '\')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-xs font-bold shadow-sm">Mark Received</button>' : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800">RECEIVED</span>') +
+                            '<td class="p-1.5 text-xs font-semibold">' + c.date + '</td>' +
+                            '<td class="p-1.5 font-bold text-blue-600 text-xs">' + c.company + '</td>' +
+                            '<td class="p-1.5 font-mono text-xs">' + tracking + '</td>' +
+                            '<td class="p-1.5 text-xs">' + fromDet + '</td>' +
+                            '<td class="p-1.5 text-xs">' + toDet + '</td>' +
+                            '<td class="p-1.5 text-center"><a href="' + c.photo + '" target="_blank"><img src="' + c.photo + '" class="w-8 h-8 object-cover rounded mx-auto border shadow-sm hover:scale-105 transition" /></a></td>' +
+                            '<td class="p-1.5 text-center">' +
+                                (c.status === 'DISPATCHED' ? '<button onclick="markCourierReceived(\'' + c.id + '\')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-0.5 rounded text-xs font-bold shadow-sm">Mark Received</button>' : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800">RECEIVED</span>') +
                             '</td>' +
                         '</tr>';
                     });
@@ -1804,19 +1804,19 @@
                         const tracking = o.tracking_no || o.trackingNo || 'PENDING ADMIN ASSIGNMENT';
                         const isPending = tracking === 'PENDING ADMIN ASSIGNMENT';
                         html += '<tr>' +
-                            '<td class="p-2 text-xs">' + o.date + '</td>' +
-                            '<td class="p-2 text-xs">' + (o.from_details || o.fromDetails || 'N/A') + '</td>' +
-                            '<td class="p-2 text-xs font-bold text-gray-800">' + (o.to_details || o.toDetails || 'N/A') + '</td>' +
-                            '<td class="p-2 text-xs font-semibold text-blue-600">' + (o.courier_company || o.courierCompany || 'N/A') + '</td>' +
-                            '<td class="p-2 font-mono text-xs ' + (isPending ? 'text-amber-600 font-bold' : 'text-emerald-700 font-extrabold') + '">' + tracking + '</td>' +
-                            '<td class="p-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (isPending ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') + '">' + o.status + '</span></td>' +
+                            '<td class="p-1.5 text-xs">' + o.date + '</td>' +
+                            '<td class="p-1.5 text-xs">' + (o.from_details || o.fromDetails || 'N/A') + '</td>' +
+                            '<td class="p-1.5 text-xs font-bold text-gray-800">' + (o.to_details || o.toDetails || 'N/A') + '</td>' +
+                            '<td class="p-1.5 text-xs font-semibold text-blue-600">' + (o.courier_company || o.courierCompany || 'N/A') + '</td>' +
+                            '<td class="p-1.5 font-mono text-xs ' + (isPending ? 'text-amber-600 font-bold' : 'text-emerald-700 font-extrabold') + '">' + tracking + '</td>' +
+                            '<td class="p-1.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (isPending ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') + '">' + o.status + '</span></td>' +
                         '</tr>';
                     });
                     userOutTbl.innerHTML = html;
                 }
             }
 
-            // Render Admin Tab: Outgoing Parcels - LATEST ON TOP
+            // Render Admin Tab: Outgoing Parcels - COMPACT ACTION BUTTONS (HORIZONTAL FLEX)
             const adminOutTbl = document.getElementById('adminOutgoingTable');
             const outgoingUserFilter = document.getElementById('adminOutgoingUserFilter');
             const selectedOutgoingUser = outgoingUserFilter ? outgoingUserFilter.value : 'ALL';
@@ -1849,18 +1849,20 @@
                         }
 
                         html += '<tr>' +
-                            '<td class="p-2 font-bold text-blue-600 text-xs">' + (o.user_name || o.userName || 'N/A') + '</td>' +
-                            '<td class="p-2 text-xs">' + o.date + '</td>' +
-                            '<td class="p-2 text-xs">' + (o.from_details || o.fromDetails || 'N/A') + '</td>' +
-                            '<td class="p-2 text-xs font-bold text-gray-800">' + (o.to_details || o.toDetails || 'N/A') + '</td>' +
-                            '<td class="p-2 text-xs font-semibold">' + (o.courier_company || o.courierCompany || 'N/A') + '</td>' +
-                            '<td class="p-2 font-mono text-xs">' + (isPending ? '<span class="text-amber-600">PENDING</span>' : tracking) + '</td>' +
-                            '<td class="p-2 text-center">' +
-                                '<input type="text" id="' + inputId + '" value="' + valToDisplay + '" placeholder="Enter Tracking No." class="border rounded p-1 text-xs w-32 font-mono bg-white" />' +
+                            '<td class="p-1.5 font-bold text-blue-600 text-xs">' + (o.user_name || o.userName || 'N/A') + '</td>' +
+                            '<td class="p-1.5 text-xs">' + o.date + '</td>' +
+                            '<td class="p-1.5 text-xs">' + (o.from_details || o.fromDetails || 'N/A') + '</td>' +
+                            '<td class="p-1.5 text-xs font-bold text-gray-800">' + (o.to_details || o.toDetails || 'N/A') + '</td>' +
+                            '<td class="p-1.5 text-xs font-semibold">' + (o.courier_company || o.courierCompany || 'N/A') + '</td>' +
+                            '<td class="p-1.5 font-mono text-xs">' + (isPending ? '<span class="text-amber-600">PENDING</span>' : tracking) + '</td>' +
+                            '<td class="p-1.5 text-center">' +
+                                '<input type="text" id="' + inputId + '" value="' + valToDisplay + '" placeholder="Enter Tracking No." class="border rounded px-1.5 py-0.5 text-xs w-28 font-mono bg-white" />' +
                             '</td>' +
-                            '<td class="p-2 text-center space-x-1">' +
-                                '<button onclick="adminUpdateTracking(\'' + o.id + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded text-[11px] font-bold shadow-sm">Save Tracking</button>' +
-                                '<button onclick="deleteOutgoingParcel(\'' + o.id + '\')" class="bg-red-600 hover:bg-red-700 text-white px-1.5 py-0.5 rounded text-[11px] shadow-sm"><i class="fa-solid fa-trash"></i></button>' +
+                            '<td class="p-1.5 text-center">' +
+                                '<div class="inline-flex items-center space-x-1.5">' +
+                                    '<button onclick="adminUpdateTracking(\'' + o.id + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px] font-bold shadow-sm whitespace-nowrap">Save Tracking</button>' +
+                                    '<button onclick="deleteOutgoingParcel(\'' + o.id + '\')" title="Delete Request" class="bg-red-600 hover:bg-red-700 text-white p-1 rounded text-[10px] shadow-sm flex items-center justify-center"><i class="fa-solid fa-trash"></i></button>' +
+                                '</div>' +
                             '</td>' +
                         '</tr>';
                     });
@@ -1898,14 +1900,14 @@
                         const toDet = c.toDetails || c.to_details || 'N/A';
 
                         html += '<tr>' +
-                            '<td class="p-2 font-bold text-xs">' + name + '</td>' +
-                            '<td class="p-2 text-xs">' + c.date + '</td>' +
-                            '<td class="p-2 font-semibold text-blue-600 text-xs">' + c.company + '</td>' +
-                            '<td class="p-2 font-mono text-xs">' + tracking + '</td>' +
-                            '<td class="p-2 text-xs">From: ' + fromDet + '<br/>To: ' + toDet + '</td>' +
-                            '<td class="p-2 text-center"><a href="' + c.photo + '" target="_blank"><img src="' + c.photo + '" class="w-8 h-8 object-cover rounded mx-auto border shadow-sm" /></a></td>' +
-                            '<td class="p-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (c.status === 'RECEIVED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800') + '">' + c.status + '</span></td>' +
-                            '<td class="p-2 text-center"><button onclick="deleteCourierRecord(\'' + c.id + '\')" class="bg-red-600 hover:bg-red-700 text-white px-1.5 py-0.5 rounded text-[11px] shadow-sm"><i class="fa-solid fa-trash"></i></button></td>' +
+                            '<td class="p-1.5 font-bold text-xs">' + name + '</td>' +
+                            '<td class="p-1.5 text-xs">' + c.date + '</td>' +
+                            '<td class="p-1.5 font-semibold text-blue-600 text-xs">' + c.company + '</td>' +
+                            '<td class="p-1.5 font-mono text-xs">' + tracking + '</td>' +
+                            '<td class="p-1.5 text-xs">From: ' + fromDet + '<br/>To: ' + toDet + '</td>' +
+                            '<td class="p-1.5 text-center"><a href="' + c.photo + '" target="_blank"><img src="' + c.photo + '" class="w-7 h-7 object-cover rounded mx-auto border shadow-sm" /></a></td>' +
+                            '<td class="p-1.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (c.status === 'RECEIVED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800') + '">' + c.status + '</span></td>' +
+                            '<td class="p-1.5 text-center"><button onclick="deleteCourierRecord(\'' + c.id + '\')" class="bg-red-600 hover:bg-red-700 text-white px-1.5 py-0.5 rounded text-[11px] shadow-sm"><i class="fa-solid fa-trash"></i></button></td>' +
                         '</tr>';
                     });
                     adminCourierTbl.innerHTML = html;
@@ -1919,12 +1921,12 @@
                 let html = '';
                 userOrders.forEach(o => {
                     html += '<tr>' +
-                        '<td class="p-2 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
-                        '<td class="p-2 text-xs font-bold">' + (o.item_name || o.itemName) + '</td>' +
-                        '<td class="p-2 text-xs text-gray-500">' + o.category + '</td>' +
-                        '<td class="p-2 font-bold text-center text-xs">' + o.qty + '</td>' +
-                        '<td class="p-2 text-[11px] text-gray-400">' + (o.time_str || o.time) + '</td>' +
-                        '<td class="p-2 text-center"><span class="px-2 py-0.5 text-[10px] rounded-full font-bold bg-amber-100 text-amber-700">' + o.status + '</span></td>' +
+                        '<td class="p-1.5 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
+                        '<td class="p-1.5 text-xs font-bold">' + (o.item_name || o.itemName) + '</td>' +
+                        '<td class="p-1.5 text-xs text-gray-500">' + o.category + '</td>' +
+                        '<td class="p-1.5 font-bold text-center text-xs">' + o.qty + '</td>' +
+                        '<td class="p-1.5 text-[11px] text-gray-400">' + (o.time_str || o.time) + '</td>' +
+                        '<td class="p-1.5 text-center"><span class="px-2 py-0.5 text-[10px] rounded-full font-bold bg-amber-100 text-amber-700">' + o.status + '</span></td>' +
                     '</tr>';
                 });
                 uOrdersTbl.innerHTML = html || '<tr><td colspan="6" class="p-3 text-center text-gray-400">No orders found.</td></tr>';
@@ -1940,12 +1942,12 @@
                 let html = '';
                 pending.forEach(o => {
                     html += '<tr>' +
-                        '<td class="p-2 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
-                        '<td class="p-2 font-bold text-xs">' + (o.user_name || o.user) + '</td>' +
-                        '<td class="p-2 text-xs">' + (o.item_name || o.itemName) + '</td>' +
-                        '<td class="p-2 text-center font-bold text-xs">' + o.qty + '</td>' +
-                        '<td class="p-2 text-center text-xs">Available</td>' +
-                        '<td class="p-2 text-center space-x-1">' +
+                        '<td class="p-1.5 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
+                        '<td class="p-1.5 font-bold text-xs">' + (o.user_name || o.user) + '</td>' +
+                        '<td class="p-1.5 text-xs">' + (o.item_name || o.itemName) + '</td>' +
+                        '<td class="p-1.5 text-center font-bold text-xs">' + o.qty + '</td>' +
+                        '<td class="p-1.5 text-center text-xs">Available</td>' +
+                        '<td class="p-1.5 text-center space-x-1">' +
                             (o.status === 'UNDER PROCESS' ? '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'APPROVE\')" class="bg-blue-600 text-white px-2 py-0.5 rounded text-[11px]">Approve</button>' : '') +
                             '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'ISSUE\')" class="bg-green-600 text-white px-2 py-0.5 rounded text-[11px]">Issue</button>' +
                             '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'REJECT\')" class="bg-red-600 text-white px-2 py-0.5 rounded text-[11px]">Reject</button>' +
@@ -1964,14 +1966,14 @@
                 let html = '';
                 usersList.slice().reverse().forEach(u => {
                     html += '<tr>' +
-                        '<td class="p-2 font-mono text-xs">' + u.user_id + '</td>' +
-                        '<td class="p-2 font-bold text-xs">' + u.name + '</td>' +
-                        '<td class="p-2 text-xs text-blue-600">' + u.email + '</td>' +
-                        '<td class="p-2 text-xs">' + (u.dept || 'N/A') + '</td>' +
-                        '<td class="p-2 text-xs">' + (u.phone || 'N/A') + '</td>' +
-                        '<td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (u.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800') + '">' + u.role + '</span></td>' +
-                        '<td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (u.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') + '">' + u.status + '</span></td>' +
-                        '<td class="p-2 text-center space-x-1">' +
+                        '<td class="p-1.5 font-mono text-xs">' + u.user_id + '</td>' +
+                        '<td class="p-1.5 font-bold text-xs">' + u.name + '</td>' +
+                        '<td class="p-1.5 text-xs text-blue-600">' + u.email + '</td>' +
+                        '<td class="p-1.5 text-xs">' + (u.dept || 'N/A') + '</td>' +
+                        '<td class="p-1.5 text-xs">' + (u.phone || 'N/A') + '</td>' +
+                        '<td class="p-1.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (u.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800') + '">' + u.role + '</span></td>' +
+                        '<td class="p-1.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (u.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') + '">' + u.status + '</span></td>' +
+                        '<td class="p-1.5 text-center space-x-1">' +
                             (u.role !== 'ADMIN' ? '<button onclick="toggleUserStatus(\'' + u.user_id + '\', \'' + u.status + '\')" class="text-[11px] px-2 py-0.5 rounded ' + (u.status === 'ACTIVE' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') + ' font-bold">' + (u.status === 'ACTIVE' ? 'Disable' : 'Enable') + '</button><button onclick="deleteUserAccount(\'' + u.user_id + '\')" class="text-[11px] px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold ml-1">Delete</button>' : '<span class="text-xs text-gray-400">Admin Account</span>') +
                         '</td>' +
                     '</tr>';
@@ -1985,9 +1987,9 @@
                 let html = '';
                 orders.slice().reverse().forEach(o => {
                     html += '<tr>' +
-                        '<td class="p-2 text-[11px] text-gray-400">' + (o.date_only ? o.date_only.split('T')[0] : '') + ' ' + (o.time_str || '') + '</td>' +
-                        '<td class="p-2 text-xs font-bold text-gray-700">' + (o.user_name || 'System User') + '</td>' +
-                        '<td class="p-2 text-xs text-gray-800">Order ' + o.order_id + ' for ' + o.item_name + ' (Qty: ' + o.qty + ') - Status: ' + o.status + '</td>' +
+                        '<td class="p-1.5 text-[11px] text-gray-400">' + (o.date_only ? o.date_only.split('T')[0] : '') + ' ' + (o.time_str || '') + '</td>' +
+                        '<td class="p-1.5 text-xs font-bold text-gray-700">' + (o.user_name || 'System User') + '</td>' +
+                        '<td class="p-1.5 text-xs text-gray-800">Order ' + o.order_id + ' for ' + o.item_name + ' (Qty: ' + o.qty + ') - Status: ' + o.status + '</td>' +
                     '</tr>';
                 });
                 adminLogsTbl.innerHTML = html || '<tr><td colspan="3" class="p-3 text-center text-gray-400">No logs found.</td></tr>';
