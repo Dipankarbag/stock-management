@@ -777,9 +777,10 @@
             }
         });
 
+        // Superfast Optimized Polling Interval (Every 3 seconds to handle 200 users smoothly without hanging)
         setInterval(() => {
             fetchAppState();
-        }, 2000);
+        }, 3000);
 
         function handleLogin(e) {
             e.preventDefault();
@@ -1715,10 +1716,11 @@
             tbl.innerHTML = html;
         }
 
+        // Optimized State Fetcher for Heavy 200+ User Loads
         function fetchAppState() {
-            const activeEl = document.activeId || document.activeElement;
-            if(activeEl && activeEl.id && activeEl.id.startsWith('trackInput_')) {
-                return;
+            const activeEl = document.activeElement;
+            if(activeEl && activeEl.id && (activeEl.id.startsWith('trackInput_') || activeEl.tagName === 'INPUT' || activeEl.tagName === 'SELECT')) {
+                return; // Prevent background refresh interference while typing/selecting
             }
 
             fetch('/api/state')
@@ -1732,7 +1734,7 @@
                     if(data.outgoingParcels) outgoingParcelsList = data.outgoingParcels;
                     renderAll();
                 })
-                .catch(e => renderAll());
+                .catch(e => {});
         }
 
         function renderAll() {
