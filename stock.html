@@ -1708,13 +1708,14 @@
             populateCourierUserDropdown();
             populateAdminFilters();
 
-            // Render User Page 1 (Incoming Live Courier)
+            // Render User Page 1 (Incoming Live Courier) - LATEST COURIER ON TOP (REVERSED ORDER)
             const userLiveTbl = document.getElementById('userLiveCourierTable');
             if(userLiveTbl && currentUser) {
                 const myCouriers = couriersList.filter(c => {
                     const name = c.userName || c.user_name || '';
                     return String(name).trim().toLowerCase() === String(currentUser.name).trim().toLowerCase();
-                });
+                }).slice().reverse(); // Reverse list so newest entries come first at the top
+
                 if(myCouriers.length === 0) {
                     userLiveTbl.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-gray-400">No live courier assigned yet.</td></tr>';
                 } else {
@@ -1828,7 +1829,7 @@
                 }
             }
 
-            // Render Admin Assign Courier List
+            // Render Admin Assign Courier List - LATEST COURIER ON TOP (REVERSED ORDER)
             const adminCourierTbl = document.getElementById('adminCourierTable');
             const courierUserFilter = document.getElementById('adminCourierUserFilter');
             const selectedCourierUser = courierUserFilter ? courierUserFilter.value : 'ALL';
@@ -1837,7 +1838,7 @@
                 const filteredCouriers = couriersList.filter(c => {
                     const name = c.userName || c.user_name || '';
                     return selectedCourierUser === 'ALL' || String(name).trim().toLowerCase() === String(selectedCourierUser).trim().toLowerCase();
-                });
+                }).slice().reverse(); // Reverse list so newest entries come first at the top
 
                 if(filteredCouriers.length === 0) {
                     adminCourierTbl.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">No couriers found.</td></tr>';
