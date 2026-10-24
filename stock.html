@@ -325,7 +325,12 @@
 
                 <!-- ADMIN TAB 1: Pending Approvals -->
                 <div id="tabRequests" class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                    <h2 class="text-lg font-bold text-gray-800 mb-4">Pending Requisition Approvals</h2>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-gray-800">Pending Requisition Approvals</h2>
+                        <button onclick="issueAllPendingOrders()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow flex items-center">
+                            <i class="fa-solid fa-check-double mr-2"></i> Issue All Pending Orders (Send 1 Combined Email)
+                        </button>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -1239,24 +1244,33 @@
             }
         }
 
+        // COURIER MARK RECEIVED WITH DETAILED EMAIL TRIGGER
         function markCourierReceived(courierId) {
             const courier = couriersList.find(c => String(c.id) === String(courierId));
             if (courier) {
-                courier.status = 'RECEIVED';
-                
                 const userObj = usersList.find(u => u.name.trim().toLowerCase() === (courier.userName || courier.user_name || '').trim().toLowerCase());
-                const userEmail = userObj ? userObj.email : 'user@company.com';
-                
+                const userEmail = userObj ? userObj.email : (currentUser ? currentUser.email : '');
+
                 fetch('/api/courier/receive', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ courierId: courierId, email: userEmail })
+                    body: JSON.stringify({ 
+                        courierId: courierId, 
+                        email: userEmail,
+                        userName: courier.userName || courier.user_name,
+                        company: courier.company,
+                        trackingNo: courier.trackingNo || courier.tracking_no,
+                        date: courier.date,
+                        fromDetails: courier.fromDetails || courier.from_details,
+                        toDetails: courier.toDetails || courier.to_details
+                    })
                 })
                 .then(res => res.json())
-                .then(() => fetchAppState())
+                .then(() => {
+                    fetchAppState();
+                    alert("Courier Marked as RECEIVED! Detailed Confirmation Email sent to (" + userEmail + ").");
+                })
                 .catch(err => renderAll());
-
-                alert("AUTO EMAIL SENT SUCCESSFULLY TO (" + userEmail + ")!");
             }
         }
 
@@ -1388,6 +1402,31 @@
             .then(res => res.json())
             .then(() => fetchAppState())
             .catch(err => alert("Error processing order"));
+        }
+
+        // ISSUE ALL PENDING ORDERS AT ONCE (1 SINGLE COMBINED EMAIL SENT TO USER)
+        function issueAllPendingOrders() {
+            const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED');
+            if (pending.length === 0) {
+                alert("No pending orders to issue!");
+                return;
+            }
+
+            if (confirm("Are you sure you want to ISSUE all " + pending.length + " pending items? A SINGLE combined email will be sent to the user.")) {
+                fetch('/api/orders/issue-bulk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        issuerName: currentUser ? currentUser.name : "System Admin"
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message || "All pending items issued successfully! Single Email sent.");
+                    fetchAppState();
+                })
+                .catch(err => alert("Error issuing bulk orders!"));
+            }
         }
 
         function deleteInventoryItem(itemId) {
