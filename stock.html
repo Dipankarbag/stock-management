@@ -750,6 +750,32 @@
         let couriersList = [];
         let outgoingParcelsList = [];
 
+        // Check persistent login state on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('stockFlowUser');
+            if (savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    document.getElementById('authScreen').classList.add('hidden');
+                    document.getElementById('mainDashboard').classList.remove('hidden');
+                    document.getElementById('displayUserName').innerText = currentUser.name;
+                    document.getElementById('displayUserRole').innerText = currentUser.role;
+
+                    const switcher = document.getElementById('panelSwitcherContainer');
+                    if (currentUser.role === 'ADMIN') {
+                        switcher.classList.remove('hidden');
+                        switchPanel('admin');
+                    } else {
+                        switcher.classList.add('hidden');
+                        switchPanel('user');
+                    }
+                    fetchAppState();
+                } catch (e) {
+                    localStorage.removeItem('stockFlowUser');
+                }
+            }
+        });
+
         setInterval(() => {
             fetchAppState();
         }, 2000);
@@ -775,6 +801,8 @@
                         return;
                     }
                     currentUser = data.user;
+                    localStorage.setItem('stockFlowUser', JSON.stringify(currentUser));
+
                     document.getElementById('authScreen').classList.add('hidden');
                     document.getElementById('mainDashboard').classList.remove('hidden');
                     document.getElementById('displayUserName').innerText = currentUser.name;
@@ -869,6 +897,7 @@
 
         function handleLogout() {
             currentUser = null;
+            localStorage.removeItem('stockFlowUser');
             document.getElementById('mainDashboard').classList.add('hidden');
             document.getElementById('authScreen').classList.remove('hidden');
             document.getElementById('loginForm').reset();
