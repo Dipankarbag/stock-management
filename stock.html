@@ -39,8 +39,8 @@
                 </div>
 
                 <!-- FORGOT PASSWORD LINK -->
-                <div class="text-right">
-                    <button type="button" onclick="handleForgotPassword()" class="text-xs text-blue-600 hover:underline font-semibold">Forgot Password?</button>
+                <div class="flex justify-end">
+                    <button type="button" onclick="openForgotPasswordModal()" class="text-xs text-blue-600 hover:underline font-semibold">Forgot Password?</button>
                 </div>
 
                 <div id="loginError" class="hidden text-xs text-red-600 font-semibold text-center bg-red-50 p-2 rounded border border-red-200">
@@ -94,6 +94,25 @@
                     <button type="button" onclick="toggleAuthMode('login')" class="text-blue-600 font-bold hover:underline">Back to Login</button>
                 </p>
             </form>
+        </div>
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL POPUP -->
+    <div id="forgotPasswordModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-sm border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-gray-800 text-base"><i class="fa-solid fa-key text-blue-600 mr-2"></i> Password Recovery</h3>
+                <button onclick="closeForgotPasswordModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-gray-500">Enter your registered email address to receive your login password via email.</p>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Registered Email</label>
+                <input type="email" id="forgotEmailInput" placeholder="your-email@gmail.com" class="w-full border rounded p-2.5 text-xs" required />
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="submitForgotPassword()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded text-xs shadow">Send Password via Email</button>
+                <button onclick="closeForgotPasswordModal()" class="bg-gray-200 text-gray-700 font-bold px-4 py-2.5 rounded text-xs">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -577,7 +596,7 @@
         </div>
     </div>
 
-    <!-- BREAKDOWN MODALS (DETAILS & REPORTS) -->
+    <!-- BREAKDOWN MODALS -->
     <div id="issuedDetailsModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-3xl border border-gray-200 space-y-4">
             <div class="flex justify-between items-center border-b pb-3">
@@ -772,30 +791,6 @@
             .catch(err => alert("Login connection error!"));
         }
 
-        // FORGOT PASSWORD FUNCTION (FRONTEND)
-        function handleForgotPassword() {
-            const userEmail = prompt("Apna registered email address enter karein:");
-            if (!userEmail) return;
-
-            fetch('/api/users/forgot-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: userEmail })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                } else {
-                    alert(data.message || 'Kuch error aa gaya hai!');
-                }
-            })
-            .catch(err => {
-                console.error('Error:', err);
-                alert('Server se connect karne me error aayi.');
-            });
-        }
-
         function toggleAuthMode(mode) {
             if (mode === 'register') {
                 document.getElementById('loginForm').classList.add('hidden');
@@ -804,6 +799,40 @@
                 document.getElementById('registerForm').classList.add('hidden');
                 document.getElementById('loginForm').classList.remove('hidden');
             }
+        }
+
+        // FORGOT PASSWORD MODAL FUNCTIONS
+        function openForgotPasswordModal() {
+            document.getElementById('forgotEmailInput').value = '';
+            document.getElementById('forgotPasswordModal').classList.remove('hidden');
+        }
+
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.add('hidden');
+        }
+
+        function submitForgotPassword() {
+            const email = document.getElementById('forgotEmailInput').value.trim();
+            if (!email) {
+                alert("Please enter your registered email address!");
+                return;
+            }
+
+            fetch('/api/users/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message || "Your password has been sent to your registered email!");
+                    closeForgotPasswordModal();
+                } else {
+                    alert(data.message || "This email is not registered!");
+                }
+            })
+            .catch(err => alert("Error connecting to server. Please try again."));
         }
 
         function handleRegister(e) {
@@ -1640,6 +1669,7 @@
             populateCourierUserDropdown();
             populateAdminFilters();
 
+            // Render User Page 1 (Incoming Live Courier)
             const userLiveTbl = document.getElementById('userLiveCourierTable');
             if(userLiveTbl && currentUser) {
                 const myCouriers = couriersList.filter(c => {
@@ -1671,6 +1701,7 @@
                 }
             }
 
+            // Render User Page 2 (My Outgoing Parcels)
             const userOutTbl = document.getElementById('userOutgoingTable');
             if(userOutTbl && currentUser) {
                 const myOutgoing = outgoingParcelsList.filter(o => {
@@ -1698,6 +1729,7 @@
                 }
             }
 
+            // Render Admin Tab: Outgoing Parcels
             const adminOutTbl = document.getElementById('adminOutgoingTable');
             const outgoingUserFilter = document.getElementById('adminOutgoingUserFilter');
             const selectedOutgoingUser = outgoingUserFilter ? outgoingUserFilter.value : 'ALL';
@@ -1757,6 +1789,7 @@
                 }
             }
 
+            // Render Admin Assign Courier List
             const adminCourierTbl = document.getElementById('adminCourierTable');
             const courierUserFilter = document.getElementById('adminCourierUserFilter');
             const selectedCourierUser = courierUserFilter ? courierUserFilter.value : 'ALL';
