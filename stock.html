@@ -1497,6 +1497,7 @@
             }
         }
 
+        // STABLE CATEGORIES DROPDOWN PRESERVING SELECTED OPTION
         function populateCategoriesDropdown() {
             const select = document.getElementById('ledgerCategoryFilter');
             if(!select) return;
@@ -1508,6 +1509,7 @@
                 optionsHtml += '<option value="' + c + '" ' + isSelected + '>' + c + '</option>';
             });
             select.innerHTML = optionsHtml;
+            select.value = currentVal;
         }
 
         function applyLedgerFilter() {
@@ -1938,7 +1940,8 @@
                 adminReqTbl.innerHTML = html || '<tr><td colspan="6" class="p-3 text-center text-gray-400">No pending approvals.</td></tr>';
             }
 
-            renderLedgerTableCustom(inventory);
+            // Apply active category filter safely on refresh
+            applyLedgerFilter();
             renderUserHistoryTableCustom(orders);
 
             const adminUsersTbl = document.getElementById('adminUsersTable');
