@@ -79,6 +79,12 @@
             flex-direction: column;
             gap: 6px;
         }
+
+        /* Compact Table Cell Padding for Ledger & Tables */
+        table th, table td {
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50 font-sans min-h-screen watermark-bg">
@@ -463,15 +469,15 @@
                             <table class="w-full text-left border-collapse">
                                 <thead>
                                     <tr class="bg-slate-900 text-white text-[11px] uppercase">
-                                        <th class="p-3">Item Name</th>
-                                        <th class="p-3">Category</th>
-                                        <th class="p-3 text-center">Unit</th>
-                                        <th class="p-3 text-center bg-slate-800">Opening Stock</th>
-                                        <th class="p-3 text-center bg-blue-950">Received Stock</th>
-                                        <th class="p-3 text-center bg-amber-950">Issued Stock</th>
-                                        <th class="p-3 text-center bg-emerald-950">Closing Balance</th>
-                                        <th class="p-3 text-center">Last Received Date</th>
-                                        <th class="p-3 text-center">Actions</th>
+                                        <th class="p-2.5">Item Name</th>
+                                        <th class="p-2.5">Category</th>
+                                        <th class="p-2.5 text-center">Unit</th>
+                                        <th class="p-2.5 text-center bg-slate-800">Opening Stock</th>
+                                        <th class="p-2.5 text-center bg-blue-950">Received Stock</th>
+                                        <th class="p-2.5 text-center bg-amber-950">Issued Stock</th>
+                                        <th class="p-2.5 text-center bg-emerald-950">Closing Balance</th>
+                                        <th class="p-2.5 text-center">Last Received Date</th>
+                                        <th class="p-2.5 text-center">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="adminStockTable" class="text-xs divide-y bg-white"></tbody>
@@ -1643,29 +1649,29 @@
                 const closingBal = openQty + recQty - issQty;
 
                 html += '<tr>' +
-                    '<td class="p-3 font-bold text-gray-800">' + i.name + '</td>' +
-                    '<td class="p-3 text-[11px] text-gray-500">' + i.category + '</td>' +
-                    '<td class="p-3 text-center font-semibold text-purple-700 text-[11px]">' + (i.unit || 'pcs') + '</td>' +
-                    '<td class="p-3 text-center">' +
-                        '<button onclick="editOpeningQuantity(\'' + itemId + '\')" title="Click to edit Opening Quantity" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-2.5 py-1 rounded-xl border border-gray-300 text-[11px] shadow-sm">' +
+                    '<td class="p-2.5 font-bold text-gray-800">' + i.name + '</td>' +
+                    '<td class="p-2.5 text-[11px] text-gray-500">' + i.category + '</td>' +
+                    '<td class="p-2.5 text-center font-semibold text-purple-700 text-[11px]">' + (i.unit || 'pcs') + '</td>' +
+                    '<td class="p-2.5 text-center">' +
+                        '<button onclick="editOpeningQuantity(\'' + itemId + '\')" title="Click to edit Opening Quantity" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-2.5 py-0.5 rounded-xl border border-gray-300 text-[11px] shadow-sm">' +
                             openQty + ' <i class="fa-solid fa-lock text-[9px] text-amber-600 ml-0.5"></i>' +
                         '</button>' +
                     '</td>' +
-                    '<td class="p-3 text-center">' +
-                        '<button onclick="showReceivedBreakdown(\'' + itemId + '\')" title="Click to view stock received breakdown details" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-2.5 py-1 rounded-full font-extrabold text-[11px] shadow-sm border border-blue-300">' +
+                    '<td class="p-2.5 text-center">' +
+                        '<button onclick="showReceivedBreakdown(\'' + itemId + '\')" title="Click to view stock received breakdown details" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-2.5 py-0.5 rounded-full font-extrabold text-[11px] shadow-sm border border-blue-300">' +
                             '+' + recQty + ' <i class="fa-solid fa-circle-info ml-0.5 text-[9px]"></i>' +
                         '</button>' +
                     '</td>' +
-                    '<td class="p-3 text-center">' +
-                        '<button onclick="showIssuedBreakdown(\'' + itemId + '\')" title="Click to view stock issued details" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-2.5 py-1 rounded-full font-extrabold text-[11px] shadow-sm border border-amber-300">' +
+                    '<td class="p-2.5 text-center">' +
+                        '<button onclick="showIssuedBreakdown(\'' + itemId + '\')" title="Click to view stock issued details" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-2.5 py-0.5 rounded-full font-extrabold text-[11px] shadow-sm border border-amber-300">' +
                             '-' + issQty + ' <i class="fa-solid fa-circle-info ml-0.5 text-[9px]"></i>' +
                         '</button>' +
                     '</td>' +
-                    '<td class="p-3 text-center text-emerald-700 font-extrabold text-xs">' + (i.current !== undefined ? i.current : closingBal) + '</td>' +
-                    '<td class="p-3 text-center text-[11px] text-gray-500">' + (i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')) + '</td>' +
-                    '<td class="p-3 text-center space-x-1">' +
-                        '<button onclick="openStockInModal(\'' + itemId + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-xl text-[11px] font-bold shadow-sm">+ Stock In</button>' +
-                        '<button onclick="deleteInventoryItem(\'' + itemId + '\')" title="Delete Item" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded-xl text-[11px] font-bold shadow-sm"><i class="fa-solid fa-trash"></i></button>' +
+                    '<td class="p-2.5 text-center text-emerald-700 font-extrabold text-xs">' + (i.current !== undefined ? i.current : closingBal) + '</td>' +
+                    '<td class="p-2.5 text-center text-[11px] text-gray-500">' + (i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')) + '</td>' +
+                    '<td class="p-2.5 text-center space-x-1">' +
+                        '<button onclick="openStockInModal(\'' + itemId + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded-xl text-[11px] font-bold shadow-sm">+ Stock In</button>' +
+                        '<button onclick="deleteInventoryItem(\'' + itemId + '\')" title="Delete Item" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded-xl text-[11px] font-bold shadow-sm"><i class="fa-solid fa-trash"></i></button>' +
                     '</td>' +
                 '</tr>';
             });
@@ -1767,6 +1773,7 @@
                 }
             });
             select.innerHTML = optionsHtml;
+            select.value = currentVal;
         }
 
         function applyUserHistoryFilter() {
@@ -1808,7 +1815,7 @@
 
         function fetchAppState() {
             const activeEl = document.activeElement;
-            if(activeEl && activeEl.id && (activeEl.id.startsWith('trackInput_') || activeEl.tagName === 'INPUT' || activeEl.tagName === 'SELECT')) {
+            if(activeEl && activeEl.id && (activeEl.id.startsWith('trackInput_') || activeEl.tagName === 'INPUT')) {
                 return;
             }
 
