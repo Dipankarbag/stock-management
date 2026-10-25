@@ -80,10 +80,12 @@
             gap: 6px;
         }
 
-        /* Compact Table Cell Padding for Ledger & Tables */
+        /* Compact Table Cell Padding to Remove Excessive Gap */
         table th, table td {
-            padding-top: 8px !important;
-            padding-bottom: 8px !important;
+            padding-top: 6px !important;
+            padding-bottom: 6px !important;
+            padding-left: 10px !important;
+            padding-right: 10px !important;
         }
     </style>
 </head>
@@ -1291,6 +1293,7 @@
                 }
             });
             select.innerHTML = optionsHtml;
+            if (currentSelected) select.value = currentSelected;
         }
 
         function populateAdminFilters() {
@@ -1425,6 +1428,7 @@
                 optionsHtml += '<option value="' + itemId + '" ' + isSelected + '>' + i.name + ' (' + i.category + ') - Available: ' + i.current + ' ' + (i.unit || 'pcs') + '</option>';
             });
             select.innerHTML = optionsHtml;
+            if (currentSelected) select.value = currentSelected;
         }
 
         function addToOrderCart() {
@@ -1815,7 +1819,7 @@
 
         function fetchAppState() {
             const activeEl = document.activeElement;
-            if(activeEl && activeEl.id && (activeEl.id.startsWith('trackInput_') || activeEl.tagName === 'INPUT')) {
+            if(activeEl && (activeEl.tagName === 'SELECT' || (activeEl.id && activeEl.id.startsWith('trackInput_')))) {
                 return;
             }
 
@@ -2046,7 +2050,7 @@
                     html += '<tr>' +
                         '<td class="p-3 font-mono text-xs">' + u.user_id + '</td>' +
                         '<td class="p-3 font-bold text-xs">' + u.name + '</td>' +
-                        '<td class="p-3 text-xs text-blue-600">' + u.email + '</td>' +
+                        '<p class="p-3 text-xs text-blue-600">' + u.email + '</td>' +
                         '<td class="p-3 text-xs">' + (u.dept || 'N/A') + '</td>' +
                         '<td class="p-3 text-xs">' + (u.phone || 'N/A') + '</td>' +
                         '<td class="p-3"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ' + (u.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800') + '">' + u.role + '</span></td>' +
