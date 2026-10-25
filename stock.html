@@ -3,24 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock & Inventory Management System</title>
+    <title>Stock & Inventory Management System - 3D Modern Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .active-tab { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: bold; }
-        .user-active-tab { background-color: #2563eb; color: white; font-weight: bold; }
+        /* 3D Modern UI Custom Shadows & Depth Effects */
+        .card-3d {
+            background: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s ease;
+        }
+        .card-3d:hover {
+            box-shadow: 0 20px 30px -10px rgba(37, 99, 235, 0.12);
+        }
+        .btn-3d {
+            box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39);
+            transition: all 0.2s ease;
+        }
+        .btn-3d:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+        }
+        .btn-3d:active {
+            transform: translateY(1px);
+        }
+        .active-tab { 
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white !important; 
+            font-weight: bold; 
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+            border-bottom: none !important;
+        }
+        .user-active-tab { 
+            background: linear-gradient(135deg, #2563eb, #1d4ed8); 
+            color: white; 
+            font-weight: bold; 
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
         select { max-width: 100%; text-overflow: ellipsis; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen">
+<body class="bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50 font-sans min-h-screen">
 
     <!-- AUTHENTICATION SCREEN -->
     <div id="authScreen" class="flex items-center justify-center min-h-screen p-4 bg-slate-900">
-        <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200">
+        <div class="card-3d bg-white p-6 sm:p-8 rounded-2xl w-full max-w-md border border-gray-200">
             <div class="text-center mb-6">
-                <div class="inline-flex p-3 bg-blue-100 text-blue-600 rounded-full mb-2">
+                <div class="inline-flex p-3.5 bg-blue-100 text-blue-600 rounded-2xl shadow-inner mb-2">
                     <i class="fa-solid fa-boxes-stacked text-3xl"></i>
                 </div>
                 <h2 id="authTitle" class="text-2xl font-bold text-gray-800">Inventory Portal Login</h2>
@@ -31,12 +64,12 @@
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email / Username</label>
-                    <input type="text" id="loginUsername" placeholder="exp@gmail.com" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    <input type="text" id="loginUsername" placeholder="exp@gmail.com" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" required />
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Password</label>
-                    <input type="password" id="loginPassword" placeholder="123" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    <input type="password" id="loginPassword" placeholder="123" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" required />
                 </div>
 
                 <!-- FORGOT PASSWORD LINK -->
@@ -44,11 +77,11 @@
                     <button type="button" onclick="openForgotPasswordModal()" class="text-xs text-blue-600 hover:underline font-semibold">Forgot Password?</button>
                 </div>
 
-                <div id="loginError" class="hidden text-xs text-red-600 font-semibold text-center bg-red-50 p-2 rounded border border-red-200">
+                <div id="loginError" class="hidden text-xs text-red-600 font-semibold text-center bg-red-50 p-2.5 rounded-xl border border-red-200">
                     Invalid Email or Password!
                 </div>
 
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition shadow-lg flex items-center justify-center text-xs uppercase tracking-wider">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition btn-3d flex items-center justify-center text-xs uppercase tracking-wider">
                     <i class="fa-solid fa-right-to-bracket mr-2"></i> Login
                 </button>
 
@@ -62,31 +95,31 @@
             <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-3 hidden">
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Full Name</label>
-                    <input type="text" id="regName" placeholder="e.g. Rahul Sharma" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    <input type="text" id="regName" placeholder="e.g. Rahul Sharma" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" required />
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email Address</label>
-                    <input type="email" id="regEmail" placeholder="rahul@company.com" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    <input type="email" id="regEmail" placeholder="rahul@company.com" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" required />
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Department</label>
-                        <input type="text" id="regDept" placeholder="Operations / IT" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                        <input type="text" id="regDept" placeholder="Operations / IT" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" required />
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Phone Number</label>
-                        <input type="text" id="regPhone" placeholder="+91 9876543210" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                        <input type="text" id="regPhone" placeholder="+91 9876543210" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" required />
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Password</label>
-                    <input type="password" id="regPassword" placeholder="Create password" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                    <input type="password" id="regPassword" placeholder="Create password" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" required />
                 </div>
 
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg transition shadow-lg flex items-center justify-center text-xs uppercase tracking-wider">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-lg flex items-center justify-center text-xs uppercase tracking-wider">
                     <i class="fa-solid fa-user-plus mr-2"></i> Register Account
                 </button>
 
@@ -100,141 +133,143 @@
 
     <!-- FORGOT PASSWORD MODAL POPUP -->
     <div id="forgotPasswordModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-white p-5 rounded-2xl shadow-2xl w-full max-w-sm border border-gray-200 space-y-3">
-            <div class="flex justify-between items-center border-b pb-2">
+        <div class="card-3d bg-white p-6 rounded-2xl w-full max-w-sm border border-gray-200 space-y-3">
+            <div class="flex justify-between items-center border-b pb-3">
                 <h3 class="font-bold text-gray-800 text-sm"><i class="fa-solid fa-key text-blue-600 mr-2"></i> Password Recovery</h3>
                 <button onclick="closeForgotPasswordModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <p class="text-xs text-gray-500">Enter your registered email address to receive your login password via email.</p>
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Registered Email</label>
-                <input type="email" id="forgotEmailInput" placeholder="your-email@gmail.com" class="w-full border rounded p-2 text-xs" required />
+                <input type="email" id="forgotEmailInput" placeholder="your-email@gmail.com" class="w-full border rounded-xl p-2.5 text-xs" required />
             </div>
             <div class="flex space-x-2 pt-2">
-                <button onclick="submitForgotPassword()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-xs shadow">Send Password via Email</button>
-                <button onclick="closeForgotPasswordModal()" class="bg-gray-200 text-gray-700 font-bold px-3 py-2 rounded text-xs">Cancel</button>
+                <button onclick="submitForgotPassword()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs btn-3d">Send Password</button>
+                <button onclick="closeForgotPasswordModal()" class="bg-gray-200 text-gray-700 font-bold px-4 py-2.5 rounded-xl text-xs">Cancel</button>
             </div>
         </div>
     </div>
 
     <!-- MAIN DASHBOARD -->
     <div id="mainDashboard" class="hidden">
-        <nav class="bg-slate-900 text-white px-5 py-3 flex flex-wrap justify-between items-center shadow-md gap-3">
+        <nav class="bg-slate-900 text-white px-6 py-3.5 flex flex-wrap justify-between items-center shadow-xl gap-3 border-b border-slate-800">
             <div class="flex items-center space-x-3">
-                <i class="fa-solid fa-boxes-stacked text-xl text-blue-400"></i>
-                <h1 class="text-lg font-bold tracking-wide">StockFlow | Inventory System</h1>
+                <div class="p-2 bg-blue-600/20 border border-blue-500/30 rounded-xl">
+                    <i class="fa-solid fa-boxes-stacked text-xl text-blue-400"></i>
+                </div>
+                <h1 class="text-lg font-bold tracking-wide">StockFlow <span class="text-xs text-blue-400 font-normal px-2 py-0.5 bg-blue-950 rounded-full border border-blue-800">3D Edition</span></h1>
             </div>
             
             <div class="flex items-center space-x-3">
-                <div id="panelSwitcherContainer" class="bg-slate-800 p-1 rounded-lg flex space-x-1">
-                    <button id="btnUserView" onclick="switchPanel('user')" class="px-3 py-1.5 rounded-md text-xs font-medium bg-blue-600 text-white transition">
+                <div id="panelSwitcherContainer" class="bg-slate-800/80 p-1.5 rounded-xl flex space-x-1 border border-slate-700 shadow-inner">
+                    <button id="btnUserView" onclick="switchPanel('user')" class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white transition shadow">
                         <i class="fa-solid fa-user-tag mr-1.5"></i>User Panel
                     </button>
-                    <button id="btnAdminView" onclick="switchPanel('admin')" class="px-3 py-1.5 rounded-md text-xs font-medium text-gray-300 hover:text-white transition">
+                    <button id="btnAdminView" onclick="switchPanel('admin')" class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-300 hover:text-white transition">
                         <i class="fa-solid fa-user-shield mr-1.5"></i>Admin Panel
                     </button>
                 </div>
 
-                <div class="flex items-center space-x-3 border-l border-gray-700 pl-3">
+                <div class="flex items-center space-x-3 border-l border-slate-700 pl-4">
                     <div class="text-right">
                         <div id="displayUserName" class="text-xs font-bold text-white">---</div>
                         <div id="displayUserRole" class="text-[10px] text-blue-400 uppercase tracking-wider font-semibold">---</div>
                     </div>
-                    <button onclick="handleLogout()" title="Logout" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition shadow flex items-center justify-center">
+                    <button onclick="handleLogout()" title="Logout" class="bg-red-600 hover:bg-red-700 text-white p-2.5 rounded-xl transition shadow-md flex items-center justify-center">
                         <i class="fa-solid fa-power-off text-xs"></i>
                     </button>
                 </div>
             </div>
         </nav>
 
-        <div class="max-w-7xl mx-auto p-4 sm:p-5">
+        <div class="max-w-7xl mx-auto p-4 sm:p-6">
             <!-- USER PANEL WITH 3 PAGES / TABS -->
-            <div id="userPanel" class="space-y-4">
+            <div id="userPanel" class="space-y-5">
                 <!-- User Page Navigation Tabs -->
-                <div class="bg-white p-1.5 rounded-xl shadow-sm border border-gray-200 flex flex-wrap gap-2 text-xs font-bold">
-                    <button id="userTab1Btn" onclick="switchUserPage(1)" class="px-3 py-2 rounded-lg user-active-tab transition flex items-center">
+                <div class="card-3d p-2 rounded-2xl flex flex-wrap gap-2 text-xs font-bold bg-white">
+                    <button id="userTab1Btn" onclick="switchUserPage(1)" class="px-4 py-2.5 rounded-xl user-active-tab transition flex items-center">
                         <i class="fa-solid fa-truck-fast mr-2"></i> Page 1: My Live Courier (DIKHO)
                     </button>
-                    <button id="userTab2Btn" onclick="switchUserPage(2)" class="px-3 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition flex items-center">
+                    <button id="userTab2Btn" onclick="switchUserPage(2)" class="px-4 py-2.5 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition flex items-center border border-gray-200">
                         <i class="fa-solid fa-paper-plane mr-2"></i> Page 2: Outgoing Parcel Request
                     </button>
-                    <button id="userTab3Btn" onclick="switchUserPage(3)" class="px-3 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition flex items-center">
+                    <button id="userTab3Btn" onclick="switchUserPage(3)" class="px-4 py-2.5 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition flex items-center border border-gray-200">
                         <i class="fa-solid fa-cart-plus mr-2"></i> Page 3: Inventory Requisition & Orders
                     </button>
                 </div>
 
                 <!-- USER PAGE 1: Incoming Live Courier -->
-                <div id="userPage1" class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200">
-                    <h2 class="text-base font-bold text-gray-800 mb-3 flex items-center">
-                        <i class="fa-solid fa-truck-fast text-blue-600 mr-2"></i> Incoming Live Courier Assigned to Me
+                <div id="userPage1" class="card-3d p-5 sm:p-6 rounded-2xl">
+                    <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
+                        <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-truck-fast"></i></div> Incoming Live Courier Assigned to Me
                     </h2>
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-gray-100 text-gray-600 text-[11px] uppercase border-b">
-                                    <th class="p-2">Date</th>
-                                    <th class="p-2">Courier Company</th>
-                                    <th class="p-2">Tracking Number</th>
-                                    <th class="p-2">From Details</th>
-                                    <th class="p-2">To Details</th>
-                                    <th class="p-2 text-center">Parcel Photo</th>
-                                    <th class="p-2 text-center">Action</th>
+                                <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                    <th class="p-3">Date</th>
+                                    <th class="p-3">Courier Company</th>
+                                    <th class="p-3">Tracking Number</th>
+                                    <th class="p-3">From Details</th>
+                                    <th class="p-3">To Details</th>
+                                    <th class="p-3 text-center">Parcel Photo</th>
+                                    <th class="p-3 text-center">Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="userLiveCourierTable" class="text-xs text-gray-700 divide-y">
-                                <tr><td colspan="7" class="p-3 text-center text-gray-400">No live courier assigned.</td></tr>
+                            <tbody id="userLiveCourierTable" class="text-xs text-gray-700 divide-y bg-white">
+                                <tr><td colspan="7" class="p-4 text-center text-gray-400">No live courier assigned.</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
                 <!-- USER PAGE 2: Outgoing Parcel Request -->
-                <div id="userPage2" class="space-y-4 hidden">
-                    <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200">
-                        <h2 class="text-base font-bold text-gray-800 mb-3 flex items-center">
-                            <i class="fa-solid fa-paper-plane text-blue-600 mr-2"></i> Request Outgoing Parcel Dispatch
+                <div id="userPage2" class="space-y-5 hidden">
+                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
+                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-paper-plane"></i></div> Request Outgoing Parcel Dispatch
                         </h2>
-                        <form onsubmit="handleOutgoingParcelSubmit(event)" class="bg-slate-50 p-4 rounded-xl border border-gray-200 space-y-3">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <form onsubmit="handleOutgoingParcelSubmit(event)" class="bg-slate-50/80 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">From Details / Sender Name (Optional)</label>
-                                    <input type="text" id="outFromDetails" placeholder="Leave empty or enter custom sender info" class="w-full border rounded p-2 text-xs bg-white" />
+                                    <input type="text" id="outFromDetails" placeholder="Leave empty or enter custom sender info" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" />
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">To Address Name & Full Receiver Details</label>
-                                    <input type="text" id="outToDetails" placeholder="e.g. Ramesh Kumar, Branch Office Delhi, Contact: 9876543210" class="w-full border rounded p-2 text-xs bg-white" required />
+                                    <input type="text" id="outToDetails" placeholder="e.g. Ramesh Kumar, Branch Office Delhi" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Preferred Courier Company</label>
-                                    <input type="text" id="outCourierCompany" placeholder="e.g. Blue Dart / DTDC / Professional" class="w-full border rounded p-2 text-xs bg-white" required />
+                                    <input type="text" id="outCourierCompany" placeholder="e.g. Blue Dart / DTDC" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Dispatch Date</label>
-                                    <input type="date" id="outDate" class="w-full border rounded p-2 text-xs bg-white" required />
+                                    <input type="date" id="outDate" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
                                 </div>
                             </div>
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-lg text-xs shadow flex items-center">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d flex items-center">
                                 <i class="fa-solid fa-paper-plane mr-2"></i> Submit Outgoing Request to Admin
                             </button>
                         </form>
                     </div>
 
-                    <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200">
-                        <h3 class="font-bold text-gray-800 text-xs mb-2">My Outgoing Parcel Status</h3>
-                        <div class="overflow-x-auto">
+                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                        <h3 class="font-bold text-gray-800 text-xs mb-3">My Outgoing Parcel Status</h3>
+                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                             <table class="w-full text-left border-collapse">
                                 <thead>
-                                    <tr class="bg-gray-100 text-gray-600 text-[11px] uppercase border-b">
-                                        <th class="p-2">Date</th>
-                                        <th class="p-2">From Details</th>
-                                        <th class="p-2">To Receiver Address</th>
-                                        <th class="p-2">Courier Company</th>
-                                        <th class="p-2 font-mono">Tracking Number</th>
-                                        <th class="p-2 text-center">Status</th>
+                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                        <th class="p-3">Date</th>
+                                        <th class="p-3">From Details</th>
+                                        <th class="p-3">To Receiver Address</th>
+                                        <th class="p-3">Courier Company</th>
+                                        <th class="p-3 font-mono">Tracking Number</th>
+                                        <th class="p-3 text-center">Status</th>
                                     </tr>
                                 </thead>
-                                <tbody id="userOutgoingTable" class="text-xs divide-y">
-                                    <tr><td colspan="6" class="p-3 text-center text-gray-400">No outgoing requests submitted.</td></tr>
+                                <tbody id="userOutgoingTable" class="text-xs divide-y bg-white">
+                                    <tr><td colspan="6" class="p-4 text-center text-gray-400">No outgoing requests submitted.</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -242,70 +277,70 @@
                 </div>
 
                 <!-- USER PAGE 3: Inventory Requisition & Orders -->
-                <div id="userPage3" class="space-y-4 hidden">
-                    <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200">
-                        <h2 class="text-base font-bold text-gray-800 mb-3 flex items-center">
-                            <i class="fa-solid fa-cart-plus text-blue-600 mr-2"></i> Submit Multiple Items Requisition Cart
+                <div id="userPage3" class="space-y-5 hidden">
+                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
+                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-cart-plus"></i></div> Submit Multiple Items Requisition Cart
                         </h2>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end bg-slate-50 p-3.5 rounded-xl border border-gray-200 mb-3">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-slate-50/80 p-4 rounded-2xl border border-gray-200 mb-4 shadow-inner">
                             <div class="md:col-span-2">
                                 <label class="block text-[11px] font-semibold text-gray-600 uppercase mb-1">Select Item</label>
-                                <select id="cartItemSelect" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                <select id="cartItemSelect" class="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm">
                                     <option value="" disabled selected>-- Choose Item --</option>
                                 </select>
                             </div>
 
                             <div>
                                 <label class="block text-[11px] font-semibold text-gray-600 uppercase mb-1">Quantity Needed</label>
-                                <input type="number" id="cartItemQty" min="1" placeholder="Enter Qty" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                <input type="number" id="cartItemQty" min="1" placeholder="Enter Qty" class="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm" />
                             </div>
 
                             <div>
-                                <button type="button" onclick="addToOrderCart()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2 rounded-lg transition shadow flex items-center justify-center text-xs">
+                                <button type="button" onclick="addToOrderCart()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-xl transition shadow-md flex items-center justify-center text-xs">
                                     <i class="fa-solid fa-plus mr-1.5"></i> Add to Cart
                                 </button>
                             </div>
                         </div>
 
-                        <div class="overflow-x-auto mb-3">
+                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm mb-4">
                             <table class="w-full text-left border-collapse">
                                 <thead>
-                                    <tr class="bg-gray-100 text-gray-600 text-[11px] uppercase border-b">
-                                        <th class="p-2">Item Name</th>
-                                        <th class="p-2">Category</th>
-                                        <th class="p-2 text-center">Quantity & Unit</th>
-                                        <th class="p-2 text-center">Action</th>
+                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                        <th class="p-3">Item Name</th>
+                                        <th class="p-3">Category</th>
+                                        <th class="p-3 text-center">Quantity & Unit</th>
+                                        <th class="p-3 text-center">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="orderCartTable" class="text-xs text-gray-700 divide-y">
-                                    <tr><td colspan="4" class="p-3 text-center text-gray-400">Cart is empty. Add items above.</td></tr>
+                                <tbody id="orderCartTable" class="text-xs text-gray-700 divide-y bg-white">
+                                    <tr><td colspan="4" class="p-4 text-center text-gray-400">Cart is empty. Add items above.</td></tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <button id="submitCartBtn" onclick="submitBulkOrders()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition shadow-md flex items-center justify-center text-xs hidden uppercase tracking-wider">
+                        <button id="submitCartBtn" onclick="submitBulkOrders()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition btn-3d flex items-center justify-center text-xs hidden uppercase tracking-wider">
                             <i class="fa-solid fa-paper-plane mr-2"></i> Submit All Cart Orders
                         </button>
                     </div>
 
-                    <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200">
-                        <h2 class="text-base font-bold text-gray-800 mb-3 flex items-center">
-                            <i class="fa-solid fa-clock-rotate-left text-blue-600 mr-2"></i> My Requisition Status & Orders
+                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
+                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-clock-rotate-left"></i></div> My Requisition Status & Orders
                         </h2>
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                             <table class="w-full text-left border-collapse">
                                 <thead>
-                                    <tr class="bg-gray-100 text-gray-600 text-[11px] uppercase border-b">
-                                        <th class="p-2">Order ID</th>
-                                        <th class="p-2">Item Name</th>
-                                        <th class="p-2">Category</th>
-                                        <th class="p-2 text-center">Quantity</th>
-                                        <th class="p-2">Date & Time</th>
-                                        <th class="p-2 text-center">Live Status</th>
+                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                        <th class="p-3">Order ID</th>
+                                        <th class="p-3">Item Name</th>
+                                        <th class="p-3">Category</th>
+                                        <th class="p-3 text-center">Quantity</th>
+                                        <th class="p-3">Date & Time</th>
+                                        <th class="p-3 text-center">Live Status</th>
                                     </tr>
                                 </thead>
-                                <tbody id="userOrdersTable" class="text-xs text-gray-700 divide-y"></tbody>
+                                <tbody id="userOrdersTable" class="text-xs text-gray-700 divide-y bg-white"></tbody>
                             </table>
                         </div>
                     </div>
@@ -313,288 +348,288 @@
             </div>
 
             <!-- ADMIN PANEL -->
-            <div id="adminPanel" class="space-y-4 hidden">
-                <div class="flex border-b border-gray-300 space-x-4 text-xs font-semibold flex-wrap">
-                    <button onclick="switchAdminTab('requests')" id="tabRequestsBtn" class="py-2 active-tab"><i class="fa-solid fa-list-check mr-1.5"></i>Pending Approvals (<span id="pendingCount">0</span>)</button>
-                    <button onclick="switchAdminTab('stock')" id="tabStockBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-boxes-stacked mr-1.5"></i>Inventory Movement Ledger</button>
-                    <button onclick="switchAdminTab('userOrders')" id="tabUserOrdersBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-file-invoice mr-1.5"></i>User Order Details & History</button>
-                    <button onclick="switchAdminTab('users')" id="tabUsersBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-users mr-1.5"></i>Registered Users Control</button>
-                    <button onclick="switchAdminTab('courier')" id="tabCourierBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-truck-fast mr-1.5"></i>Assign Courier</button>
-                    <button onclick="switchAdminTab('outgoing')" id="tabOutgoingBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-paper-plane mr-1.5"></i>Outgoing Parcels</button>
-                    <button onclick="switchAdminTab('logs')" id="tabLogsBtn" class="py-2 text-gray-500 hover:text-blue-600"><i class="fa-solid fa-user-clock mr-1.5"></i>System Activity Logs</button>
+            <div id="adminPanel" class="space-y-5 hidden">
+                <div class="card-3d p-2 rounded-2xl flex space-x-2 text-xs font-semibold flex-wrap bg-white">
+                    <button onclick="switchAdminTab('requests')" id="tabRequestsBtn" class="py-2.5 px-4 rounded-xl active-tab transition flex items-center"><i class="fa-solid fa-list-check mr-1.5"></i>Pending Approvals (<span id="pendingCount">0</span>)</button>
+                    <button onclick="switchAdminTab('stock')" id="tabStockBtn" class="py-2.5 px-4 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center"><i class="fa-solid fa-boxes-stacked mr-1.5"></i>Inventory Movement Ledger</button>
+                    <button onclick="switchAdminTab('userOrders')" id="tabUserOrdersBtn" class="py-2.5 px-4 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center"><i class="fa-solid fa-file-invoice mr-1.5"></i>User Order Details & History</button>
+                    <button onclick="switchAdminTab('users')" id="tabUsersBtn" class="py-2.5 px-4 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center"><i class="fa-solid fa-users mr-1.5"></i>Registered Users Control</button>
+                    <button onclick="switchAdminTab('courier')" id="tabCourierBtn" class="py-2.5 px-4 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center"><i class="fa-solid fa-truck-fast mr-1.5"></i>Assign Courier</button>
+                    <button onclick="switchAdminTab('outgoing')" id="tabOutgoingBtn" class="py-2.5 px-4 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center"><i class="fa-solid fa-paper-plane mr-1.5"></i>Outgoing Parcels</button>
+                    <button onclick="switchAdminTab('logs')" id="tabLogsBtn" class="py-2.5 px-4 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center"><i class="fa-solid fa-user-clock mr-1.5"></i>System Activity Logs</button>
                 </div>
 
                 <!-- ADMIN TAB 1: Pending Approvals -->
-                <div id="tabRequests" class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200">
-                    <div class="flex justify-between items-center mb-3">
+                <div id="tabRequests" class="card-3d p-5 sm:p-6 rounded-2xl">
+                    <div class="flex justify-between items-center mb-4">
                         <h2 class="text-base font-bold text-gray-800">Pending Requisition Approvals</h2>
-                        <button onclick="issueAllPendingOrders()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center">
+                        <button onclick="issueAllPendingOrders()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md flex items-center">
                             <i class="fa-solid fa-check-double mr-1.5"></i> Issue All Pending Orders (Send 1 Combined Email)
                         </button>
                     </div>
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-gray-100 text-gray-600 text-[11px] uppercase border-b">
-                                    <th class="p-2">Order ID</th>
-                                    <th class="p-2">User Name</th>
-                                    <th class="p-2">Item Name</th>
-                                    <th class="p-2 text-center">Requested Qty</th>
-                                    <th class="p-2 text-center">Stock Available</th>
-                                    <th class="p-2 text-center">Approval Control</th>
+                                <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                    <th class="p-3">Order ID</th>
+                                    <th class="p-3">User Name</th>
+                                    <th class="p-3">Item Name</th>
+                                    <th class="p-3 text-center">Requested Qty</th>
+                                    <th class="p-3 text-center">Stock Available</th>
+                                    <th class="p-3 text-center">Approval Control</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminRequestsTable" class="text-xs divide-y"></tbody>
+                            <tbody id="adminRequestsTable" class="text-xs divide-y bg-white"></tbody>
                         </table>
                     </div>
                 </div>
 
                 <!-- ADMIN TAB 2: Ledger -->
-                <div id="tabStock" class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hidden space-y-3">
-                    <div class="flex justify-between items-center flex-wrap gap-3 border-b pb-2">
+                <div id="tabStock" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
+                    <div class="flex justify-between items-center flex-wrap gap-3 border-b pb-3">
                         <div>
-                            <h2 class="text-base font-bold text-gray-800"><i class="fa-solid fa-boxes-stacked text-blue-600 mr-2"></i> Inventory Movement Ledger</h2>
-                            <p class="text-[11px] text-gray-500">Filter Ledger by Category and Stock Received Date Range</p>
+                            <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-boxes-stacked"></i></div> Inventory Movement Ledger</h2>
+                            <p class="text-[11px] text-gray-500 mt-0.5">Filter Ledger by Category and Stock Received Date Range</p>
                         </div>
-                        <div class="flex flex-wrap space-x-2 gap-y-1">
-                            <button onclick="exportLedgerCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-xs font-bold shadow flex items-center"><i class="fa-solid fa-file-excel mr-1"></i> Export Excel (CSV)</button>
-                            <button onclick="printLedgerReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded text-xs font-bold shadow flex items-center"><i class="fa-solid fa-print mr-1"></i> Print Ledger Report</button>
-                            <button onclick="openAddItemModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-xs font-bold shadow flex items-center"><i class="fa-solid fa-plus mr-1"></i> Add New Item</button>
-                            <button onclick="resetLedgerFilters()" class="bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs font-bold">Reset Filters</button>
+                        <div class="flex flex-wrap space-x-2 gap-y-2">
+                            <button onclick="exportLedgerCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow flex items-center"><i class="fa-solid fa-file-excel mr-1"></i> Export Excel (CSV)</button>
+                            <button onclick="printLedgerReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow flex items-center"><i class="fa-solid fa-print mr-1"></i> Print Ledger Report</button>
+                            <button onclick="openAddItemModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow btn-3d flex items-center"><i class="fa-solid fa-plus mr-1"></i> Add New Item</button>
+                            <button onclick="resetLedgerFilters()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-xl text-xs font-bold">Reset Filters</button>
                         </div>
                     </div>
 
-                    <div class="bg-slate-50 p-3 rounded-xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                    <div class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end shadow-inner">
                         <div>
                             <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Filter By Category</label>
-                            <select id="ledgerCategoryFilter" onchange="applyLedgerFilter()" class="w-full border rounded p-1.5 text-xs font-semibold bg-white">
+                            <select id="ledgerCategoryFilter" onchange="applyLedgerFilter()" class="w-full border rounded-xl p-2 text-xs font-semibold bg-white shadow-sm">
                                 <option value="ALL">-- All Categories --</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">From Date</label>
-                            <input type="date" id="ledgerStartDate" onchange="applyLedgerFilter()" class="w-full border rounded p-1.5 text-xs bg-white" />
+                            <input type="date" id="ledgerStartDate" onchange="applyLedgerFilter()" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">To Date</label>
-                            <input type="date" id="ledgerEndDate" onchange="applyLedgerFilter()" class="w-full border rounded p-1.5 text-xs bg-white" />
+                            <input type="date" id="ledgerEndDate" onchange="applyLedgerFilter()" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
                         </div>
                         <div>
-                            <button onclick="applyLedgerFilter()" class="w-full bg-blue-600 text-white p-1.5 rounded text-xs font-bold shadow">Apply Date Filter</button>
+                            <button onclick="applyLedgerFilter()" class="w-full bg-blue-600 text-white p-2 rounded-xl text-xs font-bold shadow btn-3d">Apply Date Filter</button>
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-slate-800 text-white text-[11px] uppercase">
-                                    <th class="p-2 py-1.5">Item Name</th>
-                                    <th class="p-2 py-1.5">Category</th>
-                                    <th class="p-2 py-1.5 text-center">Unit</th>
-                                    <th class="p-2 py-1.5 text-center bg-slate-700">Opening Stock</th>
-                                    <th class="p-2 py-1.5 text-center bg-blue-900">Received Stock</th>
-                                    <th class="p-2 py-1.5 text-center bg-amber-800">Issued Stock</th>
-                                    <th class="p-2 py-1.5 text-center bg-green-900">Closing Balance</th>
-                                    <th class="p-2 py-1.5 text-center">Last Received Date</th>
-                                    <th class="p-2 py-1.5 text-center">Actions</th>
+                                <tr class="bg-slate-900 text-white text-[11px] uppercase">
+                                    <th class="p-3">Item Name</th>
+                                    <th class="p-3">Category</th>
+                                    <th class="p-3 text-center">Unit</th>
+                                    <th class="p-3 text-center bg-slate-800">Opening Stock</th>
+                                    <th class="p-3 text-center bg-blue-950">Received Stock</th>
+                                    <th class="p-3 text-center bg-amber-950">Issued Stock</th>
+                                    <th class="p-3 text-center bg-emerald-950">Closing Balance</th>
+                                    <th class="p-3 text-center">Last Received Date</th>
+                                    <th class="p-3 text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminStockTable" class="text-xs divide-y"></tbody>
+                            <tbody id="adminStockTable" class="text-xs divide-y bg-white"></tbody>
                         </table>
                     </div>
                 </div>
 
                 <!-- ADMIN TAB 3: User Order History -->
-                <div id="tabUserOrders" class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hidden space-y-3">
-                    <div class="flex justify-between items-center border-b pb-2">
-                        <h2 class="text-base font-bold text-gray-800"><i class="fa-solid fa-file-invoice text-blue-600 mr-2"></i> User-wise Order History</h2>
-                        <button onclick="exportUserOrdersCSV()" class="bg-emerald-600 text-white px-2.5 py-1 rounded text-xs font-bold">Export CSV</button>
+                <div id="tabUserOrders" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-file-invoice"></i></div> User-wise Order History</h2>
+                        <button onclick="exportUserOrdersCSV()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow">Export CSV</button>
                     </div>
 
-                    <div class="bg-slate-50 p-3 rounded-xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                    <div class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end shadow-inner">
                         <div>
                             <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Select User</label>
-                            <select id="userFilterSelect" class="w-full border rounded p-1.5 text-xs bg-white">
+                            <select id="userFilterSelect" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm">
                                 <option value="ALL">-- All Users --</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">From Date</label>
-                            <input type="date" id="userOrderStartDate" class="w-full border rounded p-1.5 text-xs bg-white" />
+                            <input type="date" id="userOrderStartDate" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">To Date</label>
-                            <input type="date" id="userOrderEndDate" class="w-full border rounded p-1.5 text-xs bg-white" />
+                            <input type="date" id="userOrderEndDate" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
                         </div>
                         <div>
-                            <button onclick="applyUserHistoryFilter()" class="w-full bg-blue-600 text-white p-1.5 rounded text-xs font-bold shadow">Filter History</button>
+                            <button onclick="applyUserHistoryFilter()" class="w-full bg-blue-600 text-white p-2 rounded-xl text-xs font-bold shadow btn-3d">Filter History</button>
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-slate-800 text-white text-[11px] uppercase">
-                                    <th class="p-2">Order ID</th>
-                                    <th class="p-2">User Name</th>
-                                    <th class="p-2">Item Name</th>
-                                    <th class="p-2">Category</th>
-                                    <th class="p-2 text-center">Qty</th>
-                                    <th class="p-2">Date & Time</th>
-                                    <th class="p-2 text-center">Status / Actions</th>
+                                <tr class="bg-slate-900 text-white text-[11px] uppercase">
+                                    <th class="p-3">Order ID</th>
+                                    <th class="p-3">User Name</th>
+                                    <th class="p-3">Item Name</th>
+                                    <th class="p-3">Category</th>
+                                    <th class="p-3 text-center">Qty</th>
+                                    <th class="p-3">Date & Time</th>
+                                    <th class="p-3 text-center">Status / Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminUserOrdersHistoryTable" class="text-xs divide-y"></tbody>
+                            <tbody id="adminUserOrdersHistoryTable" class="text-xs divide-y bg-white"></tbody>
                         </table>
                     </div>
                 </div>
 
                 <!-- ADMIN TAB 4: Users -->
-                <div id="tabUsers" class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hidden">
-                    <h2 class="text-base font-bold text-gray-800 mb-3"><i class="fa-solid fa-users text-blue-600 mr-2"></i> Registered System Users & Admin Control</h2>
-                    <div class="overflow-x-auto">
+                <div id="tabUsers" class="card-3d p-5 sm:p-6 rounded-2xl hidden">
+                    <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-users"></i></div> Registered System Users & Admin Control</h2>
+                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-gray-100 text-gray-600 text-[11px] uppercase border-b">
-                                    <th class="p-2">User ID</th>
-                                    <th class="p-2">Full Name</th>
-                                    <th class="p-2">Email ID</th>
-                                    <th class="p-2">Department</th>
-                                    <th class="p-2">Phone</th>
-                                    <th class="p-2">Role</th>
-                                    <th class="p-2">Status</th>
-                                    <th class="p-2 text-center">Admin Actions</th>
+                                <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                    <th class="p-3">User ID</th>
+                                    <th class="p-3">Full Name</th>
+                                    <th class="p-3">Email ID</th>
+                                    <th class="p-3">Department</th>
+                                    <th class="p-3">Phone</th>
+                                    <th class="p-3">Role</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3 text-center">Admin Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminUsersTable" class="text-xs divide-y"></tbody>
+                            <tbody id="adminUsersTable" class="text-xs divide-y bg-white"></tbody>
                         </table>
                     </div>
                 </div>
 
                 <!-- ADMIN TAB 5: Courier Handover -->
-                <div id="tabCourier" class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hidden space-y-4">
-                    <div class="flex justify-between items-center border-b pb-2">
-                        <h2 class="text-base font-bold text-gray-800"><i class="fa-solid fa-truck-fast text-blue-600 mr-2"></i> Courier Handover & Tracking Assignment</h2>
+                <div id="tabCourier" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-5">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-truck-fast"></i></div> Courier Handover & Tracking Assignment</h2>
                     </div>
 
                     <!-- Assign Courier Form -->
-                    <form onsubmit="handleCourierAssignment(event)" class="bg-slate-50 p-4 rounded-xl border border-gray-200 space-y-3">
+                    <form onsubmit="handleCourierAssignment(event)" class="bg-slate-50/80 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
                         <h3 class="font-bold text-gray-700 text-xs">Assign New Courier to User</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Select User</label>
-                                <select id="courierSelectUser" class="w-full border rounded p-2 text-xs font-semibold bg-white" required>
+                                <select id="courierSelectUser" class="w-full border rounded-xl p-2.5 text-xs font-semibold bg-white shadow-sm" required>
                                     <option value="" disabled selected>-- Choose User --</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Date</label>
-                                <input type="date" id="courierDate" class="w-full border rounded p-2 text-xs bg-white" required />
+                                <input type="date" id="courierDate" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Courier Company</label>
-                                <input type="text" id="courierCompany" placeholder="e.g. Blue Dart / DTDC / Professional" class="w-full border rounded p-2 text-xs bg-white" required />
+                                <input type="text" id="courierCompany" placeholder="e.g. Blue Dart / DTDC" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Tracking Number</label>
-                                <input type="text" id="courierTrackingNo" placeholder="e.g. TRK987654321" class="w-full border rounded p-2 text-xs bg-white" required />
+                                <input type="text" id="courierTrackingNo" placeholder="e.g. TRK987654321" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">From Details</label>
-                                <input type="text" id="courierFrom" placeholder="e.g. Head Office Mumbai" class="w-full border rounded p-2 text-xs bg-white" required />
+                                <input type="text" id="courierFrom" placeholder="e.g. Head Office Mumbai" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">To Details</label>
-                                <input type="text" id="courierTo" placeholder="e.g. Branch Office Delhi" class="w-full border rounded p-2 text-xs bg-white" required />
+                                <input type="text" id="courierTo" placeholder="e.g. Branch Office Delhi" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
                             </div>
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Parcel Photo (Max 200KB)</label>
-                            <input type="file" id="courierPhoto" accept="image/*" onchange="validatePhotoSize(this)" class="w-full border rounded p-1.5 text-xs bg-white" required />
-                            <p class="text-[10px] text-gray-500 mt-0.5">Please upload parcel image smaller than 200KB.</p>
+                            <input type="file" id="courierPhoto" accept="image/*" onchange="validatePhotoSize(this)" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" required />
+                            <p class="text-[10px] text-gray-500 mt-1">Please upload parcel image smaller than 200KB.</p>
                         </div>
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-lg text-xs shadow">Assign & Send Live Courier</button>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d">Assign & Send Live Courier</button>
                     </form>
 
                     <!-- Assigned Couriers Section with User Filter -->
-                    <div class="space-y-2">
+                    <div class="space-y-3">
                         <div class="flex justify-between items-center flex-wrap gap-2">
                             <h3 class="font-bold text-gray-700 text-xs">All Assigned Couriers</h3>
                             <div class="flex items-center space-x-2">
                                 <label class="text-xs font-bold text-gray-600">Filter User:</label>
-                                <select id="adminCourierUserFilter" onchange="renderAll()" class="border rounded p-1 text-xs bg-white font-semibold">
+                                <select id="adminCourierUserFilter" onchange="renderAll()" class="border rounded-xl p-1.5 text-xs bg-white font-semibold shadow-sm">
                                     <option value="ALL">-- All Users --</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                             <table class="w-full text-left border-collapse">
                                <thead>
-                                    <tr class="bg-gray-100 text-gray-600 text-[11px] uppercase border-b">
-                                        <th class="p-2">User Name</th>
-                                        <th class="p-2">Date</th>
-                                        <th class="p-2">Courier Company</th>
-                                        <th class="p-2">Tracking Number</th>
-                                        <th class="p-2">From -> To</th>
-                                        <th class="p-2 text-center">Photo</th>
-                                        <th class="p-2 text-center">Status</th>
-                                        <th class="p-2 text-center">Action</th>
+                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                        <th class="p-3">User Name</th>
+                                        <th class="p-3">Date</th>
+                                        <th class="p-3">Courier Company</th>
+                                        <th class="p-3">Tracking Number</th>
+                                        <th class="p-3">From -> To</th>
+                                        <th class="p-3 text-center">Photo</th>
+                                        <th class="p-3 text-center">Status</th>
+                                        <th class="p-3 text-center">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="adminCourierTable" class="text-xs divide-y"></tbody>
+                                <tbody id="adminCourierTable" class="text-xs divide-y bg-white"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
                 <!-- ADMIN TAB 6: Outgoing Parcels Control -->
-                <div id="tabOutgoing" class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hidden space-y-3">
-                    <div class="flex justify-between items-center flex-wrap gap-2 border-b pb-2">
-                        <h2 class="text-base font-bold text-gray-800"><i class="fa-solid fa-paper-plane text-blue-600 mr-2"></i> User Outgoing Parcel Requests</h2>
-                        <div class="flex items-center space-x-2">
+                <div id="tabOutgoing" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
+                    <div class="flex justify-between items-center flex-wrap gap-2 border-b pb-3">
+                        <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-paper-plane"></i></div> User Outgoing Parcel Requests</h2>
+                        <div class="flex items-center space-x-3">
                             <div class="flex items-center space-x-1.5">
                                 <label class="text-xs font-bold text-gray-600">Filter User:</label>
-                                <select id="adminOutgoingUserFilter" onchange="renderAll()" class="border rounded p-1 text-xs bg-white font-semibold">
+                                <select id="adminOutgoingUserFilter" onchange="renderAll()" class="border rounded-xl p-1.5 text-xs bg-white font-semibold shadow-sm">
                                     <option value="ALL">-- All Users --</option>
                                 </select>
                             </div>
-                            <button onclick="exportOutgoingCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-xs font-bold shadow flex items-center">
+                            <button onclick="exportOutgoingCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow flex items-center">
                                 <i class="fa-solid fa-file-excel mr-1"></i> Export Report (CSV)
                             </button>
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-gray-100 text-gray-600 text-[11px] uppercase border-b">
-                                    <th class="p-2 py-1.5">Requested By User</th>
-                                    <th class="p-2 py-1.5">Date</th>
-                                    <th class="p-2 py-1.5">From Details</th>
-                                    <th class="p-2 py-1.5">To Address Details</th>
-                                    <th class="p-2 py-1.5">Courier Company</th>
-                                    <th class="p-2 py-1.5 font-mono">Tracking Number</th>
-                                    <th class="p-2 py-1.5 text-center">Admin Input Tracking</th>
-                                    <th class="p-2 py-1.5 text-center">Action</th>
+                                <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                    <th class="p-3">Requested By User</th>
+                                    <th class="p-3">Date</th>
+                                    <th class="p-3">From Details</th>
+                                    <th class="p-3">To Address Details</th>
+                                    <th class="p-3">Courier Company</th>
+                                    <th class="p-3 font-mono">Tracking Number</th>
+                                    <th class="p-3 text-center">Admin Input Tracking</th>
+                                    <th class="p-3 text-center">Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminOutgoingTable" class="text-xs divide-y"></tbody>
+                            <tbody id="adminOutgoingTable" class="text-xs divide-y bg-white"></tbody>
                         </table>
                     </div>
                 </div>
 
                 <!-- ADMIN TAB 7: Activity Logs -->
-                <div id="tabLogs" class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hidden">
-                    <h2 class="text-base font-bold text-gray-800 mb-3">Audit & Activity Logs</h2>
-                    <div class="overflow-x-auto">
+                <div id="tabLogs" class="card-3d p-5 sm:p-6 rounded-2xl hidden">
+                    <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-user-clock"></i></div> Audit & Activity Logs</h2>
+                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-gray-100 text-gray-600 text-[11px] uppercase border-b">
-                                    <th class="p-2">Timestamp</th>
-                                    <th class="p-2">User</th>
-                                    <th class="p-2">Action Details</th>
+                                <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                    <th class="p-3">Timestamp</th>
+                                    <th class="p-3">User</th>
+                                    <th class="p-3">Action Details</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminLogsTable" class="text-xs divide-y font-mono"></tbody>
+                            <tbody id="adminLogsTable" class="text-xs divide-y font-mono bg-white"></tbody>
                         </table>
                     </div>
                 </div>
@@ -604,119 +639,119 @@
 
     <!-- BREAKDOWN MODALS -->
     <div id="issuedDetailsModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-white p-5 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 space-y-3">
-            <div class="flex justify-between items-center border-b pb-2">
+        <div class="card-3d bg-white p-6 rounded-2xl w-full max-w-2xl border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
                 <div>
                     <h3 class="font-bold text-gray-800 text-base"><i class="fa-solid fa-receipt text-amber-600 mr-2"></i> Issued Stock Details Breakdown</h3>
-                    <p class="text-xs text-gray-500">Item Name: <span id="issuedItemTitle" class="font-bold text-blue-600">---</span></p>
+                    <p class="text-xs text-gray-500 mt-0.5">Item Name: <span id="issuedItemTitle" class="font-bold text-blue-600">---</span></p>
                 </div>
                 <button onclick="closeIssuedDetailsModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <div class="overflow-x-auto max-h-72">
+            <div class="overflow-x-auto max-h-72 rounded-xl border border-gray-200">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-100 text-gray-700 text-[11px] uppercase border-b">
-                            <th class="p-2">Issued To (User)</th>
-                            <th class="p-2">Issued By (Issuer Name)</th>
-                            <th class="p-2 text-center">Issued Quantity</th>
-                            <th class="p-2">Issue Date & Time</th>
-                            <th class="p-2 text-center">Status</th>
+                            <th class="p-3">Issued To (User)</th>
+                            <th class="p-3">Issued By (Issuer Name)</th>
+                            <th class="p-3 text-center">Issued Quantity</th>
+                            <th class="p-3">Issue Date & Time</th>
+                            <th class="p-3 text-center">Status</th>
                         </tr>
                     </thead>
-                    <tbody id="issuedDetailsTable" class="text-xs divide-y"></tbody>
+                    <tbody id="issuedDetailsTable" class="text-xs divide-y bg-white"></tbody>
                 </table>
             </div>
             <div class="flex justify-between items-center pt-2 border-t">
                 <div class="flex space-x-2">
-                    <button onclick="exportIssuedModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded text-xs shadow"><i class="fa-solid fa-file-excel mr-1"></i> Export CSV</button>
-                    <button onclick="printIssuedModalReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1 rounded text-xs shadow"><i class="fa-solid fa-print mr-1"></i> Print Report</button>
+                    <button onclick="exportIssuedModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow"><i class="fa-solid fa-file-excel mr-1"></i> Export CSV</button>
+                    <button onclick="printIssuedModalReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow"><i class="fa-solid fa-print mr-1"></i> Print Report</button>
                 </div>
-                <button onclick="closeIssuedDetailsModal()" class="bg-slate-800 text-white font-bold px-4 py-1.5 rounded text-xs shadow">Close</button>
+                <button onclick="closeIssuedDetailsModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-xl text-xs shadow">Close</button>
             </div>
         </div>
     </div>
 
     <div id="receivedDetailsModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-white p-5 rounded-2xl shadow-2xl w-full max-w-xl border border-gray-200 space-y-3">
-            <div class="flex justify-between items-center border-b pb-2">
+        <div class="card-3d bg-white p-6 rounded-2xl w-full max-w-xl border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
                 <div>
                     <h3 class="font-bold text-gray-800 text-base"><i class="fa-solid fa-truck-ramp-box text-blue-600 mr-2"></i> Stock Received Logs Breakdown</h3>
-                    <p class="text-xs text-gray-500">Item Name: <span id="receivedItemTitle" class="font-bold text-blue-600">---</span></p>
+                    <p class="text-xs text-gray-500 mt-0.5">Item Name: <span id="receivedItemTitle" class="font-bold text-blue-600">---</span></p>
                 </div>
                 <button onclick="closeReceivedDetailsModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <div class="overflow-x-auto max-h-72">
+            <div class="overflow-x-auto max-h-72 rounded-xl border border-gray-200">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-100 text-gray-700 text-[11px] uppercase border-b">
-                            <th class="p-2">Received By (Receiver Name)</th>
-                            <th class="p-2 text-center">Received Quantity</th>
-                            <th class="p-2">Stock In Date & Time</th>
-                            <th class="p-2 text-center">Status</th>
+                            <th class="p-3">Received By (Receiver Name)</th>
+                            <th class="p-3 text-center">Received Quantity</th>
+                            <th class="p-3">Stock In Date & Time</th>
+                            <th class="p-3 text-center">Status</th>
                         </tr>
                     </thead>
-                    <tbody id="receivedDetailsTable" class="text-xs divide-y"></tbody>
+                    <tbody id="receivedDetailsTable" class="text-xs divide-y bg-white"></tbody>
                 </table>
             </div>
             <div class="flex justify-between items-center pt-2 border-t">
                 <div class="flex space-x-2">
-                    <button onclick="exportReceivedModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded text-xs shadow"><i class="fa-solid fa-file-excel mr-1"></i> Export CSV</button>
-                    <button onclick="printReceivedModalReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1 rounded text-xs shadow"><i class="fa-solid fa-print mr-1"></i> Print Report</button>
+                    <button onclick="exportReceivedModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow"><i class="fa-solid fa-file-excel mr-1"></i> Export CSV</button>
+                    <button onclick="printReceivedModalReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow"><i class="fa-solid fa-print mr-1"></i> Print Report</button>
                 </div>
-                <button onclick="closeReceivedDetailsModal()" class="bg-slate-800 text-white font-bold px-4 py-1.5 rounded text-xs shadow">Close</button>
+                <button onclick="closeReceivedDetailsModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-xl text-xs shadow">Close</button>
             </div>
         </div>
     </div>
 
     <!-- STOCK IN MODAL -->
     <div id="stockInModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-white p-5 rounded-2xl shadow-2xl w-full max-w-sm border border-gray-200 space-y-3">
-            <div class="flex justify-between items-center border-b pb-2">
+        <div class="card-3d bg-white p-6 rounded-2xl w-full max-w-sm border border-gray-200 space-y-3">
+            <div class="flex justify-between items-center border-b pb-3">
                 <h3 class="font-bold text-gray-800 text-base"><i class="fa-solid fa-boxes-packing text-blue-600 mr-2"></i> Receive New Stock In</h3>
                 <button onclick="closeStockInModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <input type="hidden" id="stockInItemId" />
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Item Name</label>
-                <input type="text" id="stockInItemName" class="w-full bg-gray-100 border rounded p-2 text-xs font-bold text-gray-700" readonly />
+                <input type="text" id="stockInItemName" class="w-full bg-gray-100 border rounded-xl p-2.5 text-xs font-bold text-gray-700" readonly />
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Received Stock Quantity</label>
-                <input type="number" id="stockInQty" min="1" placeholder="Enter Received Quantity" class="w-full border rounded p-2 text-xs font-semibold" required />
+                <input type="number" id="stockInQty" min="1" placeholder="Enter Quantity" class="w-full border rounded-xl p-2.5 text-xs font-semibold" required />
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Received Date</label>
-                <input type="date" id="stockInDate" class="w-full border rounded p-2 text-xs" required />
+                <input type="date" id="stockInDate" class="w-full border rounded-xl p-2.5 text-xs" required />
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Receiver Name</label>
-                <input type="text" id="stockInReceiverName" placeholder="Enter Receiver / Employee Name" class="w-full border rounded p-2 text-xs" required />
+                <input type="text" id="stockInReceiverName" placeholder="Enter Receiver Name" class="w-full border rounded-xl p-2.5 text-xs" required />
             </div>
-            <div class="flex space-x-2 pt-1">
-                <button onclick="saveStockInEntry()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-xs shadow">Save Received Stock</button>
-                <button onclick="closeStockInModal()" class="bg-gray-200 text-gray-700 font-bold px-3 py-2 rounded text-xs">Cancel</button>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="saveStockInEntry()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs btn-3d">Save Stock</button>
+                <button onclick="closeStockInModal()" class="bg-gray-200 text-gray-700 font-bold px-4 py-2.5 rounded-xl text-xs">Cancel</button>
             </div>
         </div>
     </div>
 
     <!-- ADD ITEM MODAL -->
     <div id="addItemModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-white p-5 rounded-xl shadow-2xl w-full max-w-sm border border-gray-200 space-y-3">
-            <div class="flex justify-between items-center border-b pb-2">
+        <div class="card-3d bg-white p-6 rounded-2xl w-full max-w-sm border border-gray-200 space-y-3">
+            <div class="flex justify-between items-center border-b pb-3">
                 <h3 class="font-bold text-gray-800 text-base"><i class="fa-solid fa-plus-circle text-blue-600 mr-2"></i> Add New Inventory Item</h3>
                 <button onclick="closeAddItemModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Item Name</label>
-                <input type="text" id="newItemName" placeholder="e.g. Wireless Router" class="w-full border rounded p-2 text-xs" />
+                <input type="text" id="newItemName" placeholder="e.g. Wireless Router" class="w-full border rounded-xl p-2.5 text-xs" />
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Category</label>
-                <input type="text" id="newItemCategory" placeholder="e.g. IT Hardware / Stationery" class="w-full border rounded p-2 text-xs" />
+                <input type="text" id="newItemCategory" placeholder="e.g. IT Hardware" class="w-full border rounded-xl p-2.5 text-xs" />
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Unit</label>
-                <select id="newItemUnit" class="w-full border rounded p-2 text-xs">
+                <select id="newItemUnit" class="w-full border rounded-xl p-2.5 text-xs">
                     <option value="pcs">pcs</option>
                     <option value="pkt">pkt</option>
                     <option value="box">box</option>
@@ -725,11 +760,11 @@
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Opening Stock Quantity</label>
-                <input type="number" id="newItemOpening" min="0" placeholder="e.g. 50" class="w-full border rounded p-2 text-xs" />
+                <input type="number" id="newItemOpening" min="0" placeholder="e.g. 50" class="w-full border rounded-xl p-2.5 text-xs" />
             </div>
-            <div class="flex space-x-2 pt-1">
-                <button onclick="saveNewItem()" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-xs shadow">Save Item</button>
-                <button onclick="closeAddItemModal()" class="bg-gray-200 text-gray-700 font-bold px-3 py-2 rounded text-xs">Cancel</button>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="saveNewItem()" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs btn-3d">Save Item</button>
+                <button onclick="closeAddItemModal()" class="bg-gray-200 text-gray-700 font-bold px-4 py-2.5 rounded-xl text-xs">Cancel</button>
             </div>
         </div>
     </div>
@@ -751,7 +786,6 @@
         let couriersList = [];
         let outgoingParcelsList = [];
 
-        // Check persistent login state on page load
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('stockFlowUser');
             if (savedUser) {
@@ -777,7 +811,6 @@
             }
         });
 
-        // Superfast Optimized Polling Interval (Every 3 seconds)
         setInterval(() => {
             fetchAppState();
         }, 3000);
@@ -836,7 +869,6 @@
             }
         }
 
-        // FORGOT PASSWORD MODAL FUNCTIONS
         function openForgotPasswordModal() {
             document.getElementById('forgotEmailInput').value = '';
             document.getElementById('forgotPasswordModal').classList.remove('hidden');
@@ -870,7 +902,6 @@
             .catch(err => alert("Error connecting to server. Please try again."));
         }
 
-        // REGISTER FUNCTION WITH DUPLICATE EMAIL CHECK
         function handleRegister(e) {
             e.preventDefault();
             const name = document.getElementById('regName').value.trim();
@@ -879,7 +910,6 @@
             const phone = document.getElementById('regPhone').value.trim();
             const password = document.getElementById('regPassword').value.trim();
 
-            // CHECK IF EMAIL IS ALREADY REGISTERED IN USERS LIST
             const isEmailExists = usersList.some(u => String(u.email).trim().toLowerCase() === email);
 
             if (isEmailExists) {
@@ -938,7 +968,7 @@
                 if(pageEl) pageEl.classList.add('hidden');
                 if(btnEl) {
                     btnEl.classList.remove('user-active-tab');
-                    btnEl.classList.add('bg-gray-100', 'text-gray-600');
+                    btnEl.classList.add('bg-gray-50', 'text-gray-600', 'border', 'border-gray-200');
                 }
             });
 
@@ -947,7 +977,7 @@
             if(activePage) activePage.classList.remove('hidden');
             if(activeBtn) {
                 activeBtn.classList.add('user-active-tab');
-                activeBtn.classList.remove('bg-gray-100', 'text-gray-600');
+                activeBtn.classList.remove('bg-gray-50', 'text-gray-600', 'border', 'border-gray-200');
             }
             fetchAppState();
         }
@@ -955,10 +985,20 @@
         function switchAdminTab(tab) {
             ['requests', 'stock', 'userOrders', 'users', 'courier', 'outgoing', 'logs'].forEach(t => {
                 const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+                const btnEl = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
                 if(el) el.classList.add('hidden');
+                if(btnEl) {
+                    btnEl.classList.remove('active-tab');
+                    btnEl.classList.add('text-gray-600', 'hover:bg-gray-100');
+                }
             });
             const target = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+            const targetBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1) + 'Btn');
             if(target) target.classList.remove('hidden');
+            if(targetBtn) {
+                targetBtn.classList.add('active-tab');
+                targetBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+            }
             fetchAppState();
         }
 
@@ -1086,15 +1126,15 @@
             const tbody = document.getElementById('receivedDetailsTable');
 
             if(logsForNext.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-gray-400">No stock in records found for this item yet.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">No stock in records found for this item yet.</td></tr>';
             } else {
                 let html = '';
                 logsForNext.forEach(l => {
                     html += '<tr>' +
-                        '<td class="p-2 font-bold text-gray-800">' + (l.receiver_name || l.user || 'Admin') + '</td>' +
-                        '<td class="p-2 text-center font-bold text-blue-700 text-xs">+' + l.qty + ' ' + (item.unit || 'pcs') + '</td>' +
-                        '<td class="p-2 text-[11px] text-gray-500">' + (l.date_only ? l.date_only.split('T')[0] : (l.dateOnly || '')) + ' (' + (l.time_str || l.time || '') + ')</td>' +
-                        '<td class="p-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">RECEIVED</span></td>' +
+                        '<td class="p-3 font-bold text-gray-800">' + (l.receiver_name || l.user || 'Admin') + '</td>' +
+                        '<td class="p-3 text-center font-bold text-blue-700 text-xs">+' + l.qty + ' ' + (item.unit || 'pcs') + '</td>' +
+                        '<td class="p-3 text-[11px] text-gray-500">' + (l.date_only ? l.date_only.split('T')[0] : (l.dateOnly || '')) + ' (' + (l.time_str || l.time || '') + ')</td>' +
+                        '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">RECEIVED</span></td>' +
                     '</tr>';
                 });
                 tbody.innerHTML = html;
@@ -1143,16 +1183,16 @@
             const tbody = document.getElementById('issuedDetailsTable');
 
             if(itemIssuedOrders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-gray-400">No issued records found for this item yet.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">No issued records found for this item yet.</td></tr>';
             } else {
                 let html = '';
                 itemIssuedOrders.forEach(o => {
                     html += '<tr>' +
-                        '<td class="p-2 font-bold text-gray-800">' + (o.user_name || o.user) + '</td>' +
-                        '<td class="p-2 font-bold text-blue-700">' + (o.issuer_name || o.issuer || 'System Admin') + '</td>' +
-                        '<td class="p-2 text-center font-bold text-amber-700 text-xs">' + o.qty + ' ' + (item.unit || 'pcs') + '</td>' +
-                        '<td class="p-2 text-[11px] text-gray-500">' + (o.date_only ? o.date_only.split('T')[0] : (o.dateOnly || '')) + ' (' + (o.time_str || o.time || '') + ')</td>' +
-                        '<td class="p-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800">ISSUED</span></td>' +
+                        '<td class="p-3 font-bold text-gray-800">' + (o.user_name || o.user) + '</td>' +
+                        '<td class="p-3 font-bold text-blue-700">' + (o.issuer_name || o.issuer || 'System Admin') + '</td>' +
+                        '<td class="p-3 text-center font-bold text-amber-700 text-xs">' + o.qty + ' ' + (item.unit || 'pcs') + '</td>' +
+                        '<td class="p-3 text-[11px] text-gray-500">' + (o.date_only ? o.date_only.split('T')[0] : (o.dateOnly || '')) + ' (' + (o.time_str || o.time || '') + ')</td>' +
+                        '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-800">ISSUED</span></td>' +
                     '</tr>';
                 });
                 tbody.innerHTML = html;
@@ -1289,7 +1329,6 @@
             }
         }
 
-        // COURIER MARK RECEIVED WITH DETAILED EMAIL TRIGGER
         function markCourierReceived(courierId) {
             const courier = couriersList.find(c => String(c.id) === String(courierId));
             if (courier) {
@@ -1379,7 +1418,7 @@
             if (!tbody || !submitBtn) return;
 
             if (orderCart.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-gray-400">Cart is empty. Add items above.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">Cart is empty. Add items above.</td></tr>';
                 submitBtn.classList.add('hidden');
                 return;
             }
@@ -1388,11 +1427,11 @@
             let html = '';
             orderCart.slice().reverse().forEach((item, index) => {
                 html += '<tr>' +
-                    '<td class="p-1.5 font-bold text-xs">' + item.itemName + '</td>' +
-                    '<td class="p-1.5 text-xs text-gray-500">' + item.category + '</td>' +
-                    '<td class="p-1.5 text-center font-bold text-blue-600 text-xs">' + item.qty + '</td>' +
-                    '<td class="p-1.5 text-center">' +
-                        '<button onclick="removeFromCart(' + index + ')" class="bg-red-100 text-red-600 hover:bg-red-200 px-2 py-0.5 rounded text-xs font-bold">' +
+                    '<td class="p-3 font-bold text-xs">' + item.itemName + '</td>' +
+                    '<td class="p-3 text-xs text-gray-500">' + item.category + '</td>' +
+                    '<td class="p-3 text-center font-bold text-blue-600 text-xs">' + item.qty + '</td>' +
+                    '<td class="p-3 text-center">' +
+                        '<button onclick="removeFromCart(' + index + ')" class="bg-red-100 text-red-600 hover:bg-red-200 px-2.5 py-1 rounded-xl text-xs font-bold">' +
                             '<i class="fa-solid fa-trash mr-1"></i>Remove' +
                         '</button>' +
                     '</td>' +
@@ -1449,7 +1488,6 @@
             .catch(err => alert("Error processing order"));
         }
 
-        // ISSUE ALL PENDING ORDERS AT ONCE (1 SINGLE COMBINED EMAIL SENT TO USER)
         function issueAllPendingOrders() {
             const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED');
             if (pending.length === 0) {
@@ -1564,29 +1602,29 @@
                 const closingBal = openQty + recQty - issQty;
 
                 html += '<tr>' +
-                    '<td class="p-1.5 font-bold text-gray-800">' + i.name + '</td>' +
-                    '<td class="p-1.5 text-[11px] text-gray-500">' + i.category + '</td>' +
-                    '<td class="p-1.5 text-center font-semibold text-purple-700 text-[11px]">' + (i.unit || 'pcs') + '</td>' +
-                    '<td class="p-1.5 text-center">' +
-                        '<button onclick="editOpeningQuantity(\'' + itemId + '\')" title="Click to edit Opening Quantity" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-2 py-0.5 rounded border border-gray-300 text-[11px] shadow-sm">' +
+                    '<td class="p-3 font-bold text-gray-800">' + i.name + '</td>' +
+                    '<td class="p-3 text-[11px] text-gray-500">' + i.category + '</td>' +
+                    '<td class="p-3 text-center font-semibold text-purple-700 text-[11px]">' + (i.unit || 'pcs') + '</td>' +
+                    '<td class="p-3 text-center">' +
+                        '<button onclick="editOpeningQuantity(\'' + itemId + '\')" title="Click to edit Opening Quantity" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-2.5 py-1 rounded-xl border border-gray-300 text-[11px] shadow-sm">' +
                             openQty + ' <i class="fa-solid fa-lock text-[9px] text-amber-600 ml-0.5"></i>' +
                         '</button>' +
                     '</td>' +
-                    '<td class="p-1.5 text-center">' +
-                        '<button onclick="showReceivedBreakdown(\'' + itemId + '\')" title="Click to view stock received breakdown details" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full font-extrabold text-[11px] shadow-sm border border-blue-300">' +
+                    '<td class="p-3 text-center">' +
+                        '<button onclick="showReceivedBreakdown(\'' + itemId + '\')" title="Click to view stock received breakdown details" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-2.5 py-1 rounded-full font-extrabold text-[11px] shadow-sm border border-blue-300">' +
                             '+' + recQty + ' <i class="fa-solid fa-circle-info ml-0.5 text-[9px]"></i>' +
                         '</button>' +
                     '</td>' +
-                    '<td class="p-1.5 text-center">' +
-                        '<button onclick="showIssuedBreakdown(\'' + itemId + '\')" title="Click to view stock issued details" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-extrabold text-[11px] shadow-sm border border-amber-300">' +
+                    '<td class="p-3 text-center">' +
+                        '<button onclick="showIssuedBreakdown(\'' + itemId + '\')" title="Click to view stock issued details" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-2.5 py-1 rounded-full font-extrabold text-[11px] shadow-sm border border-amber-300">' +
                             '-' + issQty + ' <i class="fa-solid fa-circle-info ml-0.5 text-[9px]"></i>' +
                         '</button>' +
                     '</td>' +
-                    '<td class="p-1.5 text-center text-emerald-700 font-extrabold text-xs">' + (i.current !== undefined ? i.current : closingBal) + '</td>' +
-                    '<td class="p-1.5 text-center text-[11px] text-gray-500">' + (i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')) + '</td>' +
-                    '<td class="p-1.5 text-center space-x-1">' +
-                        '<button onclick="openStockInModal(\'' + itemId + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded text-[11px] font-bold shadow-sm">+ Stock In</button>' +
-                        '<button onclick="deleteInventoryItem(\'' + itemId + '\')" title="Delete Item" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-[11px] font-bold shadow-sm"><i class="fa-solid fa-trash"></i></button>' +
+                    '<td class="p-3 text-center text-emerald-700 font-extrabold text-xs">' + (i.current !== undefined ? i.current : closingBal) + '</td>' +
+                    '<td class="p-3 text-center text-[11px] text-gray-500">' + (i.last_date ? i.last_date.split('T')[0] : (i.lastDate || 'N/A')) + '</td>' +
+                    '<td class="p-3 text-center space-x-1">' +
+                        '<button onclick="openStockInModal(\'' + itemId + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-xl text-[11px] font-bold shadow-sm">+ Stock In</button>' +
+                        '<button onclick="deleteInventoryItem(\'' + itemId + '\')" title="Delete Item" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded-xl text-[11px] font-bold shadow-sm"><i class="fa-solid fa-trash"></i></button>' +
                     '</td>' +
                 '</tr>';
             });
@@ -1712,26 +1750,25 @@
             let html = '';
             list.slice().reverse().forEach(o => {
                 html += '<tr>' +
-                    '<td class="p-1.5 text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
-                    '<td class="p-1.5 font-bold text-xs">' + (o.user_name || o.user) + '</td>' +
-                    '<td class="p-1.5 text-xs">' + (o.item_name || o.itemName) + '</td>' +
-                    '<td class="p-1.5 text-xs text-gray-500">' + o.category + '</td>' +
-                    '<td class="p-1.5 text-center font-bold text-xs">' + o.qty + '</td>' +
-                    '<td class="p-1.5 text-[11px] text-gray-400">' + (o.time_str || o.time) + '</td>' +
-                    '<td class="p-1.5 text-center space-x-1">' +
-                        '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">' + o.status + '</span>' +
-                        '<button onclick="deleteOrderRecord(\'' + (o.order_id || o.id) + '\')" title="Delete Order" class="bg-red-600 hover:bg-red-700 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 shadow-sm"><i class="fa-solid fa-trash"></i></button>' +
+                    '<td class="p-3 text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
+                    '<td class="p-3 font-bold text-xs">' + (o.user_name || o.user) + '</td>' +
+                    '<td class="p-3 text-xs">' + (o.item_name || o.itemName) + '</td>' +
+                    '<td class="p-3 text-xs text-gray-500">' + o.category + '</td>' +
+                    '<td class="p-3 text-center font-bold text-xs">' + o.qty + '</td>' +
+                    '<td class="p-3 text-[11px] text-gray-400">' + (o.time_str || o.time) + '</td>' +
+                    '<td class="p-3 text-center space-x-1">' +
+                        '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">' + o.status + '</span>' +
+                        '<button onclick="deleteOrderRecord(\'' + (o.order_id || o.id) + '\')" title="Delete Order" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-xl text-[10px] font-bold ml-1 shadow-sm"><i class="fa-solid fa-trash"></i></button>' +
                     '</td>' +
                 '</tr>';
             });
             tbl.innerHTML = html;
         }
 
-        // Optimized State Fetcher for Heavy 200+ User Loads
         function fetchAppState() {
             const activeEl = document.activeElement;
             if(activeEl && activeEl.id && (activeEl.id.startsWith('trackInput_') || activeEl.tagName === 'INPUT' || activeEl.tagName === 'SELECT')) {
-                return; // Prevent background refresh interference while typing/selecting
+                return;
             }
 
             fetch('/api/state')
@@ -1755,7 +1792,6 @@
             populateCourierUserDropdown();
             populateAdminFilters();
 
-            // Render User Page 1 (Incoming Live Courier) - LATEST COURIER ON TOP
             const userLiveTbl = document.getElementById('userLiveCourierTable');
             if(userLiveTbl && currentUser) {
                 const myCouriers = couriersList.filter(c => {
@@ -1764,7 +1800,7 @@
                 }).slice().reverse();
 
                 if(myCouriers.length === 0) {
-                    userLiveTbl.innerHTML = '<tr><td colspan="7" class="p-3 text-center text-gray-400">No live courier assigned yet.</td></tr>';
+                    userLiveTbl.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-gray-400">No live courier assigned yet.</td></tr>';
                 } else {
                     let html = '';
                     myCouriers.forEach(c => {
@@ -1773,14 +1809,14 @@
                         const toDet = c.toDetails || c.to_details || 'N/A';
 
                         html += '<tr>' +
-                            '<td class="p-1.5 text-xs font-semibold">' + c.date + '</td>' +
-                            '<td class="p-1.5 font-bold text-blue-600 text-xs">' + c.company + '</td>' +
-                            '<td class="p-1.5 font-mono text-xs">' + tracking + '</td>' +
-                            '<td class="p-1.5 text-xs">' + fromDet + '</td>' +
-                            '<td class="p-1.5 text-xs">' + toDet + '</td>' +
-                            '<td class="p-1.5 text-center"><a href="' + c.photo + '" target="_blank"><img src="' + c.photo + '" class="w-8 h-8 object-cover rounded mx-auto border shadow-sm hover:scale-105 transition" /></a></td>' +
-                            '<td class="p-1.5 text-center">' +
-                                (c.status === 'DISPATCHED' ? '<button onclick="markCourierReceived(\'' + c.id + '\')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-0.5 rounded text-xs font-bold shadow-sm">Mark Received</button>' : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800">RECEIVED</span>') +
+                            '<td class="p-3 text-xs font-semibold">' + c.date + '</td>' +
+                            '<td class="p-3 font-bold text-blue-600 text-xs">' + c.company + '</td>' +
+                            '<td class="p-3 font-mono text-xs">' + tracking + '</td>' +
+                            '<td class="p-3 text-xs">' + fromDet + '</td>' +
+                            '<td class="p-3 text-xs">' + toDet + '</td>' +
+                            '<td class="p-3 text-center"><a href="' + c.photo + '" target="_blank"><img src="' + c.photo + '" class="w-9 h-9 object-cover rounded-xl mx-auto border shadow-sm hover:scale-105 transition" /></a></td>' +
+                            '<td class="p-3 text-center">' +
+                                (c.status === 'DISPATCHED' ? '<button onclick="markCourierReceived(\'' + c.id + '\')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-xl text-xs font-bold shadow-sm">Mark Received</button>' : '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-800">RECEIVED</span>') +
                             '</td>' +
                         '</tr>';
                     });
@@ -1788,7 +1824,6 @@
                 }
             }
 
-            // Render User Page 2 (My Outgoing Parcels) - LATEST ON TOP
             const userOutTbl = document.getElementById('userOutgoingTable');
             if(userOutTbl && currentUser) {
                 const myOutgoing = outgoingParcelsList.filter(o => {
@@ -1797,26 +1832,25 @@
                 }).slice().reverse();
 
                 if(myOutgoing.length === 0) {
-                    userOutTbl.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-gray-400">No outgoing requests submitted.</td></tr>';
+                    userOutTbl.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">No outgoing requests submitted.</td></tr>';
                 } else {
                     let html = '';
                     myOutgoing.forEach(o => {
                         const tracking = o.tracking_no || o.trackingNo || 'PENDING ADMIN ASSIGNMENT';
                         const isPending = tracking === 'PENDING ADMIN ASSIGNMENT';
                         html += '<tr>' +
-                            '<td class="p-1.5 text-xs">' + o.date + '</td>' +
-                            '<td class="p-1.5 text-xs">' + (o.from_details || o.fromDetails || 'N/A') + '</td>' +
-                            '<td class="p-1.5 text-xs font-bold text-gray-800">' + (o.to_details || o.toDetails || 'N/A') + '</td>' +
-                            '<td class="p-1.5 text-xs font-semibold text-blue-600">' + (o.courier_company || o.courierCompany || 'N/A') + '</td>' +
-                            '<td class="p-1.5 font-mono text-xs ' + (isPending ? 'text-amber-600 font-bold' : 'text-emerald-700 font-extrabold') + '">' + tracking + '</td>' +
-                            '<td class="p-1.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (isPending ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') + '">' + o.status + '</span></td>' +
+                            '<td class="p-3 text-xs">' + o.date + '</td>' +
+                            '<td class="p-3 text-xs">' + (o.from_details || o.fromDetails || 'N/A') + '</td>' +
+                            '<td class="p-3 text-xs font-bold text-gray-800">' + (o.to_details || o.toDetails || 'N/A') + '</td>' +
+                            '<td class="p-3 text-xs font-semibold text-blue-600">' + (o.courier_company || o.courierCompany || 'N/A') + '</td>' +
+                            '<td class="p-3 font-mono text-xs ' + (isPending ? 'text-amber-600 font-bold' : 'text-emerald-700 font-extrabold') + '">' + tracking + '</td>' +
+                            '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ' + (isPending ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') + '">' + o.status + '</span></td>' +
                         '</tr>';
                     });
                     userOutTbl.innerHTML = html;
                 }
             }
 
-            // Render Admin Tab: Outgoing Parcels - COMPACT ACTION BUTTONS (HORIZONTAL FLEX)
             const adminOutTbl = document.getElementById('adminOutgoingTable');
             const outgoingUserFilter = document.getElementById('adminOutgoingUserFilter');
             const selectedOutgoingUser = outgoingUserFilter ? outgoingUserFilter.value : 'ALL';
@@ -1836,7 +1870,7 @@
                 }).slice().reverse();
 
                 if(filteredOutgoing.length === 0) {
-                    adminOutTbl.innerHTML = '<tr><td colspan="8" class="p-3 text-center text-gray-400">No outgoing parcel requests found.</td></tr>';
+                    adminOutTbl.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">No outgoing parcel requests found.</td></tr>';
                 } else {
                     let html = '';
                     filteredOutgoing.forEach(o => {
@@ -1849,19 +1883,19 @@
                         }
 
                         html += '<tr>' +
-                            '<td class="p-1.5 font-bold text-blue-600 text-xs">' + (o.user_name || o.userName || 'N/A') + '</td>' +
-                            '<td class="p-1.5 text-xs">' + o.date + '</td>' +
-                            '<td class="p-1.5 text-xs">' + (o.from_details || o.fromDetails || 'N/A') + '</td>' +
-                            '<td class="p-1.5 text-xs font-bold text-gray-800">' + (o.to_details || o.toDetails || 'N/A') + '</td>' +
-                            '<td class="p-1.5 text-xs font-semibold">' + (o.courier_company || o.courierCompany || 'N/A') + '</td>' +
-                            '<td class="p-1.5 font-mono text-xs">' + (isPending ? '<span class="text-amber-600">PENDING</span>' : tracking) + '</td>' +
-                            '<td class="p-1.5 text-center">' +
-                                '<input type="text" id="' + inputId + '" value="' + valToDisplay + '" placeholder="Enter Tracking No." class="border rounded px-1.5 py-0.5 text-xs w-28 font-mono bg-white" />' +
+                            '<td class="p-3 font-bold text-blue-600 text-xs">' + (o.user_name || o.userName || 'N/A') + '</td>' +
+                            '<td class="p-3 text-xs">' + o.date + '</td>' +
+                            '<td class="p-3 text-xs">' + (o.from_details || o.fromDetails || 'N/A') + '</td>' +
+                            '<td class="p-3 text-xs font-bold text-gray-800">' + (o.to_details || o.toDetails || 'N/A') + '</td>' +
+                            '<td class="p-3 text-xs font-semibold">' + (o.courier_company || o.courierCompany || 'N/A') + '</td>' +
+                            '<td class="p-3 font-mono text-xs">' + (isPending ? '<span class="text-amber-600 font-bold">PENDING</span>' : tracking) + '</td>' +
+                            '<td class="p-3 text-center">' +
+                                '<input type="text" id="' + inputId + '" value="' + valToDisplay + '" placeholder="Enter Tracking No." class="border rounded-xl px-2.5 py-1 text-xs w-32 font-mono bg-white shadow-sm" />' +
                             '</td>' +
-                            '<td class="p-1.5 text-center">' +
+                            '<td class="p-3 text-center">' +
                                 '<div class="inline-flex items-center space-x-1.5">' +
-                                    '<button onclick="adminUpdateTracking(\'' + o.id + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px] font-bold shadow-sm whitespace-nowrap">Save Tracking</button>' +
-                                    '<button onclick="deleteOutgoingParcel(\'' + o.id + '\')" title="Delete Request" class="bg-red-600 hover:bg-red-700 text-white p-1 rounded text-[10px] shadow-sm flex items-center justify-center"><i class="fa-solid fa-trash"></i></button>' +
+                                    '<button onclick="adminUpdateTracking(\'' + o.id + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-xl text-[10px] font-bold shadow-sm whitespace-nowrap">Save Tracking</button>' +
+                                    '<button onclick="deleteOutgoingParcel(\'' + o.id + '\')" title="Delete Request" class="bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-xl text-[10px] shadow-sm flex items-center justify-center"><i class="fa-solid fa-trash"></i></button>' +
                                 '</div>' +
                             '</td>' +
                         '</tr>';
@@ -1878,7 +1912,6 @@
                 }
             }
 
-            // Render Admin Assign Courier List - LATEST COURIER ON TOP
             const adminCourierTbl = document.getElementById('adminCourierTable');
             const courierUserFilter = document.getElementById('adminCourierUserFilter');
             const selectedCourierUser = courierUserFilter ? courierUserFilter.value : 'ALL';
@@ -1890,7 +1923,7 @@
                 }).slice().reverse();
 
                 if(filteredCouriers.length === 0) {
-                    adminCourierTbl.innerHTML = '<tr><td colspan="8" class="p-3 text-center text-gray-400">No couriers found.</td></tr>';
+                    adminCourierTbl.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">No couriers found.</td></tr>';
                 } else {
                     let html = '';
                     filteredCouriers.forEach(c => {
@@ -1900,64 +1933,61 @@
                         const toDet = c.toDetails || c.to_details || 'N/A';
 
                         html += '<tr>' +
-                            '<td class="p-1.5 font-bold text-xs">' + name + '</td>' +
-                            '<td class="p-1.5 text-xs">' + c.date + '</td>' +
-                            '<td class="p-1.5 font-semibold text-blue-600 text-xs">' + c.company + '</td>' +
-                            '<td class="p-1.5 font-mono text-xs">' + tracking + '</td>' +
-                            '<td class="p-1.5 text-xs">From: ' + fromDet + '<br/>To: ' + toDet + '</td>' +
-                            '<td class="p-1.5 text-center"><a href="' + c.photo + '" target="_blank"><img src="' + c.photo + '" class="w-7 h-7 object-cover rounded mx-auto border shadow-sm" /></a></td>' +
-                            '<td class="p-1.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (c.status === 'RECEIVED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800') + '">' + c.status + '</span></td>' +
-                            '<td class="p-1.5 text-center"><button onclick="deleteCourierRecord(\'' + c.id + '\')" class="bg-red-600 hover:bg-red-700 text-white px-1.5 py-0.5 rounded text-[11px] shadow-sm"><i class="fa-solid fa-trash"></i></button></td>' +
+                            '<td class="p-3 font-bold text-xs">' + name + '</td>' +
+                            '<td class="p-3 text-xs">' + c.date + '</td>' +
+                            '<td class="p-3 font-semibold text-blue-600 text-xs">' + c.company + '</td>' +
+                            '<td class="p-3 font-mono text-xs">' + tracking + '</td>' +
+                            '<td class="p-3 text-xs">From: ' + fromDet + '<br/>To: ' + toDet + '</td>' +
+                            '<td class="p-3 text-center"><a href="' + c.photo + '" target="_blank"><img src="' + c.photo + '" class="w-8 h-8 object-cover rounded-xl mx-auto border shadow-sm" /></a></td>' +
+                            '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ' + (c.status === 'RECEIVED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800') + '">' + c.status + '</span></td>' +
+                            '<td class="p-3 text-center"><button onclick="deleteCourierRecord(\'' + c.id + '\')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-xl text-[11px] shadow-sm"><i class="fa-solid fa-trash"></i></button></td>' +
                         '</tr>';
                     });
                     adminCourierTbl.innerHTML = html;
                 }
             }
 
-            // Render User Orders Table - LATEST ON TOP
             const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => (o.user_name === currentUser.name || o.user === currentUser.name)).slice().reverse() : orders.slice().reverse();
             const uOrdersTbl = document.getElementById('userOrdersTable');
             if(uOrdersTbl) {
                 let html = '';
                 userOrders.forEach(o => {
                     html += '<tr>' +
-                        '<td class="p-1.5 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
-                        '<td class="p-1.5 text-xs font-bold">' + (o.item_name || o.itemName) + '</td>' +
-                        '<td class="p-1.5 text-xs text-gray-500">' + o.category + '</td>' +
-                        '<td class="p-1.5 font-bold text-center text-xs">' + o.qty + '</td>' +
-                        '<td class="p-1.5 text-[11px] text-gray-400">' + (o.time_str || o.time) + '</td>' +
-                        '<td class="p-1.5 text-center"><span class="px-2 py-0.5 text-[10px] rounded-full font-bold bg-amber-100 text-amber-700">' + o.status + '</span></td>' +
+                        '<td class="p-3 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
+                        '<td class="p-3 text-xs font-bold">' + (o.item_name || o.itemName) + '</td>' +
+                        '<td class="p-3 text-xs text-gray-500">' + o.category + '</td>' +
+                        '<td class="p-3 font-bold text-center text-xs">' + o.qty + '</td>' +
+                        '<td class="p-3 text-[11px] text-gray-400">' + (o.time_str || o.time) + '</td>' +
+                        '<td class="p-3 text-center"><span class="px-2.5 py-1 text-[10px] rounded-full font-bold bg-amber-100 text-amber-700">' + o.status + '</span></td>' +
                     '</tr>';
                 });
-                uOrdersTbl.innerHTML = html || '<tr><td colspan="6" class="p-3 text-center text-gray-400">No orders found.</td></tr>';
+                uOrdersTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No orders found.</td></tr>';
             }
 
             const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED').slice().reverse();
             const pCountEl = document.getElementById('pendingCount');
             if(pCountEl) pCountEl.innerText = pending.length;
             
-            // Render Admin Pending Approvals - LATEST ON TOP
             const adminReqTbl = document.getElementById('adminRequestsTable');
             if(adminReqTbl) {
                 let html = '';
                 pending.forEach(o => {
                     html += '<tr>' +
-                        '<td class="p-1.5 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
-                        '<td class="p-1.5 font-bold text-xs">' + (o.user_name || o.user) + '</td>' +
-                        '<td class="p-1.5 text-xs">' + (o.item_name || o.itemName) + '</td>' +
-                        '<td class="p-1.5 text-center font-bold text-xs">' + o.qty + '</td>' +
-                        '<td class="p-1.5 text-center text-xs">Available</td>' +
-                        '<td class="p-1.5 text-center space-x-1">' +
-                            (o.status === 'UNDER PROCESS' ? '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'APPROVE\')" class="bg-blue-600 text-white px-2 py-0.5 rounded text-[11px]">Approve</button>' : '') +
-                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'ISSUE\')" class="bg-green-600 text-white px-2 py-0.5 rounded text-[11px]">Issue</button>' +
-                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'REJECT\')" class="bg-red-600 text-white px-2 py-0.5 rounded text-[11px]">Reject</button>' +
+                        '<td class="p-3 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
+                        '<td class="p-3 font-bold text-xs">' + (o.user_name || o.user) + '</td>' +
+                        '<td class="p-3 text-xs">' + (o.item_name || o.itemName) + '</td>' +
+                        '<td class="p-3 text-center font-bold text-xs">' + o.qty + '</td>' +
+                        '<td class="p-3 text-center text-xs">Available</td>' +
+                        '<td class="p-3 text-center space-x-1.5">' +
+                            (o.status === 'UNDER PROCESS' ? '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'APPROVE\')" class="bg-blue-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Approve</button>' : '') +
+                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'ISSUE\')" class="bg-green-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Issue</button>' +
+                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'REJECT\')" class="bg-red-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Reject</button>' +
                         '</td>' +
                     '</tr>';
                 });
-                adminReqTbl.innerHTML = html || '<tr><td colspan="6" class="p-3 text-center text-gray-400">No pending approvals.</td></tr>';
+                adminReqTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No pending approvals.</td></tr>';
             }
 
-            // Apply active category filter safely on refresh
             applyLedgerFilter();
             renderUserHistoryTableCustom(orders);
 
@@ -1966,33 +1996,32 @@
                 let html = '';
                 usersList.slice().reverse().forEach(u => {
                     html += '<tr>' +
-                        '<td class="p-1.5 font-mono text-xs">' + u.user_id + '</td>' +
-                        '<td class="p-1.5 font-bold text-xs">' + u.name + '</td>' +
-                        '<td class="p-1.5 text-xs text-blue-600">' + u.email + '</td>' +
-                        '<td class="p-1.5 text-xs">' + (u.dept || 'N/A') + '</td>' +
-                        '<td class="p-1.5 text-xs">' + (u.phone || 'N/A') + '</td>' +
-                        '<td class="p-1.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (u.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800') + '">' + u.role + '</span></td>' +
-                        '<td class="p-1.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (u.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') + '">' + u.status + '</span></td>' +
-                        '<td class="p-1.5 text-center space-x-1">' +
-                            (u.role !== 'ADMIN' ? '<button onclick="toggleUserStatus(\'' + u.user_id + '\', \'' + u.status + '\')" class="text-[11px] px-2 py-0.5 rounded ' + (u.status === 'ACTIVE' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') + ' font-bold">' + (u.status === 'ACTIVE' ? 'Disable' : 'Enable') + '</button><button onclick="deleteUserAccount(\'' + u.user_id + '\')" class="text-[11px] px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold ml-1">Delete</button>' : '<span class="text-xs text-gray-400">Admin Account</span>') +
+                        '<td class="p-3 font-mono text-xs">' + u.user_id + '</td>' +
+                        '<td class="p-3 font-bold text-xs">' + u.name + '</td>' +
+                        '<td class="p-3 text-xs text-blue-600">' + u.email + '</td>' +
+                        '<td class="p-3 text-xs">' + (u.dept || 'N/A') + '</td>' +
+                        '<td class="p-3 text-xs">' + (u.phone || 'N/A') + '</td>' +
+                        '<td class="p-3"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ' + (u.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800') + '">' + u.role + '</span></td>' +
+                        '<td class="p-3"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ' + (u.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') + '">' + u.status + '</span></td>' +
+                        '<td class="p-3 text-center space-x-1.5">' +
+                            (u.role !== 'ADMIN' ? '<button onclick="toggleUserStatus(\'' + u.user_id + '\', \'' + u.status + '\')" class="text-[11px] px-2.5 py-1 rounded-xl ' + (u.status === 'ACTIVE' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') + ' font-bold shadow-sm">' + (u.status === 'ACTIVE' ? 'Disable' : 'Enable') + '</button><button onclick="deleteUserAccount(\'' + u.user_id + '\')" class="text-[11px] px-2.5 py-1 rounded-xl bg-red-100 text-red-700 font-bold ml-1 shadow-sm">Delete</button>' : '<span class="text-xs text-gray-400">Admin Account</span>') +
                         '</td>' +
                     '</tr>';
                 });
-                adminUsersTbl.innerHTML = html || '<tr><td colspan="8" class="p-3 text-center text-gray-400">No users found.</td></tr>';
+                adminUsersTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No users found.</td></tr>';
             }
 
-            // Render Admin System Activity Logs - LATEST ON TOP
             const adminLogsTbl = document.getElementById('adminLogsTable');
             if(adminLogsTbl) {
                 let html = '';
                 orders.slice().reverse().forEach(o => {
                     html += '<tr>' +
-                        '<td class="p-1.5 text-[11px] text-gray-400">' + (o.date_only ? o.date_only.split('T')[0] : '') + ' ' + (o.time_str || '') + '</td>' +
-                        '<td class="p-1.5 text-xs font-bold text-gray-700">' + (o.user_name || 'System User') + '</td>' +
-                        '<td class="p-1.5 text-xs text-gray-800">Order ' + o.order_id + ' for ' + o.item_name + ' (Qty: ' + o.qty + ') - Status: ' + o.status + '</td>' +
+                        '<td class="p-3 text-[11px] text-gray-400">' + (o.date_only ? o.date_only.split('T')[0] : '') + ' ' + (o.time_str || '') + '</td>' +
+                        '<td class="p-3 text-xs font-bold text-gray-700">' + (o.user_name || 'System User') + '</td>' +
+                        '<td class="p-3 text-xs text-gray-800">Order ' + o.order_id + ' for ' + o.item_name + ' (Qty: ' + o.qty + ') - Status: ' + o.status + '</td>' +
                     '</tr>';
                 });
-                adminLogsTbl.innerHTML = html || '<tr><td colspan="3" class="p-3 text-center text-gray-400">No logs found.</td></tr>';
+                adminLogsTbl.innerHTML = html || '<tr><td colspan="3" class="p-4 text-center text-gray-400">No logs found.</td></tr>';
             }
         }
     </script>
