@@ -72,6 +72,13 @@
             z-index: 0;
             letter-spacing: 5px;
         }
+
+        /* Admin Tabs Sidebar / Vertical Sequence Styling */
+        .admin-sidebar-tabs {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50 font-sans min-h-screen watermark-bg">
@@ -355,18 +362,6 @@
                         <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
                             <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-clock-rotate-left"></i></div> My Requisition Status & Orders
                         </h2>
-                        
-                        <!-- SIDE VIEW / DROPDOWN SELECTION FOR USER ORDERS -->
-                        <div class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-inner">
-                            <div class="flex items-center space-x-2 w-full md:w-auto">
-                                <label class="text-xs font-bold text-gray-700 uppercase whitespace-nowrap"><i class="fa-solid fa-filter text-blue-600 mr-1"></i> Select Order ID / Item:</label>
-                                <select id="userOrderDropdownSelect" onchange="renderUserOrdersByDropdown()" class="border rounded-xl p-2 text-xs bg-white font-semibold shadow-sm w-full md:w-80">
-                                    <option value="ALL">-- Show All Orders --</option>
-                                </select>
-                            </div>
-                            <div class="text-xs text-gray-500 font-semibold">Total Orders: <span id="userOrdersCountBadge" class="text-blue-600 font-bold">0</span></div>
-                        </div>
-
                         <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                             <table class="w-full text-left border-collapse">
                                 <thead>
@@ -387,301 +382,296 @@
             </div>
 
             <!-- ADMIN PANEL -->
-            <div id="adminPanel" class="space-y-5 hidden">
-                <div class="card-3d p-2 rounded-2xl flex space-x-2 text-xs font-semibold flex-wrap bg-white">
-                    <button onclick="switchAdminTab('requests')" id="tabRequestsBtn" class="py-2.5 px-4 rounded-xl active-tab transition flex items-center"><i class="fa-solid fa-list-check mr-1.5"></i>Pending Approvals (<span id="pendingCount">0</span>)</button>
-                    <button onclick="switchAdminTab('stock')" id="tabStockBtn" class="py-2.5 px-4 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center"><i class="fa-solid fa-boxes-stacked mr-1.5"></i>Inventory Movement Ledger</button>
-                    <button onclick="switchAdminTab('userOrders')" id="tabUserOrdersBtn" class="py-2.5 px-4 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center"><i class="fa-solid fa-file-invoice mr-1.5"></i>User Order Details & History</button>
-                    <button onclick="switchAdminTab('users')" id="tabUsersBtn" class="py-2.5 px-4 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center"><i class="fa-solid fa-users mr-1.5"></i>Registered Users Control</button>
-                    <button onclick="switchAdminTab('courier')" id="tabCourierBtn" class="py-2.5 px-4 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center"><i class="fa-solid fa-truck-fast mr-1.5"></i>Assign Courier</button>
-                    <button onclick="switchAdminTab('outgoing')" id="tabOutgoingBtn" class="py-2.5 px-4 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center"><i class="fa-solid fa-paper-plane mr-1.5"></i>Outgoing Parcels</button>
-                    <button onclick="switchAdminTab('logs')" id="tabLogsBtn" class="py-2.5 px-4 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center"><i class="fa-solid fa-user-clock mr-1.5"></i>System Activity Logs</button>
-                </div>
-
-                <!-- ADMIN TAB 1: Pending Approvals -->
-                <div id="tabRequests" class="card-3d p-5 sm:p-6 rounded-2xl">
-                    <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
-                        <h2 class="text-base font-bold text-gray-800">Pending Requisition Approvals</h2>
-                        <button onclick="issueAllPendingOrders()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md flex items-center">
-                            <i class="fa-solid fa-check-double mr-1.5"></i> Issue All Pending Orders (Send 1 Combined Email)
-                        </button>
-                    </div>
-
-                    <!-- SIDE VIEW / DROPDOWN SELECTION FOR PENDING APPROVALS -->
-                    <div class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-inner">
-                        <div class="flex items-center space-x-2 w-full md:w-auto">
-                            <label class="text-xs font-bold text-gray-700 uppercase whitespace-nowrap"><i class="fa-solid fa-filter text-blue-600 mr-1"></i> Select Pending Order / User:</label>
-                            <select id="pendingOrderDropdownSelect" onchange="renderPendingApprovalsByDropdown()" class="border rounded-xl p-2 text-xs bg-white font-semibold shadow-sm w-full md:w-80">
-                                <option value="ALL">-- Show All Pending Approvals --</option>
-                            </select>
-                        </div>
-                        <div class="text-xs text-gray-500 font-semibold">Total Pending: <span id="pendingDropdownCountBadge" class="text-amber-600 font-bold">0</span></div>
-                    </div>
-
-                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
-                                    <th class="p-3">Order ID</th>
-                                    <th class="p-3">User Name</th>
-                                    <th class="p-3">Item Name</th>
-                                    <th class="p-3 text-center">Requested Qty</th>
-                                    <th class="p-3 text-center">Stock Available</th>
-                                    <th class="p-3 text-center">Approval Control</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminRequestsTable" class="text-xs divide-y bg-white"></tbody>
-                        </table>
+            <div id="adminPanel" class="grid grid-cols-1 md:grid-cols-4 gap-6 hidden">
+                <!-- Left Sidebar Navigation for Admin Tabs -->
+                <div class="card-3d p-3 rounded-2xl h-fit bg-white">
+                    <h3 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider px-3 mb-2.5">Admin Navigation</h3>
+                    <div class="admin-sidebar-tabs text-xs font-semibold">
+                        <button onclick="switchAdminTab('requests')" id="tabRequestsBtn" class="py-2.5 px-3.5 rounded-xl active-tab transition flex items-center text-left w-full"><i class="fa-solid fa-list-check mr-2.5 w-4"></i>Pending Approvals (<span id="pendingCount">0</span>)</button>
+                        <button onclick="switchAdminTab('stock')" id="tabStockBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-boxes-stacked mr-2.5 w-4"></i>Inventory Movement Ledger</button>
+                        <button onclick="switchAdminTab('userOrders')" id="tabUserOrdersBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-file-invoice mr-2.5 w-4"></i>User Order Details & History</button>
+                        <button onclick="switchAdminTab('users')" id="tabUsersBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-users mr-2.5 w-4"></i>Registered Users Control</button>
+                        <button onclick="switchAdminTab('courier')" id="tabCourierBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-truck-fast mr-2.5 w-4"></i>Assign Courier</button>
+                        <button onclick="switchAdminTab('outgoing')" id="tabOutgoingBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-paper-plane mr-2.5 w-4"></i>Outgoing Parcels</button>
+                        <button onclick="switchAdminTab('logs')" id="tabLogsBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-user-clock mr-2.5 w-4"></i>System Activity Logs</button>
                     </div>
                 </div>
 
-                <!-- ADMIN TAB 2: Ledger -->
-                <div id="tabStock" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
-                    <div class="flex justify-between items-center flex-wrap gap-3 border-b pb-3">
-                        <div>
-                            <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-boxes-stacked"></i></div> Inventory Movement Ledger</h2>
-                            <p class="text-[11px] text-gray-500 mt-0.5">Filter Ledger by Category and Stock Received Date Range</p>
+                <!-- Right Content Area for Admin Tabs -->
+                <div class="md:col-span-3 space-y-5">
+                    <!-- ADMIN TAB 1: Pending Approvals -->
+                    <div id="tabRequests" class="card-3d p-5 sm:p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-base font-bold text-gray-800">Pending Requisition Approvals</h2>
+                            <button onclick="issueAllPendingOrders()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md flex items-center">
+                                <i class="fa-solid fa-check-double mr-1.5"></i> Issue All Pending Orders (Send 1 Combined Email)
+                            </button>
                         </div>
-                        <div class="flex flex-wrap space-x-2 gap-y-2">
-                            <button onclick="exportLedgerCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow flex items-center"><i class="fa-solid fa-file-excel mr-1"></i> Export Excel (CSV)</button>
-                            <button onclick="printLedgerReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow flex items-center"><i class="fa-solid fa-print mr-1"></i> Print Ledger Report</button>
-                            <button onclick="openAddItemModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow btn-3d flex items-center"><i class="fa-solid fa-plus mr-1"></i> Add New Item</button>
-                            <button onclick="resetLedgerFilters()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-xl text-xs font-bold">Reset Filters</button>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end shadow-inner">
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Filter By Category</label>
-                            <select id="ledgerCategoryFilter" onchange="applyLedgerFilter()" class="w-full border rounded-xl p-2 text-xs font-semibold bg-white shadow-sm">
-                                <option value="ALL">-- All Categories --</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">From Date</label>
-                            <input type="date" id="ledgerStartDate" onchange="applyLedgerFilter()" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">To Date</label>
-                            <input type="date" id="ledgerEndDate" onchange="applyLedgerFilter()" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
-                        </div>
-                        <div>
-                            <button onclick="applyLedgerFilter()" class="w-full bg-blue-600 text-white p-2 rounded-xl text-xs font-bold shadow btn-3d">Apply Date Filter</button>
+                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                        <th class="p-3">Order ID</th>
+                                        <th class="p-3">User Name</th>
+                                        <th class="p-3">Item Name</th>
+                                        <th class="p-3 text-center">Requested Qty</th>
+                                        <th class="p-3 text-center">Stock Available</th>
+                                        <th class="p-3 text-center">Approval Control</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminRequestsTable" class="text-xs divide-y bg-white"></tbody>
+                            </table>
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-900 text-white text-[11px] uppercase">
-                                    <th class="p-3">Item Name</th>
-                                    <th class="p-3">Category</th>
-                                    <th class="p-3 text-center">Unit</th>
-                                    <th class="p-3 text-center bg-slate-800">Opening Stock</th>
-                                    <th class="p-3 text-center bg-blue-950">Received Stock</th>
-                                    <th class="p-3 text-center bg-amber-950">Issued Stock</th>
-                                    <th class="p-3 text-center bg-emerald-950">Closing Balance</th>
-                                    <th class="p-3 text-center">Last Received Date</th>
-                                    <th class="p-3 text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminStockTable" class="text-xs divide-y bg-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ADMIN TAB 3: User Order History -->
-                <div id="tabUserOrders" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
-                    <div class="flex justify-between items-center border-b pb-3">
-                        <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-file-invoice"></i></div> User-wise Order History</h2>
-                        <button onclick="exportUserOrdersCSV()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow">Export CSV</button>
-                    </div>
-
-                    <div class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end shadow-inner">
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Select User</label>
-                            <select id="userFilterSelect" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm">
-                                <option value="ALL">-- All Users --</option>
-                            </select>
+                    <!-- ADMIN TAB 2: Ledger -->
+                    <div id="tabStock" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
+                        <div class="flex justify-between items-center flex-wrap gap-3 border-b pb-3">
+                            <div>
+                                <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-boxes-stacked"></i></div> Inventory Movement Ledger</h2>
+                                <p class="text-[11px] text-gray-500 mt-0.5">Filter Ledger by Category and Stock Received Date Range</p>
+                            </div>
+                            <div class="flex flex-wrap space-x-2 gap-y-2">
+                                <button onclick="exportLedgerCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow flex items-center"><i class="fa-solid fa-file-excel mr-1"></i> Export Excel (CSV)</button>
+                                <button onclick="printLedgerReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow flex items-center"><i class="fa-solid fa-print mr-1"></i> Print Ledger Report</button>
+                                <button onclick="openAddItemModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow btn-3d flex items-center"><i class="fa-solid fa-plus mr-1"></i> Add New Item</button>
+                                <button onclick="resetLedgerFilters()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-xl text-xs font-bold">Reset Filters</button>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">From Date</label>
-                            <input type="date" id="userOrderStartDate" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
+
+                        <div class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end shadow-inner">
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Filter By Category</label>
+                                <select id="ledgerCategoryFilter" onchange="applyLedgerFilter()" class="w-full border rounded-xl p-2 text-xs font-semibold bg-white shadow-sm">
+                                    <option value="ALL">-- All Categories --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">From Date</label>
+                                <input type="date" id="ledgerStartDate" onchange="applyLedgerFilter()" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">To Date</label>
+                                <input type="date" id="ledgerEndDate" onchange="applyLedgerFilter()" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
+                            </div>
+                            <div>
+                                <button onclick="applyLedgerFilter()" class="w-full bg-blue-600 text-white p-2 rounded-xl text-xs font-bold shadow btn-3d">Apply Date Filter</button>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">To Date</label>
-                            <input type="date" id="userOrderEndDate" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
+
+                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-900 text-white text-[11px] uppercase">
+                                        <th class="p-3">Item Name</th>
+                                        <th class="p-3">Category</th>
+                                        <th class="p-3 text-center">Unit</th>
+                                        <th class="p-3 text-center bg-slate-800">Opening Stock</th>
+                                        <th class="p-3 text-center bg-blue-950">Received Stock</th>
+                                        <th class="p-3 text-center bg-amber-950">Issued Stock</th>
+                                        <th class="p-3 text-center bg-emerald-950">Closing Balance</th>
+                                        <th class="p-3 text-center">Last Received Date</th>
+                                        <th class="p-3 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminStockTable" class="text-xs divide-y bg-white"></tbody>
+                            </table>
                         </div>
-                        <div>
-                            <button onclick="applyUserHistoryFilter()" class="w-full bg-blue-600 text-white p-2 rounded-xl text-xs font-bold shadow btn-3d">Filter History</button>
+                    </div>
+
+                    <!-- ADMIN TAB 3: User Order History -->
+                    <div id="tabUserOrders" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
+                        <div class="flex justify-between items-center border-b pb-3">
+                            <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-file-invoice"></i></div> User-wise Order History</h2>
+                            <button onclick="exportUserOrdersCSV()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow">Export CSV</button>
                         </div>
-                    </div>
 
-                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-900 text-white text-[11px] uppercase">
-                                    <th class="p-3">Order ID</th>
-                                    <th class="p-3">User Name</th>
-                                    <th class="p-3">Item Name</th>
-                                    <th class="p-3">Category</th>
-                                    <th class="p-3 text-center">Qty</th>
-                                    <th class="p-3">Date & Time</th>
-                                    <th class="p-3 text-center">Status / Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminUserOrdersHistoryTable" class="text-xs divide-y bg-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ADMIN TAB 4: Users -->
-                <div id="tabUsers" class="card-3d p-5 sm:p-6 rounded-2xl hidden">
-                    <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-users"></i></div> Registered System Users & Admin Control</h2>
-                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
-                                    <th class="p-3">User ID</th>
-                                    <th class="p-3">Full Name</th>
-                                    <th class="p-3">Email ID</th>
-                                    <th class="p-3">Department</th>
-                                    <th class="p-3">Phone</th>
-                                    <th class="p-3">Role</th>
-                                    <th class="p-3">Status</th>
-                                    <th class="p-3 text-center">Admin Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminUsersTable" class="text-xs divide-y bg-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ADMIN TAB 5: Courier Handover -->
-                <div id="tabCourier" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-5">
-                    <div class="flex justify-between items-center border-b pb-3">
-                        <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-truck-fast"></i></div> Courier Handover & Tracking Assignment</h2>
-                    </div>
-
-                    <!-- Assign Courier Form -->
-                    <form onsubmit="handleCourierAssignment(event)" class="bg-slate-50/80 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
-                        <h3 class="font-bold text-gray-700 text-xs">Assign New Courier to User</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end shadow-inner">
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Select User</label>
-                                <select id="courierSelectUser" class="w-full border rounded-xl p-2.5 text-xs font-semibold bg-white shadow-sm" required>
-                                    <option value="" disabled selected>-- Choose User --</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Date</label>
-                                <input type="date" id="courierDate" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Courier Company</label>
-                                <input type="text" id="courierCompany" placeholder="e.g. Blue Dart / DTDC" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Tracking Number</label>
-                                <input type="text" id="courierTrackingNo" placeholder="e.g. TRK987654321" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">From Details</label>
-                                <input type="text" id="courierFrom" placeholder="e.g. Head Office Mumbai" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">To Details</label>
-                                <input type="text" id="courierTo" placeholder="e.g. Branch Office Delhi" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Parcel Photo (Max 200KB)</label>
-                            <input type="file" id="courierPhoto" accept="image/*" onchange="validatePhotoSize(this)" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" required />
-                            <p class="text-[10px] text-gray-500 mt-1">Please upload parcel image smaller than 200KB.</p>
-                        </div>
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d">Assign & Send Live Courier</button>
-                    </form>
-
-                    <!-- Assigned Couriers Section with User Filter -->
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center flex-wrap gap-2">
-                            <h3 class="font-bold text-gray-700 text-xs">All Assigned Couriers</h3>
-                            <div class="flex items-center space-x-2">
-                                <label class="text-xs font-bold text-gray-600">Filter User:</label>
-                                <select id="adminCourierUserFilter" onchange="renderAll()" class="border rounded-xl p-1.5 text-xs bg-white font-semibold shadow-sm">
+                                <select id="userFilterSelect" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm">
                                     <option value="ALL">-- All Users --</option>
                                 </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">From Date</label>
+                                <input type="date" id="userOrderStartDate" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">To Date</label>
+                                <input type="date" id="userOrderEndDate" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
+                            </div>
+                            <div>
+                                <button onclick="applyUserHistoryFilter()" class="w-full bg-blue-600 text-white p-2 rounded-xl text-xs font-bold shadow btn-3d">Filter History</button>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-900 text-white text-[11px] uppercase">
+                                        <th class="p-3">Order ID</th>
+                                        <th class="p-3">User Name</th>
+                                        <th class="p-3">Item Name</th>
+                                        <th class="p-3">Category</th>
+                                        <th class="p-3 text-center">Qty</th>
+                                        <th class="p-3">Date & Time</th>
+                                        <th class="p-3 text-center">Status / Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminUserOrdersHistoryTable" class="text-xs divide-y bg-white"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ADMIN TAB 4: Users -->
+                    <div id="tabUsers" class="card-3d p-5 sm:p-6 rounded-2xl hidden">
+                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-users"></i></div> Registered System Users & Admin Control</h2>
+                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                        <th class="p-3">User ID</th>
+                                        <th class="p-3">Full Name</th>
+                                        <th class="p-3">Email ID</th>
+                                        <th class="p-3">Department</th>
+                                        <th class="p-3">Phone</th>
+                                        <th class="p-3">Role</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3 text-center">Admin Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminUsersTable" class="text-xs divide-y bg-white"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ADMIN TAB 5: Courier Handover -->
+                    <div id="tabCourier" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-5">
+                        <div class="flex justify-between items-center border-b pb-3">
+                            <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-truck-fast"></i></div> Courier Handover & Tracking Assignment</h2>
+                        </div>
+
+                        <!-- Assign Courier Form -->
+                        <form onsubmit="handleCourierAssignment(event)" class="bg-slate-50/80 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
+                            <h3 class="font-bold text-gray-700 text-xs">Assign New Courier to User</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Select User</label>
+                                    <select id="courierSelectUser" class="w-full border rounded-xl p-2.5 text-xs font-semibold bg-white shadow-sm" required>
+                                        <option value="" disabled selected>-- Choose User --</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Date</label>
+                                    <input type="date" id="courierDate" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Courier Company</label>
+                                    <input type="text" id="courierCompany" placeholder="e.g. Blue Dart / DTDC" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Tracking Number</label>
+                                    <input type="text" id="courierTrackingNo" placeholder="e.g. TRK987654321" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">From Details</label>
+                                    <input type="text" id="courierFrom" placeholder="e.g. Head Office Mumbai" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">To Details</label>
+                                    <input type="text" id="courierTo" placeholder="e.g. Branch Office Delhi" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Parcel Photo (Max 200KB)</label>
+                                <input type="file" id="courierPhoto" accept="image/*" onchange="validatePhotoSize(this)" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" required />
+                                <p class="text-[10px] text-gray-500 mt-1">Please upload parcel image smaller than 200KB.</p>
+                            </div>
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d">Assign & Send Live Courier</button>
+                        </form>
+
+                        <!-- Assigned Couriers Section with User Filter -->
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center flex-wrap gap-2">
+                                <h3 class="font-bold text-gray-700 text-xs">All Assigned Couriers</h3>
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-xs font-bold text-gray-600">Filter User:</label>
+                                    <select id="adminCourierUserFilter" onchange="renderAll()" class="border rounded-xl p-1.5 text-xs bg-white font-semibold shadow-sm">
+                                        <option value="ALL">-- All Users --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                                <table class="w-full text-left border-collapse">
+                                   <thead>
+                                        <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                            <th class="p-3">User Name</th>
+                                            <th class="p-3">Date</th>
+                                            <th class="p-3">Courier Company</th>
+                                            <th class="p-3">Tracking Number</th>
+                                            <th class="p-3">From -> To</th>
+                                            <th class="p-3 text-center">Photo</th>
+                                            <th class="p-3 text-center">Status</th>
+                                            <th class="p-3 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adminCourierTable" class="text-xs divide-y bg-white"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ADMIN TAB 6: Outgoing Parcels Control -->
+                    <div id="tabOutgoing" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
+                        <div class="flex justify-between items-center flex-wrap gap-2 border-b pb-3">
+                            <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-paper-plane"></i></div> User Outgoing Parcel Requests</h2>
+                            <div class="flex items-center space-x-3">
+                                <div class="flex items-center space-x-1.5">
+                                    <label class="text-xs font-bold text-gray-600">Filter User:</label>
+                                    <select id="adminOutgoingUserFilter" onchange="renderAll()" class="border rounded-xl p-1.5 text-xs bg-white font-semibold shadow-sm">
+                                        <option value="ALL">-- All Users --</option>
+                                    </select>
+                                </div>
+                                <button onclick="exportOutgoingCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow flex items-center">
+                                    <i class="fa-solid fa-file-excel mr-1"></i> Export Report (CSV)
+                                </button>
                             </div>
                         </div>
                         <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                             <table class="w-full text-left border-collapse">
-                               <thead>
+                                <thead>
                                     <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
-                                        <th class="p-3">User Name</th>
+                                        <th class="p-3">Requested By User</th>
                                         <th class="p-3">Date</th>
+                                        <th class="p-3">From Details</th>
+                                        <th class="p-3">To Address Details</th>
                                         <th class="p-3">Courier Company</th>
-                                        <th class="p-3">Tracking Number</th>
-                                        <th class="p-3">From -> To</th>
-                                        <th class="p-3 text-center">Photo</th>
-                                        <th class="p-3 text-center">Status</th>
+                                        <th class="p-3 font-mono">Tracking Number</th>
+                                        <th class="p-3 text-center">Admin Input Tracking</th>
                                         <th class="p-3 text-center">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="adminCourierTable" class="text-xs divide-y bg-white"></tbody>
+                                <tbody id="adminOutgoingTable" class="text-xs divide-y bg-white"></tbody>
                             </table>
                         </div>
                     </div>
-                </div>
 
-                <!-- ADMIN TAB 6: Outgoing Parcels Control -->
-                <div id="tabOutgoing" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
-                    <div class="flex justify-between items-center flex-wrap gap-2 border-b pb-3">
-                        <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-paper-plane"></i></div> User Outgoing Parcel Requests</h2>
-                        <div class="flex items-center space-x-3">
-                            <div class="flex items-center space-x-1.5">
-                                <label class="text-xs font-bold text-gray-600">Filter User:</label>
-                                <select id="adminOutgoingUserFilter" onchange="renderAll()" class="border rounded-xl p-1.5 text-xs bg-white font-semibold shadow-sm">
-                                    <option value="ALL">-- All Users --</option>
-                                </select>
-                            </div>
-                            <button onclick="exportOutgoingCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow flex items-center">
-                                <i class="fa-solid fa-file-excel mr-1"></i> Export Report (CSV)
-                            </button>
+                    <!-- ADMIN TAB 7: Activity Logs -->
+                    <div id="tabLogs" class="card-3d p-5 sm:p-6 rounded-2xl hidden">
+                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-user-clock"></i></div> Audit & Activity Logs</h2>
+                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                        <th class="p-3">Timestamp</th>
+                                        <th class="p-3">User</th>
+                                        <th class="p-3">Action Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminLogsTable" class="text-xs divide-y font-mono bg-white"></tbody>
+                            </table>
                         </div>
-                    </div>
-                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
-                                    <th class="p-3">Requested By User</th>
-                                    <th class="p-3">Date</th>
-                                    <th class="p-3">From Details</th>
-                                    <th class="p-3">To Address Details</th>
-                                    <th class="p-3">Courier Company</th>
-                                    <th class="p-3 font-mono">Tracking Number</th>
-                                    <th class="p-3 text-center">Admin Input Tracking</th>
-                                    <th class="p-3 text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminOutgoingTable" class="text-xs divide-y bg-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ADMIN TAB 7: Activity Logs -->
-                <div id="tabLogs" class="card-3d p-5 sm:p-6 rounded-2xl hidden">
-                    <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-user-clock"></i></div> Audit & Activity Logs</h2>
-                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
-                                    <th class="p-3">Timestamp</th>
-                                    <th class="p-3">User</th>
-                                    <th class="p-3">Action Details</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminLogsTable" class="text-xs divide-y font-mono bg-white"></tbody>
-                        </table>
                     </div>
                 </div>
             </div>
@@ -1998,8 +1988,46 @@
                 }
             }
 
-            renderUserOrdersDropdownAndTable();
-            renderPendingApprovalsDropdownAndTable();
+            const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => (o.user_name === currentUser.name || o.user === currentUser.name)).slice().reverse() : orders.slice().reverse();
+            const uOrdersTbl = document.getElementById('userOrdersTable');
+            if(uOrdersTbl) {
+                let html = '';
+                userOrders.forEach(o => {
+                    html += '<tr>' +
+                        '<td class="p-3 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
+                        '<td class="p-3 text-xs font-bold">' + (o.item_name || o.itemName) + '</td>' +
+                        '<td class="p-3 text-xs text-gray-500">' + o.category + '</td>' +
+                        '<td class="p-3 font-bold text-center text-xs">' + o.qty + '</td>' +
+                        '<td class="p-3 text-[11px] text-gray-400">' + (o.time_str || o.time) + '</td>' +
+                        '<td class="p-3 text-center"><span class="px-2.5 py-1 text-[10px] rounded-full font-bold bg-amber-100 text-amber-700">' + o.status + '</span></td>' +
+                    '</tr>';
+                });
+                uOrdersTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No orders found.</td></tr>';
+            }
+
+            const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED').slice().reverse();
+            const pCountEl = document.getElementById('pendingCount');
+            if(pCountEl) pCountEl.innerText = pending.length;
+            
+            const adminReqTbl = document.getElementById('adminRequestsTable');
+            if(adminReqTbl) {
+                let html = '';
+                pending.forEach(o => {
+                    html += '<tr>' +
+                        '<td class="p-3 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
+                        '<td class="p-3 font-bold text-xs">' + (o.user_name || o.user) + '</td>' +
+                        '<td class="p-3 text-xs">' + (o.item_name || o.itemName) + '</td>' +
+                        '<td class="p-3 text-center font-bold text-xs">' + o.qty + '</td>' +
+                        '<td class="p-3 text-center text-xs">Available</td>' +
+                        '<td class="p-3 text-center space-x-1.5">' +
+                            (o.status === 'UNDER PROCESS' ? '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'APPROVE\')" class="bg-blue-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Approve</button>' : '') +
+                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'ISSUE\')" class="bg-green-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Issue</button>' +
+                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'REJECT\')" class="bg-red-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Reject</button>' +
+                        '</td>' +
+                    '</tr>';
+                });
+                adminReqTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No pending approvals.</td></tr>';
+            }
 
             applyLedgerFilter();
             renderUserHistoryTableCustom(orders);
@@ -2035,103 +2063,6 @@
                     '</tr>';
                 });
                 adminLogsTbl.innerHTML = html || '<tr><td colspan="3" class="p-4 text-center text-gray-400">No logs found.</td></tr>';
-            }
-        }
-
-        // Side View / Dropdown Filtering Functions for User Orders and Pending Approvals
-        function renderUserOrdersDropdownAndTable() {
-            const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => (o.user_name === currentUser.name || o.user === currentUser.name)).slice().reverse() : orders.slice().reverse();
-            const dropdown = document.getElementById('userOrderDropdownSelect');
-            const countBadge = document.getElementById('userOrdersCountBadge');
-            if(countBadge) countBadge.innerText = userOrders.length;
-
-            if(dropdown) {
-                const currentVal = dropdown.value;
-                let optionsHtml = '<option value="ALL">-- Show All Orders (' + userOrders.length + ') --</option>';
-                userOrders.forEach(o => {
-                    const oid = o.order_id || o.id;
-                    const iname = o.item_name || o.itemName;
-                    const isSel = currentVal === oid ? 'selected' : '';
-                    optionsHtml += '<option value="' + oid + '" ' + isSel + '>' + oid + ' - ' + iname + ' (Qty: ' + o.qty + ')</option>';
-                });
-                dropdown.innerHTML = optionsHtml;
-            }
-            renderUserOrdersByDropdown();
-        }
-
-        function renderUserOrdersByDropdown() {
-            const dropdown = document.getElementById('userOrderDropdownSelect');
-            const selectedVal = dropdown ? dropdown.value : 'ALL';
-            const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => (o.user_name === currentUser.name || o.user === currentUser.name)).slice().reverse() : orders.slice().reverse();
-
-            const filtered = selectedVal === 'ALL' ? userOrders : userOrders.filter(o => String(o.order_id || o.id) === String(selectedVal));
-            const uOrdersTbl = document.getElementById('userOrdersTable');
-
-            if(uOrdersTbl) {
-                let html = '';
-                filtered.forEach(o => {
-                    html += '<tr>' +
-                        '<td class="p-3 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
-                        '<td class="p-3 text-xs font-bold">' + (o.item_name || o.itemName) + '</td>' +
-                        '<td class="p-3 text-xs text-gray-500">' + o.category + '</td>' +
-                        '<td class="p-3 font-bold text-center text-xs">' + o.qty + '</td>' +
-                        '<td class="p-3 text-[11px] text-gray-400">' + (o.time_str || o.time) + '</td>' +
-                        '<td class="p-3 text-center"><span class="px-2.5 py-1 text-[10px] rounded-full font-bold bg-amber-100 text-amber-700">' + o.status + '</span></td>' +
-                    '</tr>';
-                });
-                uOrdersTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No orders found.</td></tr>';
-            }
-        }
-
-        function renderPendingApprovalsDropdownAndTable() {
-            const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED').slice().reverse();
-            const dropdown = document.getElementById('pendingOrderDropdownSelect');
-            const countBadge = document.getElementById('pendingDropdownCountBadge');
-            const pCountEl = document.getElementById('pendingCount');
-
-            if(countBadge) countBadge.innerText = pending.length;
-            if(pCountEl) pCountEl.innerText = pending.length;
-
-            if(dropdown) {
-                const currentVal = dropdown.value;
-                let optionsHtml = '<option value="ALL">-- Show All Pending Approvals (' + pending.length + ') --</option>';
-                pending.forEach(o => {
-                    const oid = o.order_id || o.id;
-                    const uname = o.user_name || o.user;
-                    const iname = o.item_name || o.itemName;
-                    const isSel = currentVal === oid ? 'selected' : '';
-                    optionsHtml += '<option value="' + oid + '" ' + isSel + '>' + oid + ' | ' + uname + ' - ' + iname + '</option>';
-                });
-                dropdown.innerHTML = optionsHtml;
-            }
-            renderPendingApprovalsByDropdown();
-        }
-
-        function renderPendingApprovalsByDropdown() {
-            const dropdown = document.getElementById('pendingOrderDropdownSelect');
-            const selectedVal = dropdown ? dropdown.value : 'ALL';
-            const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED').slice().reverse();
-
-            const filtered = selectedVal === 'ALL' ? pending : pending.filter(o => String(o.order_id || o.id) === String(selectedVal));
-            const adminReqTbl = document.getElementById('adminRequestsTable');
-
-            if(adminReqTbl) {
-                let html = '';
-                filtered.forEach(o => {
-                    html += '<tr>' +
-                        '<td class="p-3 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
-                        '<td class="p-3 font-bold text-xs">' + (o.user_name || o.user) + '</td>' +
-                        '<td class="p-3 text-xs">' + (o.item_name || o.itemName) + '</td>' +
-                        '<td class="p-3 text-center font-bold text-xs">' + o.qty + '</td>' +
-                        '<td class="p-3 text-center text-xs">Available</td>' +
-                        '<td class="p-3 text-center space-x-1.5">' +
-                            (o.status === 'UNDER PROCESS' ? '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'APPROVE\')" class="bg-blue-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Approve</button>' : '') +
-                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'ISSUE\')" class="bg-green-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Issue</button>' +
-                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'REJECT\')" class="bg-red-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Reject</button>' +
-                        '</td>' +
-                    '</tr>';
-                });
-                adminReqTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No pending approvals.</td></tr>';
             }
         }
     </script>
