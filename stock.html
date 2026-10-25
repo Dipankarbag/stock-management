@@ -355,6 +355,18 @@
                         <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
                             <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-clock-rotate-left"></i></div> My Requisition Status & Orders
                         </h2>
+                        
+                        <!-- SIDE VIEW / DROPDOWN SELECTION FOR USER ORDERS -->
+                        <div class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-inner">
+                            <div class="flex items-center space-x-2 w-full md:w-auto">
+                                <label class="text-xs font-bold text-gray-700 uppercase whitespace-nowrap"><i class="fa-solid fa-filter text-blue-600 mr-1"></i> Select Order ID / Item:</label>
+                                <select id="userOrderDropdownSelect" onchange="renderUserOrdersByDropdown()" class="border rounded-xl p-2 text-xs bg-white font-semibold shadow-sm w-full md:w-80">
+                                    <option value="ALL">-- Show All Orders --</option>
+                                </select>
+                            </div>
+                            <div class="text-xs text-gray-500 font-semibold">Total Orders: <span id="userOrdersCountBadge" class="text-blue-600 font-bold">0</span></div>
+                        </div>
+
                         <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                             <table class="w-full text-left border-collapse">
                                 <thead>
@@ -388,12 +400,24 @@
 
                 <!-- ADMIN TAB 1: Pending Approvals -->
                 <div id="tabRequests" class="card-3d p-5 sm:p-6 rounded-2xl">
-                    <div class="flex justify-between items-center mb-4">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
                         <h2 class="text-base font-bold text-gray-800">Pending Requisition Approvals</h2>
                         <button onclick="issueAllPendingOrders()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md flex items-center">
                             <i class="fa-solid fa-check-double mr-1.5"></i> Issue All Pending Orders (Send 1 Combined Email)
                         </button>
                     </div>
+
+                    <!-- SIDE VIEW / DROPDOWN SELECTION FOR PENDING APPROVALS -->
+                    <div class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-inner">
+                        <div class="flex items-center space-x-2 w-full md:w-auto">
+                            <label class="text-xs font-bold text-gray-700 uppercase whitespace-nowrap"><i class="fa-solid fa-filter text-blue-600 mr-1"></i> Select Pending Order / User:</label>
+                            <select id="pendingOrderDropdownSelect" onchange="renderPendingApprovalsByDropdown()" class="border rounded-xl p-2 text-xs bg-white font-semibold shadow-sm w-full md:w-80">
+                                <option value="ALL">-- Show All Pending Approvals --</option>
+                            </select>
+                        </div>
+                        <div class="text-xs text-gray-500 font-semibold">Total Pending: <span id="pendingDropdownCountBadge" class="text-amber-600 font-bold">0</span></div>
+                    </div>
+
                     <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -1974,46 +1998,8 @@
                 }
             }
 
-            const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => (o.user_name === currentUser.name || o.user === currentUser.name)).slice().reverse() : orders.slice().reverse();
-            const uOrdersTbl = document.getElementById('userOrdersTable');
-            if(uOrdersTbl) {
-                let html = '';
-                userOrders.forEach(o => {
-                    html += '<tr>' +
-                        '<td class="p-3 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
-                        '<td class="p-3 text-xs font-bold">' + (o.item_name || o.itemName) + '</td>' +
-                        '<td class="p-3 text-xs text-gray-500">' + o.category + '</td>' +
-                        '<td class="p-3 font-bold text-center text-xs">' + o.qty + '</td>' +
-                        '<td class="p-3 text-[11px] text-gray-400">' + (o.time_str || o.time) + '</td>' +
-                        '<td class="p-3 text-center"><span class="px-2.5 py-1 text-[10px] rounded-full font-bold bg-amber-100 text-amber-700">' + o.status + '</span></td>' +
-                    '</tr>';
-                });
-                uOrdersTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No orders found.</td></tr>';
-            }
-
-            const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED').slice().reverse();
-            const pCountEl = document.getElementById('pendingCount');
-            if(pCountEl) pCountEl.innerText = pending.length;
-            
-            const adminReqTbl = document.getElementById('adminRequestsTable');
-            if(adminReqTbl) {
-                let html = '';
-                pending.forEach(o => {
-                    html += '<tr>' +
-                        '<td class="p-3 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
-                        '<td class="p-3 font-bold text-xs">' + (o.user_name || o.user) + '</td>' +
-                        '<td class="p-3 text-xs">' + (o.item_name || o.itemName) + '</td>' +
-                        '<td class="p-3 text-center font-bold text-xs">' + o.qty + '</td>' +
-                        '<td class="p-3 text-center text-xs">Available</td>' +
-                        '<td class="p-3 text-center space-x-1.5">' +
-                            (o.status === 'UNDER PROCESS' ? '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'APPROVE\')" class="bg-blue-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Approve</button>' : '') +
-                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'ISSUE\')" class="bg-green-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Issue</button>' +
-                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'REJECT\')" class="bg-red-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Reject</button>' +
-                        '</td>' +
-                    '</tr>';
-                });
-                adminReqTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No pending approvals.</td></tr>';
-            }
+            renderUserOrdersDropdownAndTable();
+            renderPendingApprovalsDropdownAndTable();
 
             applyLedgerFilter();
             renderUserHistoryTableCustom(orders);
@@ -2049,6 +2035,103 @@
                     '</tr>';
                 });
                 adminLogsTbl.innerHTML = html || '<tr><td colspan="3" class="p-4 text-center text-gray-400">No logs found.</td></tr>';
+            }
+        }
+
+        // Side View / Dropdown Filtering Functions for User Orders and Pending Approvals
+        function renderUserOrdersDropdownAndTable() {
+            const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => (o.user_name === currentUser.name || o.user === currentUser.name)).slice().reverse() : orders.slice().reverse();
+            const dropdown = document.getElementById('userOrderDropdownSelect');
+            const countBadge = document.getElementById('userOrdersCountBadge');
+            if(countBadge) countBadge.innerText = userOrders.length;
+
+            if(dropdown) {
+                const currentVal = dropdown.value;
+                let optionsHtml = '<option value="ALL">-- Show All Orders (' + userOrders.length + ') --</option>';
+                userOrders.forEach(o => {
+                    const oid = o.order_id || o.id;
+                    const iname = o.item_name || o.itemName;
+                    const isSel = currentVal === oid ? 'selected' : '';
+                    optionsHtml += '<option value="' + oid + '" ' + isSel + '>' + oid + ' - ' + iname + ' (Qty: ' + o.qty + ')</option>';
+                });
+                dropdown.innerHTML = optionsHtml;
+            }
+            renderUserOrdersByDropdown();
+        }
+
+        function renderUserOrdersByDropdown() {
+            const dropdown = document.getElementById('userOrderDropdownSelect');
+            const selectedVal = dropdown ? dropdown.value : 'ALL';
+            const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => (o.user_name === currentUser.name || o.user === currentUser.name)).slice().reverse() : orders.slice().reverse();
+
+            const filtered = selectedVal === 'ALL' ? userOrders : userOrders.filter(o => String(o.order_id || o.id) === String(selectedVal));
+            const uOrdersTbl = document.getElementById('userOrdersTable');
+
+            if(uOrdersTbl) {
+                let html = '';
+                filtered.forEach(o => {
+                    html += '<tr>' +
+                        '<td class="p-3 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
+                        '<td class="p-3 text-xs font-bold">' + (o.item_name || o.itemName) + '</td>' +
+                        '<td class="p-3 text-xs text-gray-500">' + o.category + '</td>' +
+                        '<td class="p-3 font-bold text-center text-xs">' + o.qty + '</td>' +
+                        '<td class="p-3 text-[11px] text-gray-400">' + (o.time_str || o.time) + '</td>' +
+                        '<td class="p-3 text-center"><span class="px-2.5 py-1 text-[10px] rounded-full font-bold bg-amber-100 text-amber-700">' + o.status + '</span></td>' +
+                    '</tr>';
+                });
+                uOrdersTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No orders found.</td></tr>';
+            }
+        }
+
+        function renderPendingApprovalsDropdownAndTable() {
+            const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED').slice().reverse();
+            const dropdown = document.getElementById('pendingOrderDropdownSelect');
+            const countBadge = document.getElementById('pendingDropdownCountBadge');
+            const pCountEl = document.getElementById('pendingCount');
+
+            if(countBadge) countBadge.innerText = pending.length;
+            if(pCountEl) pCountEl.innerText = pending.length;
+
+            if(dropdown) {
+                const currentVal = dropdown.value;
+                let optionsHtml = '<option value="ALL">-- Show All Pending Approvals (' + pending.length + ') --</option>';
+                pending.forEach(o => {
+                    const oid = o.order_id || o.id;
+                    const uname = o.user_name || o.user;
+                    const iname = o.item_name || o.itemName;
+                    const isSel = currentVal === oid ? 'selected' : '';
+                    optionsHtml += '<option value="' + oid + '" ' + isSel + '>' + oid + ' | ' + uname + ' - ' + iname + '</option>';
+                });
+                dropdown.innerHTML = optionsHtml;
+            }
+            renderPendingApprovalsByDropdown();
+        }
+
+        function renderPendingApprovalsByDropdown() {
+            const dropdown = document.getElementById('pendingOrderDropdownSelect');
+            const selectedVal = dropdown ? dropdown.value : 'ALL';
+            const pending = orders.filter(o => o.status === 'UNDER PROCESS' || o.status === 'APPROVED').slice().reverse();
+
+            const filtered = selectedVal === 'ALL' ? pending : pending.filter(o => String(o.order_id || o.id) === String(selectedVal));
+            const adminReqTbl = document.getElementById('adminRequestsTable');
+
+            if(adminReqTbl) {
+                let html = '';
+                filtered.forEach(o => {
+                    html += '<tr>' +
+                        '<td class="p-3 font-semibold text-blue-600 font-mono text-xs">' + (o.order_id || o.id) + '</td>' +
+                        '<td class="p-3 font-bold text-xs">' + (o.user_name || o.user) + '</td>' +
+                        '<td class="p-3 text-xs">' + (o.item_name || o.itemName) + '</td>' +
+                        '<td class="p-3 text-center font-bold text-xs">' + o.qty + '</td>' +
+                        '<td class="p-3 text-center text-xs">Available</td>' +
+                        '<td class="p-3 text-center space-x-1.5">' +
+                            (o.status === 'UNDER PROCESS' ? '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'APPROVE\')" class="bg-blue-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Approve</button>' : '') +
+                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'ISSUE\')" class="bg-green-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Issue</button>' +
+                            '<button onclick="processOrder(\'' + (o.order_id || o.id) + '\', \'REJECT\')" class="bg-red-600 text-white px-2.5 py-1 rounded-xl text-[11px] shadow">Reject</button>' +
+                        '</td>' +
+                    '</tr>';
+                });
+                adminReqTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No pending approvals.</td></tr>';
             }
         }
     </script>
