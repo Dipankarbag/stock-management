@@ -216,17 +216,23 @@
         </nav>
 
         <div class="max-w-7xl mx-auto p-4 sm:p-6">
-            <!-- USER PANEL WITH 3 PAGES / TABS -->
+            <!-- USER PANEL WITH 5 PAGES / TABS -->
             <div id="userPanel" class="space-y-5">
                 <div class="card-3d p-2 rounded-2xl flex flex-wrap gap-2 text-xs font-bold bg-white">
-                    <button id="userTab1Btn" onclick="switchUserPage(1)" class="px-4 py-2.5 rounded-xl user-active-tab transition flex items-center">
-                        <i class="fa-solid fa-truck-fast mr-2"></i> Page 1: My Live Courier (DIKHO)
+                    <button id="userTab1Btn" onclick="switchUserPage(1)" class="px-3 py-2.5 rounded-xl user-active-tab transition flex items-center">
+                        <i class="fa-solid fa-truck-fast mr-2"></i> Page 1: My Live Courier
                     </button>
-                    <button id="userTab2Btn" onclick="switchUserPage(2)" class="px-4 py-2.5 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition flex items-center border border-gray-200">
-                        <i class="fa-solid fa-paper-plane mr-2"></i> Page 2: Outgoing Parcel Request
+                    <button id="userTab2Btn" onclick="switchUserPage(2)" class="px-3 py-2.5 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition flex items-center border border-gray-200">
+                        <i class="fa-solid fa-paper-plane mr-2"></i> Page 2: Outgoing Parcel
                     </button>
-                    <button id="userTab3Btn" onclick="switchUserPage(3)" class="px-4 py-2.5 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition flex items-center border border-gray-200">
-                        <i class="fa-solid fa-cart-plus mr-2"></i> Page 3: Inventory Requisition & Orders
+                    <button id="userTab3Btn" onclick="switchUserPage(3)" class="px-3 py-2.5 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition flex items-center border border-gray-200">
+                        <i class="fa-solid fa-cart-plus mr-2"></i> Page 3: Requisition Cart
+                    </button>
+                    <button id="userTab4Btn" onclick="switchUserPage(4)" class="px-3 py-2.5 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition flex items-center border border-gray-200">
+                        <i class="fa-solid fa-key mr-2"></i> Page 4: Key Request
+                    </button>
+                    <button id="userTab5Btn" onclick="switchUserPage(5)" class="px-3 py-2.5 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition flex items-center border border-gray-200">
+                        <i class="fa-solid fa-triangle-exclamation mr-2"></i> Page 5: Complaints
                     </button>
                 </div>
 
@@ -377,6 +383,104 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- USER PAGE 4: Key Request & Status -->
+                <div id="userPage4" class="space-y-5 hidden">
+                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
+                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-key"></i></div> Request Office / Room Key
+                        </h2>
+                        <form onsubmit="handleKeyRequest(event)" class="bg-slate-50/80 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Key Name / Room Number</label>
+                                    <input type="text" id="userKeyName" placeholder="e.g. Conference Room Key / Server Room" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Expected Return Date</label>
+                                    <input type="date" id="userKeyReturnDate" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Purpose / Reason</label>
+                                <input type="text" id="userKeyReason" placeholder="e.g. Client presentation setup" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                            </div>
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d">Submit Key Request</button>
+                        </form>
+                    </div>
+
+                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                        <h3 class="font-bold text-gray-800 text-xs mb-3">My Key Requests & Issued Status</h3>
+                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                        <th class="p-3">Key / Room</th>
+                                        <th class="p-3">Purpose</th>
+                                        <th class="p-3">Request Date</th>
+                                        <th class="p-3">Return Due Date</th>
+                                        <th class="p-3 text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userKeyTable" class="text-xs divide-y bg-white">
+                                    <tr><td colspan="5" class="p-4 text-center text-gray-400">No key requests found.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- USER PAGE 5: Complaints Management -->
+                <div id="userPage5" class="space-y-5 hidden">
+                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
+                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-triangle-exclamation"></i></div> Submit Complaint / Issue
+                        </h2>
+                        <form onsubmit="handleComplaintSubmit(event)" class="bg-slate-50/80 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Category</label>
+                                    <select id="compCategory" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required>
+                                        <option value="IT Hardware">IT Hardware / Computer</option>
+                                        <option value="Stationery">Stationery Issue</option>
+                                        <option value="Facility / Maintenance">Facility / Maintenance</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Subject / Title</label>
+                                    <input type="text" id="compTitle" placeholder="e.g. Printer not working in office" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Detailed Description</label>
+                                <textarea id="compDesc" rows="3" placeholder="Describe your issue in detail..." class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required></textarea>
+                            </div>
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d">Submit Complaint to Admin</button>
+                        </form>
+                    </div>
+
+                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                        <h3 class="font-bold text-gray-800 text-xs mb-3">My Submitted Complaints & Status</h3>
+                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                        <th class="p-3">Complaint ID</th>
+                                        <th class="p-3">Category</th>
+                                        <th class="p-3">Subject</th>
+                                        <th class="p-3">Date</th>
+                                        <th class="p-3 text-center">Status</th>
+                                        <th class="p-3">Admin Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userComplaintTable" class="text-xs divide-y bg-white">
+                                    <tr><td colspan="6" class="p-4 text-center text-gray-400">No complaints submitted.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- ADMIN PANEL -->
@@ -391,6 +495,8 @@
                         <button onclick="switchAdminTab('users')" id="tabUsersBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-users mr-2.5 w-4"></i>Registered Users Control</button>
                         <button onclick="switchAdminTab('courier')" id="tabCourierBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-truck-fast mr-2.5 w-4"></i>Assign Courier</button>
                         <button onclick="switchAdminTab('outgoing')" id="tabOutgoingBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-paper-plane mr-2.5 w-4"></i>Outgoing Parcels</button>
+                        <button onclick="switchAdminTab('keys')" id="tabKeysBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-key mr-2.5 w-4"></i>Key Management</button>
+                        <button onclick="switchAdminTab('complaints')" id="tabComplaintsBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-triangle-exclamation mr-2.5 w-4"></i>Complaints Management</button>
                         <button onclick="switchAdminTab('logs')" id="tabLogsBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-user-clock mr-2.5 w-4"></i>System Activity Logs</button>
                     </div>
                 </div>
@@ -655,7 +761,52 @@
                         </div>
                     </div>
 
-                    <!-- ADMIN TAB 7: Activity Logs -->
+                    <!-- ADMIN TAB 7: Key Management -->
+                    <div id="tabKeys" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
+                        <div class="flex justify-between items-center border-b pb-3">
+                            <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-key"></i></div> Key Management & Issuance</h2>
+                        </div>
+                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                        <th class="p-3">Key ID</th>
+                                        <th class="p-3">Requested By</th>
+                                        <th class="p-3">Key / Room Name</th>
+                                        <th class="p-3">Purpose</th>
+                                        <th class="p-3">Due Date</th>
+                                        <th class="p-3 text-center">Status</th>
+                                        <th class="p-3 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminKeyTable" class="text-xs divide-y bg-white"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ADMIN TAB 8: Complaints Management -->
+                    <div id="tabComplaints" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
+                        <div class="flex justify-between items-center border-b pb-3">
+                            <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-triangle-exclamation"></i></div> User Complaints & Issues Resolution</h2>
+                        </div>
+                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                        <th class="p-3">Complaint ID</th>
+                                        <th class="p-3">User Name</th>
+                                        <th class="p-3">Category</th>
+                                        <th class="p-3">Subject & Description</th>
+                                        <th class="p-3 text-center">Status</th>
+                                        <th class="p-3 text-center">Action / Resolve</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminComplaintTable" class="text-xs divide-y bg-white"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ADMIN TAB 9: Activity Logs -->
                     <div id="tabLogs" class="card-3d p-5 sm:p-6 rounded-2xl hidden">
                         <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-user-clock"></i></div> Audit & Activity Logs</h2>
                         <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
@@ -824,6 +975,8 @@
         let receivedLogs = [];
         let couriersList = [];
         let outgoingParcelsList = [];
+        let keysList = [];
+        let complaintsList = [];
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('stockFlowUser');
@@ -1001,7 +1154,7 @@
         }
 
         function switchUserPage(pageNum) {
-            [1, 2, 3].forEach(p => {
+            [1, 2, 3, 4, 5].forEach(p => {
                 const pageEl = document.getElementById('userPage' + p);
                 const btnEl = document.getElementById('userTab' + p + 'Btn');
                 if(pageEl) pageEl.classList.add('hidden');
@@ -1022,7 +1175,7 @@
         }
 
         function switchAdminTab(tab) {
-            ['requests', 'stock', 'userOrders', 'users', 'courier', 'outgoing', 'logs'].forEach(t => {
+            ['requests', 'stock', 'userOrders', 'users', 'courier', 'outgoing', 'keys', 'complaints', 'logs'].forEach(t => {
                 const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
                 const btnEl = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
                 if(el) el.classList.add('hidden');
@@ -1069,6 +1222,92 @@
                 fetchAppState();
             })
             .catch(err => alert("Error submitting request!"));
+        }
+
+        function handleKeyRequest(e) {
+            e.preventDefault();
+            const keyName = document.getElementById('userKeyName').value.trim();
+            const returnDate = document.getElementById('userKeyReturnDate').value;
+            const reason = document.getElementById('userKeyReason').value.trim();
+
+            const newKeyReq = {
+                id: 'KEY-' + Math.floor(1000 + Math.random() * 9000),
+                userName: currentUser ? currentUser.name : 'User',
+                keyName: keyName,
+                returnDate: returnDate,
+                reason: reason,
+                date: new Date().toISOString().split('T')[0],
+                status: 'PENDING'
+            };
+
+            fetch('/api/keys/request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newKeyReq)
+            })
+            .then(res => res.json())
+            .then(() => {
+                alert("Key request submitted successfully!");
+                e.target.reset();
+                fetchAppState();
+            })
+            .catch(err => alert("Error submitting key request!"));
+        }
+
+        function handleComplaintSubmit(e) {
+            e.preventDefault();
+            const category = document.getElementById('compCategory').value;
+            const title = document.getElementById('compTitle').value.trim();
+            const desc = document.getElementById('compDesc').value.trim();
+
+            const newComp = {
+                id: 'CMP-' + Math.floor(1000 + Math.random() * 9000),
+                userName: currentUser ? currentUser.name : 'User',
+                category: category,
+                title: title,
+                desc: desc,
+                date: new Date().toISOString().split('T')[0],
+                status: 'OPEN',
+                remarks: 'Pending review'
+            };
+
+            fetch('/api/complaints/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newComp)
+            })
+            .then(res => res.json())
+            .then(() => {
+                alert("Complaint registered successfully!");
+                e.target.reset();
+                fetchAppState();
+            })
+            .catch(err => alert("Error submitting complaint!"));
+        }
+
+        function adminProcessKey(keyId, action) {
+            fetch('/api/keys/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: keyId, action: action })
+            })
+            .then(res => res.json())
+            .then(() => fetchAppState())
+            .catch(err => alert("Error updating key status"));
+        }
+
+        function adminResolveComplaint(compId) {
+            const remarks = prompt("Enter resolution remarks for this complaint:", "Issue resolved successfully.");
+            if (remarks === null) return;
+
+            fetch('/api/complaints/resolve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: compId, remarks: remarks })
+            })
+            .then(res => res.json())
+            .then(() => fetchAppState())
+            .catch(err => alert("Error resolving complaint"));
         }
 
         function adminUpdateTracking(parcelId) {
@@ -1822,6 +2061,8 @@
                     if(data.receivedLogs) receivedLogs = data.receivedLogs;
                     if(data.couriers) couriersList = data.couriers;
                     if(data.outgoingParcels) outgoingParcelsList = data.outgoingParcels;
+                    if(data.keys) keysList = data.keys;
+                    if(data.complaints) complaintsList = data.complaints;
                     renderAll();
                 })
                 .catch(e => {});
@@ -1893,6 +2134,55 @@
                 }
             }
 
+            const userKeyTbl = document.getElementById('userKeyTable');
+            if(userKeyTbl && currentUser) {
+                const myKeys = keysList.filter(k => {
+                    const name = k.userName || k.user_name || '';
+                    return String(name).trim().toLowerCase() === String(currentUser.name).trim().toLowerCase();
+                }).slice().reverse();
+
+                if(myKeys.length === 0) {
+                    userKeyTbl.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">No key requests found.</td></tr>';
+                } else {
+                    let html = '';
+                    myKeys.forEach(k => {
+                        html += '<tr>' +
+                            '<td class="p-3 font-bold text-xs">' + (k.keyName || k.key_name) + '</td>' +
+                            '<td class="p-3 text-xs">' + (k.reason || 'N/A') + '</td>' +
+                            '<td class="p-3 text-xs">' + k.date + '</td>' +
+                            '<td class="p-3 text-xs font-semibold text-blue-600">' + (k.returnDate || k.return_date) + '</td>' +
+                            '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">' + k.status + '</span></td>' +
+                        '</tr>';
+                    });
+                    userKeyTbl.innerHTML = html;
+                }
+            }
+
+            const userCompTbl = document.getElementById('userComplaintTable');
+            if(userCompTbl && currentUser) {
+                const myComps = complaintsList.filter(c => {
+                    const name = c.userName || c.user_name || '';
+                    return String(name).trim().toLowerCase() === String(currentUser.name).trim().toLowerCase();
+                }).slice().reverse();
+
+                if(myComps.length === 0) {
+                    userCompTbl.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">No complaints submitted.</td></tr>';
+                } else {
+                    let html = '';
+                    myComps.forEach(c => {
+                        html += '<tr>' +
+                            '<td class="p-3 font-mono text-xs text-blue-600">' + c.id + '</td>' +
+                            '<td class="p-3 text-xs font-semibold">' + c.category + '</td>' +
+                            '<td class="p-3 text-xs font-bold text-gray-800">' + c.title + '<br/><span class="font-normal text-gray-500 text-[11px]">' + c.desc + '</span></td>' +
+                            '<td class="p-3 text-xs">' + c.date + '</td>' +
+                            '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ' + (c.status === 'RESOLVED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800') + '">' + c.status + '</span></td>' +
+                            '<td class="p-3 text-xs text-gray-600">' + c.remarks + '</td>' +
+                        '</tr>';
+                    });
+                    userCompTbl.innerHTML = html;
+                }
+            }
+
             const adminOutTbl = document.getElementById('adminOutgoingTable');
             const outgoingUserFilter = document.getElementById('adminOutgoingUserFilter');
             const selectedOutgoingUser = outgoingUserFilter ? outgoingUserFilter.value : 'ALL';
@@ -1952,6 +2242,44 @@
                         }
                     }
                 }
+            }
+
+            const adminKeyTbl = document.getElementById('adminKeyTable');
+            if(adminKeyTbl) {
+                let html = '';
+                keysList.slice().reverse().forEach(k => {
+                    html += '<tr>' +
+                        '<td class="p-3 font-mono text-xs text-blue-600">' + k.id + '</td>' +
+                        '<td class="p-3 font-bold text-xs">' + (k.userName || k.user_name) + '</td>' +
+                        '<td class="p-3 text-xs">' + (k.keyName || k.key_name) + '</td>' +
+                        '<td class="p-3 text-xs">' + (k.reason || 'N/A') + '</td>' +
+                        '<td class="p-3 text-xs font-semibold">' + (k.returnDate || k.return_date) + '</td>' +
+                        '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">' + k.status + '</span></td>' +
+                        '<td class="p-3 text-center space-x-1">' +
+                            (k.status === 'PENDING' ? '<button onclick="adminProcessKey(\'' + k.id + '\', \'ISSUE\')" class="bg-blue-600 text-white px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-sm">Issue Key</button>' : '') +
+                            (k.status === 'ISSUED' ? '<button onclick="adminProcessKey(\'' + k.id + '\', \'RETURN\')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-sm">Mark Returned</button>' : '') +
+                        '</td>' +
+                    '</tr>';
+                });
+                adminKeyTbl.innerHTML = html || '<tr><td colspan="7" class="p-4 text-center text-gray-400">No key requests found.</td></tr>';
+            }
+
+            const adminCompTbl = document.getElementById('adminComplaintTable');
+            if(adminCompTbl) {
+                let html = '';
+                complaintsList.slice().reverse().forEach(c => {
+                    html += '<tr>' +
+                        '<td class="p-3 font-mono text-xs text-blue-600">' + c.id + '</td>' +
+                        '<td class="p-3 font-bold text-xs">' + (c.userName || c.user_name) + '</td>' +
+                        '<td class="p-3 text-xs font-semibold">' + c.category + '</td>' +
+                        '<td class="p-3 text-xs"><b>' + c.title + '</b><br/><span class="text-gray-500 text-[11px]">' + c.desc + '</span></td>' +
+                        '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ' + (c.status === 'RESOLVED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800') + '">' + c.status + '</span></td>' +
+                        '<td class="p-3 text-center">' +
+                            (c.status === 'OPEN' ? '<button onclick="adminResolveComplaint(\'' + c.id + '\')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-sm">Resolve</button>' : '<span class="text-[11px] text-gray-500">Resolved</span>') +
+                        '</td>' +
+                    '</tr>';
+                });
+                adminCompTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No complaints found.</td></tr>';
             }
 
             const adminCourierTbl = document.getElementById('adminCourierTable');
