@@ -73,12 +73,12 @@
 
         /* Compact Table Sizing - Removing Extra Vertical Gap */
         table th {
-            padding-top: 8px !important;
-            padding-bottom: 8px !important;
-        }
-        table td {
             padding-top: 6px !important;
             padding-bottom: 6px !important;
+        }
+        table td {
+            padding-top: 5px !important;
+            padding-bottom: 5px !important;
         }
     </style>
 </head>
@@ -1602,7 +1602,7 @@
                 optionsHtml += '<option value="' + c + '" ' + isSelected + '>' + c + '</option>';
             });
             select.innerHTML = optionsHtml;
-            select.value = currentVal;
+            if(currentVal) select.value = currentVal;
         }
 
         function applyLedgerFilter() {
