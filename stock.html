@@ -32,7 +32,7 @@
         }
         .user-active-tab { 
             background: linear-gradient(135deg, #2563eb, #1d4ed8); 
-            color: white; 
+            color: white !important; 
             font-weight: bold; 
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
         }
@@ -65,7 +65,7 @@
             letter-spacing: 5px;
         }
 
-        .admin-sidebar-tabs {
+        .admin-sidebar-tabs, .user-sidebar-tabs {
             display: flex;
             flex-direction: column;
             gap: 6px;
@@ -216,268 +216,270 @@
         </nav>
 
         <div class="max-w-7xl mx-auto p-4 sm:p-6">
-            <!-- USER PANEL WITH 5 PAGES / TABS -->
-            <div id="userPanel" class="space-y-5">
-                <div class="card-3d p-2 rounded-2xl flex flex-wrap gap-2 text-xs font-bold bg-white">
-                    <button id="userTab1Btn" onclick="switchUserPage(1)" class="px-3 py-2.5 rounded-xl user-active-tab transition flex items-center">
-                        <i class="fa-solid fa-truck-fast mr-2"></i> Page 1: My Live Courier
-                    </button>
-                    <button id="userTab2Btn" onclick="switchUserPage(2)" class="px-3 py-2.5 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition flex items-center border border-gray-200">
-                        <i class="fa-solid fa-paper-plane mr-2"></i> Page 2: Outgoing Parcel
-                    </button>
-                    <button id="userTab3Btn" onclick="switchUserPage(3)" class="px-3 py-2.5 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition flex items-center border border-gray-200">
-                        <i class="fa-solid fa-cart-plus mr-2"></i> Page 3: Requisition Cart
-                    </button>
-                    <button id="userTab4Btn" onclick="switchUserPage(4)" class="px-3 py-2.5 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition flex items-center border border-gray-200">
-                        <i class="fa-solid fa-key mr-2"></i> Page 4: Key Request
-                    </button>
-                    <button id="userTab5Btn" onclick="switchUserPage(5)" class="px-3 py-2.5 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition flex items-center border border-gray-200">
-                        <i class="fa-solid fa-triangle-exclamation mr-2"></i> Page 5: Complaints
-                    </button>
-                </div>
-
-                <!-- USER PAGE 1: Incoming Live Courier -->
-                <div id="userPage1" class="card-3d p-5 sm:p-6 rounded-2xl">
-                    <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
-                        <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-truck-fast"></i></div> Incoming Live Courier Assigned to Me
-                    </h2>
-                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
-                                    <th class="p-3">Date</th>
-                                    <th class="p-3">Courier Company</th>
-                                    <th class="p-3">Tracking Number</th>
-                                    <th class="p-3">From Details</th>
-                                    <th class="p-3">To Details</th>
-                                    <th class="p-3 text-center">Parcel Photo</th>
-                                    <th class="p-3 text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="userLiveCourierTable" class="text-xs text-gray-700 divide-y bg-white">
-                                <tr><td colspan="7" class="p-4 text-center text-gray-400">No live courier assigned.</td></tr>
-                            </tbody>
-                        </table>
+            <!-- USER PANEL WITH 5 PAGES / TABS ARRANGED VERTICALLY AS BOXES (Page 3 Requisition Cart First) -->
+            <div id="userPanel" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- Left Vertical Navigation Box for User Pages -->
+                <div class="card-3d p-3 rounded-2xl h-fit bg-white">
+                    <h3 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider px-3 mb-2.5">User Navigation</h3>
+                    <div class="user-sidebar-tabs text-xs font-semibold">
+                        <button id="userTab3Btn" onclick="switchUserPage(3)" class="py-2.5 px-3.5 rounded-xl user-active-tab transition flex items-center text-left w-full"><i class="fa-solid fa-cart-plus mr-2.5 w-4"></i>Page 3: Requisition Cart</button>
+                        <button id="userTab1Btn" onclick="switchUserPage(1)" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-truck-fast mr-2.5 w-4"></i>Page 1: My Live Courier</button>
+                        <button id="userTab2Btn" onclick="switchUserPage(2)" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-paper-plane mr-2.5 w-4"></i>Page 2: Outgoing Parcel</button>
+                        <button id="userTab4Btn" onclick="switchUserPage(4)" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-key mr-2.5 w-4"></i>Page 4: Key Request</button>
+                        <button id="userTab5Btn" onclick="switchUserPage(5)" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-triangle-exclamation mr-2.5 w-4"></i>Page 5: Complaints</button>
                     </div>
                 </div>
 
-                <!-- USER PAGE 2: Outgoing Parcel Request -->
-                <div id="userPage2" class="space-y-5 hidden">
-                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                <!-- Right Content Area for User Pages -->
+                <div class="md:col-span-3 space-y-5">
+                    <!-- USER PAGE 1: Incoming Live Courier -->
+                    <div id="userPage1" class="card-3d p-5 sm:p-6 rounded-2xl hidden">
                         <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
-                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-paper-plane"></i></div> Request Outgoing Parcel Dispatch
+                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-truck-fast"></i></div> Incoming Live Courier Assigned to Me
                         </h2>
-                        <form onsubmit="handleOutgoingParcelSubmit(event)" class="bg-slate-50/80 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">From Details / Sender Name (Optional)</label>
-                                    <input type="text" id="outFromDetails" placeholder="Leave empty or enter custom sender info" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" />
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">To Address Name & Full Receiver Details</label>
-                                    <input type="text" id="outToDetails" placeholder="e.g. Ramesh Kumar, Branch Office Delhi" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Preferred Courier Company</label>
-                                    <input type="text" id="outCourierCompany" placeholder="e.g. Blue Dart / DTDC" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Dispatch Date</label>
-                                    <input type="date" id="outDate" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
-                                </div>
-                            </div>
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d flex items-center">
-                                <i class="fa-solid fa-paper-plane mr-2"></i> Submit Outgoing Request to Admin
-                            </button>
-                        </form>
-                    </div>
-
-                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
-                        <h3 class="font-bold text-gray-800 text-xs mb-3">My Outgoing Parcel Status</h3>
                         <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                             <table class="w-full text-left border-collapse">
                                 <thead>
                                     <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
                                         <th class="p-3">Date</th>
-                                        <th class="p-3">From Details</th>
-                                        <th class="p-3">To Receiver Address</th>
                                         <th class="p-3">Courier Company</th>
-                                        <th class="p-3 font-mono">Tracking Number</th>
-                                        <th class="p-3 text-center">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="userOutgoingTable" class="text-xs divide-y bg-white">
-                                    <tr><td colspan="6" class="p-4 text-center text-gray-400">No outgoing requests submitted.</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- USER PAGE 3: Inventory Requisition & Orders -->
-                <div id="userPage3" class="space-y-5 hidden">
-                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
-                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
-                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-cart-plus"></i></div> Submit Multiple Items Requisition Cart
-                        </h2>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-slate-50/80 p-4 rounded-2xl border border-gray-200 mb-4 shadow-inner">
-                            <div class="md:col-span-2">
-                                <label class="block text-[11px] font-semibold text-gray-600 uppercase mb-1">Select Item</label>
-                                <select id="cartItemSelect" class="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm">
-                                    <option value="" disabled selected>-- Choose Item --</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-[11px] font-semibold text-gray-600 uppercase mb-1">Quantity Needed</label>
-                                <input type="number" id="cartItemQty" min="1" placeholder="Enter Qty" class="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm" />
-                            </div>
-
-                            <div>
-                                <button type="button" onclick="addToOrderCart()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-xl transition shadow-md flex items-center justify-center text-xs">
-                                    <i class="fa-solid fa-plus mr-1.5"></i> Add to Cart
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm mb-4">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
-                                        <th class="p-3">Item Name</th>
-                                        <th class="p-3">Category</th>
-                                        <th class="p-3 text-center">Quantity & Unit</th>
+                                        <th class="p-3">Tracking Number</th>
+                                        <th class="p-3">From Details</th>
+                                        <th class="p-3">To Details</th>
+                                        <th class="p-3 text-center">Parcel Photo</th>
                                         <th class="p-3 text-center">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="orderCartTable" class="text-xs text-gray-700 divide-y bg-white">
-                                    <tr><td colspan="4" class="p-4 text-center text-gray-400">Cart is empty. Add items above.</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <button id="submitCartBtn" onclick="submitBulkOrders()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition btn-3d flex items-center justify-center text-xs hidden uppercase tracking-wider">
-                            <i class="fa-solid fa-paper-plane mr-2"></i> Submit All Cart Orders
-                        </button>
-                    </div>
-
-                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
-                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
-                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-clock-rotate-left"></i></div> My Requisition Status & Orders
-                        </h2>
-                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
-                                        <th class="p-3">Order ID</th>
-                                        <th class="p-3">Item Name</th>
-                                        <th class="p-3">Category</th>
-                                        <th class="p-3 text-center">Quantity</th>
-                                        <th class="p-3">Date & Time</th>
-                                        <th class="p-3 text-center">Live Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="userOrdersTable" class="text-xs text-gray-700 divide-y bg-white"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- USER PAGE 4: Key Request & Status -->
-                <div id="userPage4" class="space-y-5 hidden">
-                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
-                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
-                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-key"></i></div> Request Office / Room Key
-                        </h2>
-                        <form onsubmit="handleKeyRequest(event)" class="bg-slate-50/80 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Key Name / Room Number</label>
-                                    <input type="text" id="userKeyName" placeholder="e.g. Conference Room Key / Server Room" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Expected Return Date</label>
-                                    <input type="date" id="userKeyReturnDate" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Purpose / Reason</label>
-                                <input type="text" id="userKeyReason" placeholder="e.g. Client presentation setup" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
-                            </div>
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d">Submit Key Request</button>
-                        </form>
-                    </div>
-
-                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
-                        <h3 class="font-bold text-gray-800 text-xs mb-3">My Key Requests & Issued Status</h3>
-                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
-                                        <th class="p-3">Key / Room</th>
-                                        <th class="p-3">Purpose</th>
-                                        <th class="p-3">Request Date</th>
-                                        <th class="p-3">Return Due Date</th>
-                                        <th class="p-3 text-center">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="userKeyTable" class="text-xs divide-y bg-white">
-                                    <tr><td colspan="5" class="p-4 text-center text-gray-400">No key requests found.</td></tr>
+                                <tbody id="userLiveCourierTable" class="text-xs text-gray-700 divide-y bg-white">
+                                    <tr><td colspan="7" class="p-4 text-center text-gray-400">No live courier assigned.</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                </div>
 
-                <!-- USER PAGE 5: Complaints Management -->
-                <div id="userPage5" class="space-y-5 hidden">
-                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
-                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
-                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-triangle-exclamation"></i></div> Submit Complaint / Issue
-                        </h2>
-                        <form onsubmit="handleComplaintSubmit(event)" class="bg-slate-50/80 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Category</label>
-                                    <select id="compCategory" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required>
-                                        <option value="IT Hardware">IT Hardware / Computer</option>
-                                        <option value="Stationery">Stationery Issue</option>
-                                        <option value="Facility / Maintenance">Facility / Maintenance</option>
-                                        <option value="Other">Other</option>
+                    <!-- USER PAGE 2: Outgoing Parcel Request -->
+                    <div id="userPage2" class="space-y-5 hidden">
+                        <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                            <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
+                                <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-paper-plane"></i></div> Request Outgoing Parcel Dispatch
+                            </h2>
+                            <form onsubmit="handleOutgoingParcelSubmit(event)" class="bg-slate-50/80 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">From Details / Sender Name (Optional)</label>
+                                        <input type="text" id="outFromDetails" placeholder="Leave empty or enter custom sender info" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">To Address Name & Full Receiver Details</label>
+                                        <input type="text" id="outToDetails" placeholder="e.g. Ramesh Kumar, Branch Office Delhi" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Preferred Courier Company</label>
+                                        <input type="text" id="outCourierCompany" placeholder="e.g. Blue Dart / DTDC" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Dispatch Date</label>
+                                        <input type="date" id="outDate" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                    </div>
+                                </div>
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d flex items-center">
+                                    <i class="fa-solid fa-paper-plane mr-2"></i> Submit Outgoing Request to Admin
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                            <h3 class="font-bold text-gray-800 text-xs mb-3">My Outgoing Parcel Status</h3>
+                            <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                            <th class="p-3">Date</th>
+                                            <th class="p-3">From Details</th>
+                                            <th class="p-3">To Receiver Address</th>
+                                            <th class="p-3">Courier Company</th>
+                                            <th class="p-3 font-mono">Tracking Number</th>
+                                            <th class="p-3 text-center">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="userOutgoingTable" class="text-xs divide-y bg-white">
+                                        <tr><td colspan="6" class="p-4 text-center text-gray-400">No outgoing requests submitted.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- USER PAGE 3: Inventory Requisition & Orders (Default Open) -->
+                    <div id="userPage3" class="space-y-5">
+                        <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                            <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
+                                <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-cart-plus"></i></div> Submit Multiple Items Requisition Cart
+                            </h2>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-slate-50/80 p-4 rounded-2xl border border-gray-200 mb-4 shadow-inner">
+                                <div class="md:col-span-2">
+                                    <label class="block text-[11px] font-semibold text-gray-600 uppercase mb-1">Select Item</label>
+                                    <select id="cartItemSelect" class="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm">
+                                        <option value="" disabled selected>-- Choose Item --</option>
                                     </select>
                                 </div>
+
                                 <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Subject / Title</label>
-                                    <input type="text" id="compTitle" placeholder="e.g. Printer not working in office" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                    <label class="block text-[11px] font-semibold text-gray-600 uppercase mb-1">Quantity Needed</label>
+                                    <input type="number" id="cartItemQty" min="1" placeholder="Enter Qty" class="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm" />
+                                </div>
+
+                                <div>
+                                    <button type="button" onclick="addToOrderCart()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-xl transition shadow-md flex items-center justify-center text-xs">
+                                        <i class="fa-solid fa-plus mr-1.5"></i> Add to Cart
+                                    </button>
                                 </div>
                             </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Detailed Description</label>
-                                <textarea id="compDesc" rows="3" placeholder="Describe your issue in detail..." class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required></textarea>
+
+                            <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm mb-4">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                            <th class="p-3">Item Name</th>
+                                            <th class="p-3">Category</th>
+                                            <th class="p-3 text-center">Quantity & Unit</th>
+                                            <th class="p-3 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="orderCartTable" class="text-xs text-gray-700 divide-y bg-white">
+                                        <tr><td colspan="4" class="p-4 text-center text-gray-400">Cart is empty. Add items above.</td></tr>
+                                    </tbody>
+                                </table>
                             </div>
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d">Submit Complaint to Admin</button>
-                        </form>
+
+                            <button id="submitCartBtn" onclick="submitBulkOrders()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition btn-3d flex items-center justify-center text-xs hidden uppercase tracking-wider">
+                                <i class="fa-solid fa-paper-plane mr-2"></i> Submit All Cart Orders
+                            </button>
+                        </div>
+
+                        <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                            <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
+                                <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-clock-rotate-left"></i></div> My Requisition Status & Orders
+                            </h2>
+                            <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                            <th class="p-3">Order ID</th>
+                                            <th class="p-3">Item Name</th>
+                                            <th class="p-3">Category</th>
+                                            <th class="p-3 text-center">Quantity</th>
+                                            <th class="p-3">Date & Time</th>
+                                            <th class="p-3 text-center">Live Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="userOrdersTable" class="text-xs text-gray-700 divide-y bg-white"></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="card-3d p-5 sm:p-6 rounded-2xl">
-                        <h3 class="font-bold text-gray-800 text-xs mb-3">My Submitted Complaints & Status</h3>
-                        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
-                                        <th class="p-3">Complaint ID</th>
-                                        <th class="p-3">Category</th>
-                                        <th class="p-3">Subject</th>
-                                        <th class="p-3">Date</th>
-                                        <th class="p-3 text-center">Status</th>
-                                        <th class="p-3">Admin Remarks</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="userComplaintTable" class="text-xs divide-y bg-white">
-                                    <tr><td colspan="6" class="p-4 text-center text-gray-400">No complaints submitted.</td></tr>
-                                </tbody>
-                            </table>
+                    <!-- USER PAGE 4: Key Request & Keys Currently Possessed -->
+                    <div id="userPage4" class="space-y-5 hidden">
+                        <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                            <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
+                                <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-key"></i></div> Request Office / Room Key & Declare Keys Possessed
+                            </h2>
+                            <form onsubmit="handleKeyRequest(event)" class="bg-slate-50/80 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Key Name / Room Number</label>
+                                        <input type="text" id="userKeyName" placeholder="e.g. Conference Room Key / Server Room" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Expected Return Date</label>
+                                        <input type="date" id="userKeyReturnDate" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Keys You Currently Possess (Self-Declared)</label>
+                                    <input type="text" id="userKeysCurrentlyHeld" placeholder="e.g. Main Cabin Key, Store Room Key #2" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                    <p class="text-[10px] text-gray-500 mt-1">Mention all keys currently in your possession for admin record verification.</p>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Purpose / Reason</label>
+                                    <input type="text" id="userKeyReason" placeholder="e.g. Client presentation setup" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                </div>
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d">Submit Key Request & Declaration</button>
+                            </form>
+                        </div>
+
+                        <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                            <h3 class="font-bold text-gray-800 text-xs mb-3">My Key Requests & Issued Status</h3>
+                            <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                            <th class="p-3">Key / Room</th>
+                                            <th class="p-3">Keys Possessed</th>
+                                            <th class="p-3">Purpose</th>
+                                            <th class="p-3">Return Due Date</th>
+                                            <th class="p-3 text-center">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="userKeyTable" class="text-xs divide-y bg-white">
+                                        <tr><td colspan="5" class="p-4 text-center text-gray-400">No key requests found.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- USER PAGE 5: Complaints Management -->
+                    <div id="userPage5" class="space-y-5 hidden">
+                        <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                            <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
+                                <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-triangle-exclamation"></i></div> Submit Complaint / Issue
+                            </h2>
+                            <form onsubmit="handleComplaintSubmit(event)" class="bg-slate-50/80 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Category</label>
+                                        <select id="compCategory" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required>
+                                            <option value="IT Hardware">IT Hardware / Computer</option>
+                                            <option value="Stationery">Stationery Issue</option>
+                                            <option value="Facility / Maintenance">Facility / Maintenance</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Subject / Title</label>
+                                        <input type="text" id="compTitle" placeholder="e.g. Printer not working in office" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Detailed Description</label>
+                                    <textarea id="compDesc" rows="3" placeholder="Describe your issue in detail..." class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required></textarea>
+                                </div>
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d">Submit Complaint to Admin</button>
+                            </form>
+                        </div>
+
+                        <div class="card-3d p-5 sm:p-6 rounded-2xl">
+                            <h3 class="font-bold text-gray-800 text-xs mb-3">My Submitted Complaints & Status</h3>
+                            <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                            <th class="p-3">Complaint ID</th>
+                                            <th class="p-3">Category</th>
+                                            <th class="p-3">Subject</th>
+                                            <th class="p-3">Date</th>
+                                            <th class="p-3 text-center">Status</th>
+                                            <th class="p-3">Admin Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="userComplaintTable" class="text-xs divide-y bg-white">
+                                        <tr><td colspan="6" class="p-4 text-center text-gray-400">No complaints submitted.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -761,18 +763,19 @@
                         </div>
                     </div>
 
-                    <!-- ADMIN TAB 7: Key Management -->
+                    <!-- ADMIN TAB 7: Key Management & User Possessed Keys Records -->
                     <div id="tabKeys" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
                         <div class="flex justify-between items-center border-b pb-3">
-                            <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-key"></i></div> Key Management & Issuance</h2>
+                            <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-key"></i></div> Key Management & User Possessed Records</h2>
                         </div>
                         <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                             <table class="w-full text-left border-collapse">
                                 <thead>
                                     <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
                                         <th class="p-3">Key ID</th>
-                                        <th class="p-3">Requested By</th>
-                                        <th class="p-3">Key / Room Name</th>
+                                        <th class="p-3">User Name</th>
+                                        <th class="p-3">Keys Currently Held (Declared)</th>
+                                        <th class="p-3">Requested Key / Room</th>
                                         <th class="p-3">Purpose</th>
                                         <th class="p-3">Due Date</th>
                                         <th class="p-3 text-center">Status</th>
@@ -1145,7 +1148,7 @@
             if (panel === 'user') {
                 document.getElementById('userPanel').classList.remove('hidden');
                 document.getElementById('adminPanel').classList.add('hidden');
-                switchUserPage(1);
+                switchUserPage(3); // Default open Page 3 (Requisition Cart)
             } else {
                 document.getElementById('userPanel').classList.add('hidden');
                 document.getElementById('adminPanel').classList.remove('hidden');
@@ -1160,7 +1163,7 @@
                 if(pageEl) pageEl.classList.add('hidden');
                 if(btnEl) {
                     btnEl.classList.remove('user-active-tab');
-                    btnEl.classList.add('bg-gray-50', 'text-gray-600', 'border', 'border-gray-200');
+                    btnEl.classList.add('text-gray-600', 'hover:bg-gray-100');
                 }
             });
 
@@ -1169,7 +1172,7 @@
             if(activePage) activePage.classList.remove('hidden');
             if(activeBtn) {
                 activeBtn.classList.add('user-active-tab');
-                activeBtn.classList.remove('bg-gray-50', 'text-gray-600', 'border', 'border-gray-200');
+                activeBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
             }
             fetchAppState();
         }
@@ -1228,6 +1231,7 @@
             e.preventDefault();
             const keyName = document.getElementById('userKeyName').value.trim();
             const returnDate = document.getElementById('userKeyReturnDate').value;
+            const keysHeld = document.getElementById('userKeysCurrentlyHeld').value.trim();
             const reason = document.getElementById('userKeyReason').value.trim();
 
             const newKeyReq = {
@@ -1235,6 +1239,7 @@
                 userName: currentUser ? currentUser.name : 'User',
                 keyName: keyName,
                 returnDate: returnDate,
+                keysHeld: keysHeld,
                 reason: reason,
                 date: new Date().toISOString().split('T')[0],
                 status: 'PENDING'
@@ -1247,7 +1252,7 @@
             })
             .then(res => res.json())
             .then(() => {
-                alert("Key request submitted successfully!");
+                alert("Key request and possessed keys declaration submitted successfully!");
                 e.target.reset();
                 fetchAppState();
             })
@@ -2148,8 +2153,8 @@
                     myKeys.forEach(k => {
                         html += '<tr>' +
                             '<td class="p-3 font-bold text-xs">' + (k.keyName || k.key_name) + '</td>' +
+                            '<td class="p-3 text-xs font-semibold text-purple-700">' + (k.keysHeld || k.keys_held || 'None') + '</td>' +
                             '<td class="p-3 text-xs">' + (k.reason || 'N/A') + '</td>' +
-                            '<td class="p-3 text-xs">' + k.date + '</td>' +
                             '<td class="p-3 text-xs font-semibold text-blue-600">' + (k.returnDate || k.return_date) + '</td>' +
                             '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">' + k.status + '</span></td>' +
                         '</tr>';
@@ -2251,7 +2256,8 @@
                     html += '<tr>' +
                         '<td class="p-3 font-mono text-xs text-blue-600">' + k.id + '</td>' +
                         '<td class="p-3 font-bold text-xs">' + (k.userName || k.user_name) + '</td>' +
-                        '<td class="p-3 text-xs">' + (k.keyName || k.key_name) + '</td>' +
+                        '<td class="p-3 text-xs font-semibold text-purple-700">' + (k.keysHeld || k.keys_held || 'None') + '</td>' +
+                        '<td class="p-3 text-xs font-bold text-gray-800">' + (k.keyName || k.key_name) + '</td>' +
                         '<td class="p-3 text-xs">' + (k.reason || 'N/A') + '</td>' +
                         '<td class="p-3 text-xs font-semibold">' + (k.returnDate || k.return_date) + '</td>' +
                         '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">' + k.status + '</span></td>' +
@@ -2261,7 +2267,7 @@
                         '</td>' +
                     '</tr>';
                 });
-                adminKeyTbl.innerHTML = html || '<tr><td colspan="7" class="p-4 text-center text-gray-400">No key requests found.</td></tr>';
+                adminKeyTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No key records found.</td></tr>';
             }
 
             const adminCompTbl = document.getElementById('adminComplaintTable');
