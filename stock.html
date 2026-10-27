@@ -1251,7 +1251,11 @@
                 body: JSON.stringify(newKeyReq)
             })
             .then(res => res.json())
-            .then(() => {
+            .then(data => {
+                if (data.success === false) {
+                    alert(data.message || "Error submitting key request!");
+                    return;
+                }
                 alert("Key request and possessed keys declaration submitted successfully!");
                 e.target.reset();
                 fetchAppState();
@@ -2388,7 +2392,7 @@
                         '</td>' +
                     '</tr>';
                 });
-                adminUsersTbl.html = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No users found.</td></tr>';
+                adminUsersTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No users found.</td></tr>';
             }
 
             const adminLogsTbl = document.getElementById('adminLogsTable');
