@@ -135,13 +135,12 @@ async function initDB() {
             );
 
             CREATE TABLE IF NOT EXISTS complaints (
-                id VARCHAR(50) PRIMARY KEY,
-                user_name VARCHAR(100),
-                category VARCHAR(100),
-                title VARCHAR(255),
-                desc_text TEXT,
-                status VARCHAR(50) DEFAULT 'OPEN',
-                remarks TEXT DEFAULT 'Pending review',
+                id SERIAL PRIMARY KEY,
+                complaint_id VARCHAR(50) UNIQUE NOT NULL,
+                user_name VARCHAR(100) NOT NULL,
+                issue TEXT NOT NULL,
+                location VARCHAR(255) NOT NULL,
+                status VARCHAR(30) DEFAULT 'PENDING',
                 date VARCHAR(50)
             );
         `);
@@ -212,7 +211,7 @@ app.get('/api/state', async (req, res) => {
     }
 });
 
-// USER LOGIN WITH EMAIL NOTIFICATION
+// USER LOGIN
 app.post('/api/users/login', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -236,7 +235,7 @@ app.post('/api/users/login', async (req, res) => {
     }
 });
 
-// USER FORGOT PASSWORD API
+// FORGOT PASSWORD
 app.post('/api/users/forgot-password', async (req, res) => {
     const { email } = req.body;
     try {
@@ -289,7 +288,41 @@ app.post('/api/users/register', async (req, res) => {
     }
 });
 
-// KEY MANAGEMENT ENDPOINTS
+// COMPLAINTS API (MATCHING SCHEMA: complaint_id, user_name, issue, location, status, date)
+app.post('/api/complaints/add', async (req, res) => {
+    const { userName, issue, location } = req.body;
+    try {
+        const complaintId = `CMP-${Math.floor(1000 + Math.random() * 9000)}`;
+        const dateStr = new Date().toISOString().split('T')[0];
+        const query = `
+            INSERT INTO complaints (complaint_id, user_name, issue, location, status, date)
+            VALUES ($1, $2, $3, $4, 'PENDING', $5)
+            RETURNING *;
+        `;
+        const values = [complaintId, userName || 'User', issue, location, dateStr];
+        const result = await db.query(query, values);
+        res.json({ success: true, complaint: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.post('/api/complaints/status', async (req, res) => {
+    const { complaintId, status } = req.body;
+    try {
+        const result = await db.query(`
+            UPDATE complaints 
+            SET status = $1 
+            WHERE complaint_id = $2 
+            RETURNING *;
+        `, [status, complaintId]);
+        res.json({ success: true, complaint: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// KEY MANAGEMENT API
 app.post('/api/keys/request', async (req, res) => {
     const { id, userName, keyName, returnDate, keysHeld, reason, date, status } = req.body;
     try {
@@ -312,33 +345,6 @@ app.post('/api/keys/process', async (req, res) => {
         let newStatus = action === 'ISSUE' ? 'ISSUED' : (action === 'RETURN' ? 'RETURNED' : 'PENDING');
         const result = await db.query('UPDATE key_requests SET status = $1 WHERE id = $2 RETURNING *;', [newStatus, id]);
         res.json({ success: true, keyRequest: result.rows[0] });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-// COMPLAINTS ENDPOINTS
-app.post('/api/complaints/create', async (req, res) => {
-    const { id, userName, category, title, desc, date, status, remarks } = req.body;
-    try {
-        const query = `
-            INSERT INTO complaints (id, user_name, category, title, desc_text, status, remarks, date)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            RETURNING *;
-        `;
-        const values = [id, userName, category, title, desc, status || 'OPEN', remarks || 'Pending review', date || new Date().toISOString().split('T')[0]];
-        const result = await db.query(query, values);
-        res.json({ success: true, complaint: result.rows[0] });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-app.post('/api/complaints/resolve', async (req, res) => {
-    const { id, remarks } = req.body;
-    try {
-        const result = await db.query('UPDATE complaints SET status = $1, remarks = $2 WHERE id = $3 RETURNING *;', ['RESOLVED', remarks || 'Resolved', id]);
-        res.json({ success: true, complaint: result.rows[0] });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
@@ -381,7 +387,6 @@ app.post('/api/orders/create', async (req, res) => {
     }
 });
 
-// SINGLE ORDER PROCESS
 app.post('/api/orders/process', async (req, res) => {
     const { orderId, action, issuerName } = req.body;
     try {
@@ -429,7 +434,6 @@ app.post('/api/orders/process', async (req, res) => {
     }
 });
 
-// BULK REQUISITION ISSUE API
 app.post('/api/orders/issue-bulk', async (req, res) => {
     const { issuerName } = req.body;
     try {
@@ -481,7 +485,6 @@ app.post('/api/orders/issue-bulk', async (req, res) => {
     }
 });
 
-// COURIER ASSIGN API
 app.post('/api/courier/assign', async (req, res) => {
     const { id, userName, date, company, trackingNo, fromDetails, toDetails, photo, status } = req.body;
     try {
@@ -511,7 +514,6 @@ app.post('/api/courier/assign', async (req, res) => {
     }
 });
 
-// COURIER MARK RECEIVED
 app.post('/api/courier/receive', async (req, res) => {
     const { courierId, email, userName, company, trackingNo, date, fromDetails, toDetails } = req.body;
     try {
