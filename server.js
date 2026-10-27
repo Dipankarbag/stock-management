@@ -1,35 +1,5 @@
 const nodemailer = require('nodemailer');
 const fs = require('fs');
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'dipankardag1987@gmail.com',
-        pass: 'keggvdtnslbonoqe'
-    },
-    tls: {
-        rejectUnauthorized: false
-    }
-});
-
-function sendAutoEmail(toEmail, subject, message) {
-    if (!toEmail) return;
-    const mailOptions = {
-        from: 'dipankardag1987@gmail.com',
-        to: toEmail,
-        subject: subject,
-        text: message
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log('Email error:', error);
-        } else {
-            console.log('Email sent: ' + info.response);
-        }
-    });
-}
-
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -49,6 +19,37 @@ if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+// Nodemailer Transporter Setup
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER || 'dipankardag1987@gmail.com',
+        pass: process.env.EMAIL_PASS || 'keggvdtnslbonoqe'
+    },
+    tls: {
+        rejectUnauthorized: false
+    }
+});
+
+function sendAutoEmail(toEmail, subject, message) {
+    if (!toEmail) return;
+    const mailOptions = {
+        from: process.env.EMAIL_USER || 'dipankardag1987@gmail.com',
+        to: toEmail,
+        subject: subject,
+        text: message
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log('Email error:', error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
+}
+
+// Database Initializer
 async function initDB() {
     try {
         await db.query(`
@@ -122,13 +123,25 @@ async function initDB() {
                 status VARCHAR(50) DEFAULT 'PENDING TRACKING'
             );
 
-            CREATE TABLE IF NOT EXISTS complaints (
-                id SERIAL PRIMARY KEY,
-                complaint_id VARCHAR(50) UNIQUE NOT NULL,
+            CREATE TABLE IF NOT EXISTS key_requests (
+                id VARCHAR(50) PRIMARY KEY,
                 user_name VARCHAR(100),
-                issue TEXT,
-                location VARCHAR(255),
-                status VARCHAR(50) DEFAULT 'PENDING',
+                key_name VARCHAR(100),
+                return_date VARCHAR(50),
+                keys_held TEXT,
+                reason TEXT,
+                date VARCHAR(50),
+                status VARCHAR(50) DEFAULT 'PENDING'
+            );
+
+            CREATE TABLE IF NOT EXISTS complaints (
+                id VARCHAR(50) PRIMARY KEY,
+                user_name VARCHAR(100),
+                category VARCHAR(100),
+                title VARCHAR(255),
+                desc_text TEXT,
+                status VARCHAR(50) DEFAULT 'OPEN',
+                remarks TEXT DEFAULT 'Pending review',
                 date VARCHAR(50)
             );
         `);
@@ -180,6 +193,7 @@ app.get('/api/state', async (req, res) => {
         const receivedLogs = await db.query('SELECT * FROM received_logs');
         const couriers = await db.query('SELECT * FROM couriers');
         const outgoing = await db.query('SELECT * FROM outgoing_parcels ORDER BY id DESC');
+        const keys = await db.query('SELECT * FROM key_requests ORDER BY id DESC');
         const complaints = await db.query('SELECT * FROM complaints ORDER BY id DESC');
 
         res.json({
@@ -189,11 +203,12 @@ app.get('/api/state', async (req, res) => {
             receivedLogs: receivedLogs.rows || [],
             couriers: couriers.rows || [],
             outgoingParcels: outgoing.rows || [],
+            keys: keys.rows || [],
             complaints: complaints.rows || []
         });
     } catch (err) {
         console.error('State API Error:', err.message);
-        res.status(200).json({ users: [], inventory: [], orders: [], receivedLogs: [], couriers: [], outgoingParcels: [], complaints: [] });
+        res.status(200).json({ users: [], inventory: [], orders: [], receivedLogs: [], couriers: [], outgoingParcels: [], keys: [], complaints: [] });
     }
 });
 
@@ -249,7 +264,7 @@ app.post('/api/users/forgot-password', async (req, res) => {
     }
 });
 
-// USER REGISTER WITH EMAIL NOTIFICATION
+// USER REGISTER
 app.post('/api/users/register', async (req, res) => {
     const { userId, name, email, password, dept, phone, role, status } = req.body;
     try {
@@ -274,18 +289,44 @@ app.post('/api/users/register', async (req, res) => {
     }
 });
 
-// COMPLAINTS / RAISE ISSUE API
-app.post('/api/complaints/add', async (req, res) => {
-    const { userName, issue, location } = req.body;
+// KEY MANAGEMENT ENDPOINTS
+app.post('/api/keys/request', async (req, res) => {
+    const { id, userName, keyName, returnDate, keysHeld, reason, date, status } = req.body;
     try {
-        const complaintId = `CMP-${Math.floor(1000 + Math.random() * 9000)}`;
-        const dateStr = new Date().toISOString().split('T')[0];
         const query = `
-            INSERT INTO complaints (complaint_id, user_name, issue, location, status, date)
-            VALUES ($1, $2, $3, $4, 'PENDING', $5)
+            INSERT INTO key_requests (id, user_name, key_name, return_date, keys_held, reason, date, status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *;
         `;
-        const values = [complaintId, userName || 'User', issue, location, dateStr];
+        const values = [id, userName, keyName, returnDate, keysHeld, reason, date || new Date().toISOString().split('T')[0], status || 'PENDING'];
+        const result = await db.query(query, values);
+        res.json({ success: true, keyRequest: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.post('/api/keys/process', async (req, res) => {
+    const { id, action } = req.body;
+    try {
+        let newStatus = action === 'ISSUE' ? 'ISSUED' : (action === 'RETURN' ? 'RETURNED' : 'PENDING');
+        const result = await db.query('UPDATE key_requests SET status = $1 WHERE id = $2 RETURNING *;', [newStatus, id]);
+        res.json({ success: true, keyRequest: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// COMPLAINTS ENDPOINTS
+app.post('/api/complaints/create', async (req, res) => {
+    const { id, userName, category, title, desc, date, status, remarks } = req.body;
+    try {
+        const query = `
+            INSERT INTO complaints (id, user_name, category, title, desc_text, status, remarks, date)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING *;
+        `;
+        const values = [id, userName, category, title, desc, status || 'OPEN', remarks || 'Pending review', date || new Date().toISOString().split('T')[0]];
         const result = await db.query(query, values);
         res.json({ success: true, complaint: result.rows[0] });
     } catch (err) {
@@ -293,15 +334,10 @@ app.post('/api/complaints/add', async (req, res) => {
     }
 });
 
-app.post('/api/complaints/status', async (req, res) => {
-    const { complaintId, status } = req.body;
+app.post('/api/complaints/resolve', async (req, res) => {
+    const { id, remarks } = req.body;
     try {
-        const result = await db.query(`
-            UPDATE complaints 
-            SET status = $1 
-            WHERE complaint_id = $2 
-            RETURNING *;
-        `, [status, complaintId]);
+        const result = await db.query('UPDATE complaints SET status = $1, remarks = $2 WHERE id = $3 RETURNING *;', ['RESOLVED', remarks || 'Resolved', id]);
         res.json({ success: true, complaint: result.rows[0] });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
@@ -345,7 +381,7 @@ app.post('/api/orders/create', async (req, res) => {
     }
 });
 
-// SINGLE ORDER PROCESS API
+// SINGLE ORDER PROCESS
 app.post('/api/orders/process', async (req, res) => {
     const { orderId, action, issuerName } = req.body;
     try {
@@ -372,7 +408,6 @@ app.post('/api/orders/process', async (req, res) => {
                 console.log('Inventory stock calculation bypassed:', invErr.message);
             }
 
-            // Send single item issue email
             const userQuery = await db.query('SELECT email FROM users WHERE LOWER(name) = LOWER($1)', [order.user_name]);
             if (userQuery.rows.length > 0 && userQuery.rows[0].email) {
                 const mailText = `Hello ${order.user_name},\n\nYour Requisition Order has been ISSUED by ${issuerName || 'Admin'}.\n\nOrder Details:\nOrder ID: ${order.order_id}\nItem Name: ${order.item_name}\nCategory: ${order.category}\nQuantity: ${order.qty}\n\nThank you,\nStock Management System`;
@@ -394,7 +429,7 @@ app.post('/api/orders/process', async (req, res) => {
     }
 });
 
-// BULK REQUISITION ISSUE API (COMBINES ALL CART ITEMS INTO 1 SINGLE EMAIL)
+// BULK REQUISITION ISSUE API
 app.post('/api/orders/issue-bulk', async (req, res) => {
     const { issuerName } = req.body;
     try {
@@ -405,14 +440,12 @@ app.post('/api/orders/issue-bulk', async (req, res) => {
             return res.json({ success: true, message: 'No pending orders found.' });
         }
 
-        // Group orders by user_name
         const userGroups = {};
         for (let order of pendingOrders) {
             const uName = order.user_name || 'User';
             if (!userGroups[uName]) userGroups[uName] = [];
             userGroups[uName].push(order);
 
-            // Update inventory
             try {
                 await db.query(`
                     UPDATE inventory 
@@ -422,11 +455,9 @@ app.post('/api/orders/issue-bulk', async (req, res) => {
                 `, [parseInt(order.qty) || 0, String(order.item_id || ''), String(order.item_name || '')]);
             } catch (invErr) {}
 
-            // Update order status
             await db.query(`UPDATE orders SET status = 'ISSUED', issuer_name = $1 WHERE order_id = $2`, [issuerName || 'System Admin', order.order_id]);
         }
 
-        // Send ONLY 1 Combined Email per user containing all cart items
         for (let uName in userGroups) {
             const userOrders = userGroups[uName];
             const userQuery = await db.query('SELECT email FROM users WHERE LOWER(name) = LOWER($1)', [uName]);
@@ -480,7 +511,7 @@ app.post('/api/courier/assign', async (req, res) => {
     }
 });
 
-// COURIER MARK RECEIVED API (SENDS DETAILED EMAIL TO USER)
+// COURIER MARK RECEIVED
 app.post('/api/courier/receive', async (req, res) => {
     const { courierId, email, userName, company, trackingNo, date, fromDetails, toDetails } = req.body;
     try {
