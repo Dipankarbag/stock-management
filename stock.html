@@ -1282,7 +1282,11 @@
                 body: JSON.stringify(newComp)
             })
             .then(res => res.json())
-            .then(() => {
+            .then(data => {
+                if (data.success === false) {
+                    alert(data.message || "Error submitting complaint!");
+                    return;
+                }
                 alert("Complaint registered successfully!");
                 e.target.reset();
                 fetchAppState();
@@ -2384,7 +2388,7 @@
                         '</td>' +
                     '</tr>';
                 });
-                adminUsersTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No users found.</td></tr>';
+                adminUsersTbl.html = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No users found.</td></tr>';
             }
 
             const adminLogsTbl = document.getElementById('adminLogsTable');
