@@ -163,7 +163,7 @@
         </div>
     </div>
 
-    <!-- FORGOT PASSWORD MODAL POPUP -->
+    <!-- FORGOT PASSWORD MODAL -->
     <div id="forgotPasswordModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="card-3d bg-white p-6 rounded-2xl w-full max-w-sm border border-gray-200 space-y-3">
             <div class="flex justify-between items-center border-b pb-3">
@@ -215,7 +215,7 @@
         </nav>
 
         <div class="max-w-7xl mx-auto p-4 sm:p-6">
-            <!-- USER PANEL WITH VERTICAL SIDEBAR BOXES -->
+            <!-- USER PANEL -->
             <div id="userPanel" class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <!-- Left Vertical Navigation Box for User Pages -->
                 <div class="card-3d p-3 rounded-2xl h-fit bg-white">
@@ -379,7 +379,7 @@
                         </div>
                     </div>
 
-                    <!-- USER PAGE 4: Key Request & Keys Currently Possessed -->
+                    <!-- USER PAGE 4: Key Request -->
                     <div id="userPage4" class="space-y-5 hidden">
                         <div class="card-3d p-5 sm:p-6 rounded-2xl">
                             <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
@@ -399,7 +399,6 @@
                                 <div>
                                     <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Keys You Currently Possess (Self-Declared)</label>
                                     <input type="text" id="userKeysCurrentlyHeld" placeholder="e.g. Main Cabin Key, Store Room Key #2" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
-                                    <p class="text-[10px] text-gray-500 mt-1">Mention all keys currently in your possession for admin record verification.</p>
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Purpose / Reason</label>
@@ -430,31 +429,20 @@
                         </div>
                     </div>
 
-                    <!-- USER PAGE 5: Complaints Management -->
+                    <!-- USER PAGE 5: Complaints Management (Schema-aligned: complaint_id, issue, location, status, date) -->
                     <div id="userPage5" class="space-y-5 hidden">
                         <div class="card-3d p-5 sm:p-6 rounded-2xl">
                             <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
                                 <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-triangle-exclamation"></i></div> Submit Complaint / Issue
                             </h2>
                             <form onsubmit="handleComplaintSubmit(event)" class="bg-slate-50/80 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Category</label>
-                                        <select id="compCategory" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required>
-                                            <option value="IT Hardware">IT Hardware / Computer</option>
-                                            <option value="Stationery">Stationery Issue</option>
-                                            <option value="Facility / Maintenance">Facility / Maintenance</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Subject / Title</label>
-                                        <input type="text" id="compTitle" placeholder="e.g. Printer not working in office" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
-                                    </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Issue / Description</label>
+                                    <textarea id="compIssue" rows="3" placeholder="Describe your issue in detail..." class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required></textarea>
                                 </div>
                                 <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Detailed Description</label>
-                                    <textarea id="compDesc" rows="3" placeholder="Describe your issue in detail..." class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required></textarea>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Location / Department</label>
+                                    <input type="text" id="compLocation" placeholder="e.g. Office Floor 2 / IT Room" class="w-full border rounded-xl p-2.5 text-xs bg-white shadow-sm" required />
                                 </div>
                                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d">Submit Complaint to Admin</button>
                             </form>
@@ -467,15 +455,14 @@
                                     <thead>
                                         <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
                                             <th class="p-3">Complaint ID</th>
-                                            <th class="p-3">Category</th>
-                                            <th class="p-3">Subject</th>
+                                            <th class="p-3">Issue Description</th>
+                                            <th class="p-3">Location</th>
                                             <th class="p-3">Date</th>
                                             <th class="p-3 text-center">Status</th>
-                                            <th class="p-3">Admin Remarks</th>
                                         </tr>
                                     </thead>
                                     <tbody id="userComplaintTable" class="text-xs divide-y bg-white">
-                                        <tr><td colspan="6" class="p-4 text-center text-gray-400">No complaints submitted.</td></tr>
+                                        <tr><td colspan="5" class="p-4 text-center text-gray-400">No complaints submitted.</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -683,55 +670,14 @@
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Parcel Photo (Max 200KB)</label>
                                 <input type="file" id="courierPhoto" accept="image/*" onchange="validatePhotoSize(this)" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" required />
-                                <p class="text-[10px] text-gray-500 mt-1">Please upload parcel image smaller than 200KB.</p>
                             </div>
                             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d">Assign & Send Live Courier</button>
                         </form>
-
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center flex-wrap gap-2">
-                                <h3 class="font-bold text-gray-700 text-xs">All Assigned Couriers</h3>
-                                <div class="flex items-center space-x-2">
-                                    <label class="text-xs font-bold text-gray-600">Filter User:</label>
-                                    <select id="adminCourierUserFilter" onchange="renderAll()" class="border rounded-xl p-1.5 text-xs bg-white font-semibold shadow-sm">
-                                        <option value="ALL">-- All Users --</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                                <table class="w-full text-left border-collapse">
-                                   <thead>
-                                        <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
-                                            <th class="p-3">User Name</th>
-                                            <th class="p-3">Date</th>
-                                            <th class="p-3">Courier Company</th>
-                                            <th class="p-3">Tracking Number</th>
-                                            <th class="p-3">From -> To</th>
-                                            <th class="p-3 text-center">Photo</th>
-                                            <th class="p-3 text-center">Status</th>
-                                            <th class="p-3 text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="adminCourierTable" class="text-xs divide-y bg-white"></tbody>
-                                </table>
-                            </div>
-                        </div>
                     </div>
 
                     <div id="tabOutgoing" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
                         <div class="flex justify-between items-center flex-wrap gap-2 border-b pb-3">
                             <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-paper-plane"></i></div> User Outgoing Parcel Requests</h2>
-                            <div class="flex items-center space-x-3">
-                                <div class="flex items-center space-x-1.5">
-                                    <label class="text-xs font-bold text-gray-600">Filter User:</label>
-                                    <select id="adminOutgoingUserFilter" onchange="renderAll()" class="border rounded-xl p-1.5 text-xs bg-white font-semibold shadow-sm">
-                                        <option value="ALL">-- All Users --</option>
-                                    </select>
-                                </div>
-                                <button onclick="exportOutgoingCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow flex items-center">
-                                    <i class="fa-solid fa-file-excel mr-1"></i> Export Report (CSV)
-                                </button>
-                            </div>
                         </div>
                         <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                             <table class="w-full text-left border-collapse">
@@ -754,7 +700,7 @@
 
                     <div id="tabKeys" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
                         <div class="flex justify-between items-center border-b pb-3">
-                            <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-key"></i></div> Key Management & User Possessed Records</h2>
+                            <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-key"></i></div> Key Management Records</h2>
                         </div>
                         <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                             <table class="w-full text-left border-collapse">
@@ -762,7 +708,7 @@
                                     <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
                                         <th class="p-3">Key ID</th>
                                         <th class="p-3">User Name</th>
-                                        <th class="p-3">Keys Currently Held (Declared)</th>
+                                        <th class="p-3">Keys Currently Held</th>
                                         <th class="p-3">Requested Key / Room</th>
                                         <th class="p-3">Purpose</th>
                                         <th class="p-3">Due Date</th>
@@ -775,6 +721,7 @@
                         </div>
                     </div>
 
+                    <!-- ADMIN COMPLAINTS MANAGEMENT (Schema-aligned: complaint_id, user_name, issue, location, status, date) -->
                     <div id="tabComplaints" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
                         <div class="flex justify-between items-center border-b pb-3">
                             <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-triangle-exclamation"></i></div> User Complaints & Issues Resolution</h2>
@@ -785,8 +732,9 @@
                                     <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
                                         <th class="p-3">Complaint ID</th>
                                         <th class="p-3">User Name</th>
-                                        <th class="p-3">Category</th>
-                                        <th class="p-3">Subject & Description</th>
+                                        <th class="p-3">Issue Description</th>
+                                        <th class="p-3">Location</th>
+                                        <th class="p-3">Date</th>
                                         <th class="p-3 text-center">Status</th>
                                         <th class="p-3 text-center">Action / Resolve</th>
                                     </tr>
@@ -840,11 +788,7 @@
                     <tbody id="issuedDetailsTable" class="text-xs divide-y bg-white"></tbody>
                 </table>
             </div>
-            <div class="flex justify-between items-center pt-2 border-t">
-                <div class="flex space-x-2">
-                    <button onclick="exportIssuedModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow"><i class="fa-solid fa-file-excel mr-1"></i> Export CSV</button>
-                    <button onclick="printIssuedModalReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow"><i class="fa-solid fa-print mr-1"></i> Print Report</button>
-                </div>
+            <div class="flex justify-end pt-2 border-t">
                 <button onclick="closeIssuedDetailsModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-xl text-xs shadow">Close</button>
             </div>
         </div>
@@ -863,20 +807,16 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-100 text-gray-700 text-[11px] uppercase border-b">
-                            <th class="p-3">Received By (Receiver Name)</th>
-                            <th class="p-3 text-center">Received Quantity</th>
-                            <th class="p-3">Stock In Date & Time</th>
+                            <th class="p-3">Received By</th>
+                            <th class="p-3 text-center">Quantity</th>
+                            <th class="p-3">Date & Time</th>
                             <th class="p-3 text-center">Status</th>
                         </tr>
                     </thead>
                     <tbody id="receivedDetailsTable" class="text-xs divide-y bg-white"></tbody>
                 </table>
             </div>
-            <div class="flex justify-between items-center pt-2 border-t">
-                <div class="flex space-x-2">
-                    <button onclick="exportReceivedModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow"><i class="fa-solid fa-file-excel mr-1"></i> Export CSV</button>
-                    <button onclick="printReceivedModalReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow"><i class="fa-solid fa-print mr-1"></i> Print Report</button>
-                </div>
+            <div class="flex justify-end pt-2 border-t">
                 <button onclick="closeReceivedDetailsModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-xl text-xs shadow">Close</button>
             </div>
         </div>
@@ -1231,36 +1171,45 @@
             .catch(err => alert("Error submitting key request!"));
         }
 
+        // COMPLAINT SUBMIT (Aligned with DB columns: issue, location)
         function handleComplaintSubmit(e) {
             e.preventDefault();
-            const category = document.getElementById('compCategory').value;
-            const title = document.getElementById('compTitle').value.trim();
-            const desc = document.getElementById('compDesc').value.trim();
+            const issue = document.getElementById('compIssue').value.trim();
+            const location = document.getElementById('compLocation').value.trim();
 
             const newComp = {
-                id: 'CMP-' + Math.floor(1000 + Math.random() * 9000),
                 userName: currentUser ? currentUser.name : 'User',
-                category: category,
-                title: title,
-                desc: desc,
-                date: new Date().toISOString().split('T')[0],
-                status: 'OPEN',
-                remarks: 'Pending review'
+                issue: issue,
+                location: location
             };
 
-            fetch('/api/complaints/create', {
+            fetch('/api/complaints/add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newComp)
             })
             .then(res => res.json())
             .then(data => {
-                if (data.success === false) { alert(data.message || "Error submitting complaint!"); return; }
-                alert("Complaint registered successfully!");
-                e.target.reset();
-                fetchAppState();
+                if (data.success) {
+                    alert("Complaint registered successfully!");
+                    e.target.reset();
+                    fetchAppState();
+                } else {
+                    alert("Error submitting complaint!");
+                }
             })
             .catch(err => alert("Error submitting complaint!"));
+        }
+
+        function adminResolveComplaint(complaintId) {
+            fetch('/api/complaints/status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ complaintId: complaintId, status: 'RESOLVED' })
+            })
+            .then(res => res.json())
+            .then(() => fetchAppState())
+            .catch(err => alert("Error resolving complaint"));
         }
 
         function adminProcessKey(keyId, action) {
@@ -1272,20 +1221,6 @@
             .then(res => res.json())
             .then(() => fetchAppState())
             .catch(err => alert("Error updating key status"));
-        }
-
-        function adminResolveComplaint(compId) {
-            const remarks = prompt("Enter resolution remarks for this complaint:", "Issue resolved successfully.");
-            if (remarks === null) return;
-
-            fetch('/api/complaints/resolve', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: compId, remarks: remarks })
-            })
-            .then(res => res.json())
-            .then(() => fetchAppState())
-            .catch(err => alert("Error resolving complaint"));
         }
 
         function adminUpdateTracking(parcelId) {
@@ -1315,25 +1250,6 @@
                 .then(() => fetchAppState())
                 .catch(err => alert("Error deleting"));
             }
-        }
-
-        function exportOutgoingCSV() {
-            const selectedUser = document.getElementById('adminOutgoingUserFilter') ? document.getElementById('adminOutgoingUserFilter').value : 'ALL';
-            const list = outgoingParcelsList.filter(o => {
-                const uName = o.userName || o.user_name || '';
-                return selectedUser === 'ALL' || String(uName).trim().toLowerCase() === String(selectedUser).trim().toLowerCase();
-            }).slice().reverse();
-
-            if(list.length === 0) { alert("No outgoing parcel data available to export!"); return; }
-
-            let csv = "User Outgoing Parcel Requests Report\nRequested By User,Date,From Details,To Address Details,Courier Company,Tracking Number,Status\n";
-            list.forEach(o => {
-                csv += '"' + (o.userName || o.user_name || '') + '","' + (o.date || '') + '","' + (o.fromDetails || o.from_details || '') + '","' + (o.toDetails || o.to_details || '') + '","' + (o.courierCompany || o.courier_company || '') + '","' + (o.trackingNo || o.tracking_no || 'PENDING') + '","' + (o.status || '') + '"\n';
-            });
-            const link = document.createElement("a");
-            link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
-            link.download = "Outgoing_Parcel_Requests_" + new Date().toISOString().split('T')[0] + ".csv";
-            link.click();
         }
 
         function editOpeningQuantity(itemId) {
@@ -1430,23 +1346,6 @@
             });
             select.innerHTML = optionsHtml;
             if(currentSelected) select.value = currentSelected;
-        }
-
-        function populateAdminFilters() {
-            const courierFilter = document.getElementById('adminCourierUserFilter');
-            const outgoingFilter = document.getElementById('adminOutgoingUserFilter');
-            const currentCourierVal = courierFilter ? courierFilter.value : 'ALL';
-            const currentOutgoingVal = outgoingFilter ? outgoingFilter.value : 'ALL';
-
-            let optionsHtml = '<option value="ALL">-- All Users --</option>';
-            usersList.forEach(u => {
-                if(u.role !== 'ADMIN') {
-                    optionsHtml += '<option value="' + u.name + '">' + u.name + '</option>';
-                }
-            });
-
-            if(courierFilter) { courierFilter.innerHTML = optionsHtml; courierFilter.value = currentCourierVal; }
-            if(outgoingFilter) { outgoingFilter.innerHTML = optionsHtml; outgoingFilter.value = currentOutgoingVal; }
         }
 
         function validatePhotoSize(input) {
@@ -1851,7 +1750,6 @@
             populateCategoriesDropdown();
             populateUserDropdown();
             populateCourierUserDropdown();
-            populateAdminFilters();
 
             const userLiveTbl = document.getElementById('userLiveCourierTable');
             if(userLiveTbl && currentUser) {
@@ -1917,53 +1815,55 @@
                 }
             }
 
+            // USER COMPLAINTS TABLE (Aligned with schema)
             const userCompTbl = document.getElementById('userComplaintTable');
             if(userCompTbl && currentUser) {
                 const myComps = complaintsList.filter(c => String(c.userName || c.user_name || '').trim().toLowerCase() === String(currentUser.name).trim().toLowerCase()).slice().reverse();
                 if(myComps.length === 0) {
-                    userCompTbl.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">No complaints submitted.</td></tr>';
+                    userCompTbl.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">No complaints submitted.</td></tr>';
                 } else {
                     let html = '';
                     myComps.forEach(c => {
+                        const compId = c.complaint_id || c.complaintId || c.id;
+                        const issue = c.issue || '';
+                        const location = c.location || '';
+                        const date = c.date || '';
+                        const status = c.status || 'PENDING';
                         html += '<tr>' +
-                            '<td class="p-3 font-mono text-xs text-blue-600">' + c.id + '</td>' +
-                            '<td class="p-3 text-xs">' + c.category + '</td>' +
-                            '<td class="p-3 text-xs font-bold text-gray-800">' + c.title + '<br/><span class="font-normal text-gray-500 text-[11px]">' + c.desc + '</span></td>' +
-                            '<td class="p-3 text-xs">' + c.date + '</td>' +
-                            '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ' + (c.status === 'RESOLVED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800') + '">' + c.status + '</span></td>' +
-                            '<td class="p-3 text-xs text-gray-600">' + c.remarks + '</td>' +
+                            '<td class="p-3 font-mono text-xs text-blue-600">' + compId + '</td>' +
+                            '<td class="p-3 text-xs font-bold text-gray-800">' + issue + '</td>' +
+                            '<td class="p-3 text-xs text-gray-600">' + location + '</td>' +
+                            '<td class="p-3 text-xs">' + date + '</td>' +
+                            '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ' + (status === 'RESOLVED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800') + '">' + status + '</span></td>' +
                         '</tr>';
                     });
                     userCompTbl.innerHTML = html;
                 }
             }
 
-            const adminOutTbl = document.getElementById('adminOutgoingTable');
-            const outgoingUserFilter = document.getElementById('adminOutgoingUserFilter');
-            const selectedOutgoingUser = outgoingUserFilter ? outgoingUserFilter.value : 'ALL';
+            // ADMIN COMPLAINTS TABLE (Aligned with schema)
+            const adminCompTbl = document.getElementById('adminComplaintTable');
+            if(adminCompTbl) {
+                let html = '';
+                complaintsList.slice().reverse().forEach(c => {
+                    const compId = c.complaint_id || c.complaintId || c.id;
+                    const uName = c.user_name || c.userName || '';
+                    const issue = c.issue || '';
+                    const location = c.location || '';
+                    const date = c.date || '';
+                    const status = c.status || 'PENDING';
 
-            if(adminOutTbl) {
-                const filteredOutgoing = outgoingParcelsList.filter(o => selectedOutgoingUser === 'ALL' || String(o.userName || o.user_name || '').trim().toLowerCase() === String(selectedOutgoingUser).trim().toLowerCase()).slice().reverse();
-                if(filteredOutgoing.length === 0) {
-                    adminOutTbl.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">No outgoing parcel requests.</td></tr>';
-                } else {
-                    let html = '';
-                    filteredOutgoing.forEach(o => {
-                        const tracking = o.tracking_no || o.trackingNo || '';
-                        const inputId = 'trackInput_' + o.id;
-                        html += '<tr>' +
-                            '<td class="p-3 font-bold text-blue-600 text-xs">' + (o.user_name || o.userName) + '</td>' +
-                            '<td class="p-3 text-xs">' + o.date + '</td>' +
-                            '<td class="p-3 text-xs">' + (o.from_details || o.fromDetails) + '</td>' +
-                            '<td class="p-3 text-xs font-bold">' + (o.to_details || o.toDetails) + '</td>' +
-                            '<td class="p-3 text-xs">' + (o.courier_company || o.courierCompany) + '</td>' +
-                            '<td class="p-3 font-mono text-xs">' + (tracking || 'PENDING') + '</td>' +
-                            '<td class="p-3 text-center"><input type="text" id="' + inputId + '" value="' + (tracking || '') + '" placeholder="Tracking No" class="border rounded px-2 py-1 text-xs w-28" /></td>' +
-                            '<td class="p-3 text-center space-x-1"><button onclick="adminUpdateTracking(\'' + o.id + '\')" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] font-bold">Save</button><button onclick="deleteOutgoingParcel(\'' + o.id + '\')" class="bg-red-600 text-white px-2 py-1 rounded text-[10px]"><i class="fa-solid fa-trash"></i></button></td>' +
-                        '</tr>';
-                    });
-                    adminOutTbl.innerHTML = html;
-                }
+                    html += '<tr>' +
+                        '<td class="p-3 font-mono text-xs text-blue-600">' + compId + '</td>' +
+                        '<td class="p-3 font-bold text-xs">' + uName + '</td>' +
+                        '<td class="p-3 text-xs">' + issue + '</td>' +
+                        '<td class="p-3 text-xs text-gray-600">' + location + '</td>' +
+                        '<td class="p-3 text-xs">' + date + '</td>' +
+                        '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ' + (status === 'RESOLVED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800') + '">' + status + '</span></td>' +
+                        '<td class="p-3 text-center">' + (status !== 'RESOLVED' ? '<button onclick="adminResolveComplaint(\'' + compId + '\')" class="bg-emerald-600 text-white px-2 py-1 rounded text-[10px] font-bold">Mark Resolved</button>' : '<span class="text-xs text-gray-500 font-bold">Resolved</span>') + '</td>' +
+                    '</tr>';
+                });
+                adminCompTbl.innerHTML = html || '<tr><td colspan="7" class="p-4 text-center text-gray-400">No complaints.</td></tr>';
             }
 
             const adminKeyTbl = document.getElementById('adminKeyTable');
@@ -1987,46 +1887,22 @@
                 adminKeyTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No key records found.</td></tr>';
             }
 
-            const adminCompTbl = document.getElementById('adminComplaintTable');
-            if(adminCompTbl) {
+            const adminCourierTbl = document.getElementById('adminCourierTable');
+            if(adminCourierTbl) {
                 let html = '';
-                complaintsList.slice().reverse().forEach(c => {
+                couriersList.slice().reverse().forEach(c => {
                     html += '<tr>' +
-                        '<td class="p-3 font-mono text-xs text-blue-600">' + c.id + '</td>' +
                         '<td class="p-3 font-bold text-xs">' + (c.userName || c.user_name) + '</td>' +
-                        '<td class="p-3 text-xs">' + c.category + '</td>' +
-                        '<td class="p-3 text-xs"><b>' + c.title + '</b><br/><span class="text-gray-500">' + c.desc + '</span></td>' +
-                        '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ' + (c.status === 'RESOLVED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800') + '">' + c.status + '</span></td>' +
-                        '<td class="p-3 text-center">' + (c.status === 'OPEN' ? '<button onclick="adminResolveComplaint(\'' + c.id + '\')" class="bg-emerald-600 text-white px-2 py-1 rounded text-[10px] font-bold">Resolve</button>' : '<span class="text-xs text-gray-500">Resolved</span>') + '</td>' +
+                        '<td class="p-3 text-xs">' + c.date + '</td>' +
+                        '<td class="p-3 font-semibold text-blue-600 text-xs">' + c.company + '</td>' +
+                        '<td class="p-3 font-mono text-xs">' + (c.trackingNo || c.tracking_no) + '</td>' +
+                        '<td class="p-3 text-xs">From: ' + (c.fromDetails || c.from_details) + '<br/>To: ' + (c.toDetails || c.to_details) + '</td>' +
+                        '<td class="p-3 text-center"><a href="' + c.photo + '" target="_blank"><img src="' + c.photo + '" class="w-8 h-8 object-cover rounded mx-auto border" /></a></td>' +
+                        '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-800">' + c.status + '</span></td>' +
+                        '<td class="p-3 text-center"><button onclick="deleteCourierRecord(\'' + c.id + '\')" class="bg-red-600 text-white px-2 py-1 rounded text-[11px]"><i class="fa-solid fa-trash"></i></button></td>' +
                     '</tr>';
                 });
-                adminCompTbl.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No complaints.</td></tr>';
-            }
-
-            const adminCourierTbl = document.getElementById('adminCourierTable');
-            const courierUserFilter = document.getElementById('adminCourierUserFilter');
-            const selectedCourierUser = courierUserFilter ? courierUserFilter.value : 'ALL';
-
-            if(adminCourierTbl) {
-                const filteredCouriers = couriersList.filter(c => selectedCourierUser === 'ALL' || String(c.userName || c.user_name || '').trim().toLowerCase() === String(selectedCourierUser).trim().toLowerCase()).slice().reverse();
-                if(filteredCouriers.length === 0) {
-                    adminCourierTbl.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">No couriers found.</td></tr>';
-                } else {
-                    let html = '';
-                    filteredCouriers.forEach(c => {
-                        html += '<tr>' +
-                            '<td class="p-3 font-bold text-xs">' + (c.userName || c.user_name) + '</td>' +
-                            '<td class="p-3 text-xs">' + c.date + '</td>' +
-                            '<td class="p-3 font-semibold text-blue-600 text-xs">' + c.company + '</td>' +
-                            '<td class="p-3 font-mono text-xs">' + (c.trackingNo || c.tracking_no) + '</td>' +
-                            '<td class="p-3 text-xs">From: ' + (c.fromDetails || c.from_details) + '<br/>To: ' + (c.toDetails || c.to_details) + '</td>' +
-                            '<td class="p-3 text-center"><a href="' + c.photo + '" target="_blank"><img src="' + c.photo + '" class="w-8 h-8 object-cover rounded mx-auto border" /></a></td>' +
-                            '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-800">' + c.status + '</span></td>' +
-                            '<td class="p-3 text-center"><button onclick="deleteCourierRecord(\'' + c.id + '\')" class="bg-red-600 text-white px-2 py-1 rounded text-[11px]"><i class="fa-solid fa-trash"></i></button></td>' +
-                        '</tr>';
-                    });
-                    adminCourierTbl.innerHTML = html;
-                }
+                adminCourierTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No couriers found.</td></tr>';
             }
 
             const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => (o.user_name === currentUser.name || o.user === currentUser.name)).slice().reverse() : orders.slice().reverse();
