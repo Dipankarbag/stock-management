@@ -1802,10 +1802,22 @@
         }
 
         function renderAll() {
+            // Dropdown values retain karne ke liye current values store kar rahe hain
+            const currentSelectedCartItem = document.getElementById('cartItemSelect').value;
+            const currentSelectedLedgerCat = document.getElementById('ledgerCategoryFilter').value;
+            const currentSelectedUserFilter = document.getElementById('userFilterSelect').value;
+            const currentSelectedCourierUser = document.getElementById('courierSelectUser').value;
+
             populateUserItemDropdown();
             populateCategoriesDropdown();
             populateUserDropdown();
             populateCourierUserDropdown();
+
+            // Values ko wapas restore kiya taaki dropdown reset na ho
+            if(currentSelectedCartItem) document.getElementById('cartItemSelect').value = currentSelectedCartItem;
+            if(currentSelectedLedgerCat) document.getElementById('ledgerCategoryFilter').value = currentSelectedLedgerCat;
+            if(currentSelectedUserFilter) document.getElementById('userFilterSelect').value = currentSelectedUserFilter;
+            if(currentSelectedCourierUser) document.getElementById('courierSelectUser').value = currentSelectedCourierUser;
 
             const userLiveTbl = document.getElementById('userLiveCourierTable');
             if(userLiveTbl && currentUser) {
@@ -1862,9 +1874,9 @@
                     const fromDet = o.from_details || o.fromDetails || '';
                     const toDet = o.to_details || o.toDetails || '';
                     const company = o.courier_company || o.courierCompany || '';
-                    const tracking = o.tracking_no || o.trackingNo || 'PENDING ADMIN ASSIGNMENT';
+                    const tracking = o.tracking_no || o.trackingNo || '';
 
-                    const hasTracking = tracking && tracking !== 'PENDING ADMIN ASSIGNMENT';
+                    const hasTracking = tracking && tracking !== '' && tracking !== 'PENDING ADMIN ASSIGNMENT';
                     const trackingActionHtml = hasTracking ? 
                         '<span class="font-bold text-emerald-700 font-mono text-xs">' + tracking + '</span>' :
                         '<div class="flex items-center justify-center space-x-1">' +
@@ -1878,7 +1890,7 @@
                         '<td class="p-3 text-xs">' + fromDet + '</td>' +
                         '<td class="p-3 text-xs font-bold text-gray-800">' + toDet + '</td>' +
                         '<td class="p-3 text-xs text-blue-600 font-semibold">' + company + '</td>' +
-                        '<td class="p-3 font-mono text-xs font-bold text-emerald-700">' + tracking + '</td>' +
+                        '<td class="p-3 font-mono text-xs font-bold text-emerald-700">' + (hasTracking ? tracking : 'PENDING ADMIN ASSIGNMENT') + '</td>' +
                         '<td class="p-3 text-center">' + trackingActionHtml + '</td>' +
                         '<td class="p-3 text-center">' +
                             '<button onclick="deleteOutgoingParcel(\'' + parcelId + '\')" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-trash"></i></button>' +
