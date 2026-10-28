@@ -576,17 +576,17 @@
                         <div class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end shadow-inner">
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Select User</label>
-                                <select id="userFilterSelect" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm">
+                                <select id="userFilterSelect" onchange="applyUserHistoryFilter()" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm">
                                     <option value="ALL">-- All Users --</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">From Date</label>
-                                <input type="date" id="userOrderStartDate" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
+                                <input type="date" id="userOrderStartDate" onchange="applyUserHistoryFilter()" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">To Date</label>
-                                <input type="date" id="userOrderEndDate" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
+                                <input type="date" id="userOrderEndDate" onchange="applyUserHistoryFilter()" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" />
                             </div>
                             <div>
                                 <button onclick="applyUserHistoryFilter()" class="w-full bg-blue-600 text-white p-2 rounded-xl text-xs font-bold shadow btn-3d">Filter History</button>
@@ -2038,7 +2038,7 @@
             }
 
             applyLedgerFilter();
-            renderUserHistoryTableCustom(orders);
+            applyUserHistoryFilter();
 
             const adminUsersTbl = document.getElementById('adminUsersTable');
             if(adminUsersTbl) {
