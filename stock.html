@@ -775,7 +775,7 @@
                 <button onclick="closeIssuedDetailsModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <div class="overflow-x-auto max-h-72 rounded-xl border border-gray-200">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left border-collapse" id="issuedDetailsTableElement">
                     <thead>
                         <tr class="bg-slate-100 text-gray-700 text-[11px] uppercase border-b">
                             <th class="p-3">Issued To (User)</th>
@@ -788,7 +788,11 @@
                     <tbody id="issuedDetailsTable" class="text-xs divide-y bg-white"></tbody>
                 </table>
             </div>
-            <div class="flex justify-end pt-2 border-t">
+            <div class="flex justify-between items-center pt-2 border-t">
+                <div class="space-x-2">
+                    <button onclick="printIssuedDetails()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow"><i class="fa-solid fa-print mr-1"></i> Print</button>
+                    <button onclick="exportIssuedDetailsCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow"><i class="fa-solid fa-file-excel mr-1"></i> Export CSV</button>
+                </div>
                 <button onclick="closeIssuedDetailsModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-xl text-xs shadow">Close</button>
             </div>
         </div>
@@ -804,7 +808,7 @@
                 <button onclick="closeReceivedDetailsModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <div class="overflow-x-auto max-h-72 rounded-xl border border-gray-200">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left border-collapse" id="receivedDetailsTableElement">
                     <thead>
                         <tr class="bg-slate-100 text-gray-700 text-[11px] uppercase border-b">
                             <th class="p-3">Received By</th>
@@ -816,7 +820,11 @@
                     <tbody id="receivedDetailsTable" class="text-xs divide-y bg-white"></tbody>
                 </table>
             </div>
-            <div class="flex justify-end pt-2 border-t">
+            <div class="flex justify-between items-center pt-2 border-t">
+                <div class="space-x-2">
+                    <button onclick="printReceivedDetails()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow"><i class="fa-solid fa-print mr-1"></i> Print</button>
+                    <button onclick="exportReceivedDetailsCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow"><i class="fa-solid fa-file-excel mr-1"></i> Export CSV</button>
+                </div>
                 <button onclick="closeReceivedDetailsModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-xl text-xs shadow">Close</button>
             </div>
         </div>
@@ -1304,6 +1312,30 @@
 
         function closeReceivedDetailsModal() { activeReceivedItemId = null; document.getElementById('receivedDetailsModal').classList.add('hidden'); }
 
+        function printReceivedDetails() {
+            const printContent = document.getElementById('receivedDetailsModal').innerHTML;
+            const originalContent = document.body.innerHTML;
+            document.body.innerHTML = '<div><h2>Stock Received Logs Breakdown</h2>' + printContent + '</div>';
+            window.print();
+            document.body.innerHTML = originalContent;
+            location.reload();
+        }
+
+        function exportReceivedDetailsCSV() {
+            const logsForNext = receivedLogs.filter(l => String(l.item_id !== undefined ? l.item_id : l.itemId) === String(activeReceivedItemId));
+            let csv = 'Receiver Name,Quantity,Date,Time\n';
+            logsForNext.forEach(l => {
+                csv += `"${l.receiver_name || l.user || 'Admin'}","${l.qty}","${l.date_only || l.dateOnly || ''}","${l.time_str || l.time || ''}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', 'stock_received_breakdown.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function showIssuedBreakdown(itemId) {
             activeIssuedItemId = itemId;
             const item = inventory.find(i => String(i.item_id !== undefined ? i.item_id : i.id) === String(itemId));
@@ -1331,6 +1363,30 @@
         }
 
         function closeIssuedDetailsModal() { activeIssuedItemId = null; document.getElementById('issuedDetailsModal').classList.add('hidden'); }
+
+        function printIssuedDetails() {
+            const printContent = document.getElementById('issuedDetailsModal').innerHTML;
+            const originalContent = document.body.innerHTML;
+            document.body.innerHTML = '<div><h2>Issued Stock Details Breakdown</h2>' + printContent + '</div>';
+            window.print();
+            document.body.innerHTML = originalContent;
+            location.reload();
+        }
+
+        function exportIssuedDetailsCSV() {
+            const itemIssuedOrders = orders.filter(o => String(o.item_id !== undefined ? o.item_id : o.itemId) === String(activeIssuedItemId) && o.status === 'ISSUED');
+            let csv = 'Issued To,Issued By,Quantity,Date,Time\n';
+            itemIssuedOrders.forEach(o => {
+                csv += `"${o.user_name || o.user}","${o.issuer_name || o.issuer || 'System Admin'}","${o.qty}","${o.date_only || o.dateOnly || ''}","${o.time_str || o.time || ''}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', 'issued_stock_breakdown.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
 
         function populateCourierUserDropdown() {
             const select = document.getElementById('courierSelectUser');
@@ -1794,7 +1850,7 @@
                 }
             }
 
-            // ADMIN OUTGOING PARCELS TABLE FIX
+            // ADMIN OUTGOING PARCELS TABLE (FIXED TRACKING NUMBER BUG)
             const adminOutTbl = document.getElementById('adminOutgoingTable');
             if(adminOutTbl) {
                 let html = '';
@@ -1807,6 +1863,14 @@
                     const company = o.courier_company || o.courierCompany || '';
                     const tracking = o.tracking_no || o.trackingNo || 'PENDING ADMIN ASSIGNMENT';
 
+                    const hasTracking = tracking && tracking !== 'PENDING ADMIN ASSIGNMENT';
+                    const trackingActionHtml = hasTracking ? 
+                        '<span class="font-bold text-emerald-700 font-mono text-xs">' + tracking + '</span>' :
+                        '<div class="flex items-center justify-center space-x-1">' +
+                            '<input type="text" id="trackInput_' + parcelId + '" placeholder="Enter Tracking No" class="border rounded px-2 py-1 text-xs w-28 bg-white" />' +
+                            '<button onclick="adminUpdateTracking(\'' + parcelId + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-[10px] font-bold">Save</button>' +
+                        '</div>';
+
                     html += '<tr>' +
                         '<td class="p-3 font-bold text-xs">' + uName + '</td>' +
                         '<td class="p-3 text-xs">' + date + '</td>' +
@@ -1814,12 +1878,9 @@
                         '<td class="p-3 text-xs font-bold text-gray-800">' + toDet + '</td>' +
                         '<td class="p-3 text-xs text-blue-600 font-semibold">' + company + '</td>' +
                         '<td class="p-3 font-mono text-xs font-bold text-emerald-700">' + tracking + '</td>' +
-                        '<td class="p-3 text-center space-x-1">' +
-                            '<input type="text" id="trackInput_' + parcelId + '" placeholder="Enter Tracking No" class="border rounded px-2 py-1 text-xs w-28" />' +
-                            '<button onclick="adminUpdateTracking(\'' + parcelId + '\')" class="bg-blue-600 text-white px-2.5 py-1 rounded text-[10px] font-bold">Save</button>' +
-                        '</td>' +
+                        '<td class="p-3 text-center">' + trackingActionHtml + '</td>' +
                         '<td class="p-3 text-center">' +
-                            '<button onclick="deleteOutgoingParcel(\'' + parcelId + '\')" class="bg-red-600 text-white px-2.5 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-trash"></i></button>' +
+                            '<button onclick="deleteOutgoingParcel(\'' + parcelId + '\')" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-trash"></i></button>' +
                         '</td>' +
                     '</tr>';
                 });
@@ -1889,7 +1950,7 @@
                         '<td class="p-3 text-xs text-gray-600">' + location + '</td>' +
                         '<td class="p-3 text-xs">' + date + '</td>' +
                         '<td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ' + (status === 'RESOLVED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800') + '">' + status + '</span></td>' +
-                        '<td class="p-3 text-center">' + (status !== 'RESOLVED' ? '<button onclick="adminResolveComplaint(\'' + compId + '\')" class="bg-emerald-600 text-white px-2 py-1 rounded text-[10px] font-bold">Mark Resolved</button>' : '<span class="text-xs text-gray-500 font-bold">Resolved</span>') + '</td>' +
+                        '<td class="p-3 text-center">' + (status !== 'RESOLVED' ? '<button onclick="adminResolveComplaint(\'' + compId + '\')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded text-[10px] font-bold">Mark Resolved</button>' : '<span class="text-xs text-gray-500 font-bold">Resolved</span>') + '</td>' +
                     '</tr>';
                 });
                 adminCompTbl.innerHTML = html || '<tr><td colspan="7" class="p-4 text-center text-gray-400">No complaints.</td></tr>';
