@@ -14,17 +14,3 @@
     "pg": "^8.11.5"
   }
 }
-// Example backend fix for updating tracking number permanently
-app.post('/api/outgoing/update-tracking', (req, res) => {
-    const { id, trackingNo } = req.body;
-    // Yahan ensure karein ki database ya array mein tracking number properly update hokar save ho raha hai
-    const parcel = outgoingParcels.find(p => p.id === id);
-    if (parcel) {
-        parcel.tracking_no = trackingNo;
-        parcel.trackingNo = trackingNo;
-        // Save to DB / file code here...
-        res.json({ success: true });
-    } else {
-        res.status(404).json({ success: false, message: "Parcel not found" });
-    }
-});
