@@ -775,7 +775,7 @@
                 <button onclick="closeIssuedDetailsModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <div class="overflow-x-auto max-h-72 rounded-xl border border-gray-200">
-                <table class="w-full text-left border-collapse" id="issuedDetailsTableElement">
+                <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-100 text-gray-700 text-[11px] uppercase border-b">
                             <th class="p-3">Issued To (User)</th>
@@ -808,7 +808,7 @@
                 <button onclick="closeReceivedDetailsModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <div class="overflow-x-auto max-h-72 rounded-xl border border-gray-200">
-                <table class="w-full text-left border-collapse" id="receivedDetailsTableElement">
+                <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-100 text-gray-700 text-[11px] uppercase border-b">
                             <th class="p-3">Received By</th>
@@ -1632,6 +1632,7 @@
                 optionsHtml += '<option value="' + c + '" ' + (currentVal === c ? 'selected' : '') + '>' + c + '</option>';
             });
             select.innerHTML = optionsHtml;
+            select.value = currentVal;
         }
 
         function applyLedgerFilter() {
