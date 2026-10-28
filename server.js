@@ -288,7 +288,7 @@ app.post('/api/users/register', async (req, res) => {
     }
 });
 
-// COMPLAINTS API (MATCHING SCHEMA: complaint_id, user_name, issue, location, status, date)
+// COMPLAINTS API
 app.post('/api/complaints/add', async (req, res) => {
     const { userName, issue, location } = req.body;
     try {
@@ -562,6 +562,7 @@ app.post('/api/outgoing/request', async (req, res) => {
     }
 });
 
+// OUTGOING PARCEL TRACKING UPDATE (REFINED FOR RELIABLE PERSISTENCE)
 app.post('/api/outgoing/update-tracking', async (req, res) => {
     const { id, trackingNo, courierCompany } = req.body;
     try {
@@ -570,10 +571,15 @@ app.post('/api/outgoing/update-tracking', async (req, res) => {
             SET tracking_no = $1, courier_company = COALESCE($2, courier_company), status = 'DISPATCHED' 
             WHERE id = $3 
             RETURNING *;
-        `, [trackingNo, courierCompany, id]);
-        res.json({ success: true, parcel: result.rows[0] });
+        `, [trackingNo, courierCompany || null, id]);
+
+        if (result.rows && result.rows.length > 0) {
+            res.json({ success: true, parcel: result.rows[0] });
+        } else {
+            res.status(404).json({ success: false, message: "Outgoing parcel request not found" });
+        }
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
