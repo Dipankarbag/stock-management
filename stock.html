@@ -721,6 +721,7 @@
                         </div>
                     </div>
 
+                    <!-- ADMIN COMPLAINTS MANAGEMENT -->
                     <div id="tabComplaints" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
                         <div class="flex justify-between items-center border-b pb-3">
                             <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-triangle-exclamation"></i></div> User Complaints & Issues Resolution</h2>
@@ -1793,6 +1794,38 @@
                 }
             }
 
+            // ADMIN OUTGOING PARCELS TABLE FIX
+            const adminOutTbl = document.getElementById('adminOutgoingTable');
+            if(adminOutTbl) {
+                let html = '';
+                outgoingParcelsList.slice().reverse().forEach(o => {
+                    const parcelId = o.id;
+                    const uName = o.user_name || o.userName || '';
+                    const date = o.date || '';
+                    const fromDet = o.from_details || o.fromDetails || '';
+                    const toDet = o.to_details || o.toDetails || '';
+                    const company = o.courier_company || o.courierCompany || '';
+                    const tracking = o.tracking_no || o.trackingNo || 'PENDING ADMIN ASSIGNMENT';
+
+                    html += '<tr>' +
+                        '<td class="p-3 font-bold text-xs">' + uName + '</td>' +
+                        '<td class="p-3 text-xs">' + date + '</td>' +
+                        '<td class="p-3 text-xs">' + fromDet + '</td>' +
+                        '<td class="p-3 text-xs font-bold text-gray-800">' + toDet + '</td>' +
+                        '<td class="p-3 text-xs text-blue-600 font-semibold">' + company + '</td>' +
+                        '<td class="p-3 font-mono text-xs font-bold text-emerald-700">' + tracking + '</td>' +
+                        '<td class="p-3 text-center space-x-1">' +
+                            '<input type="text" id="trackInput_' + parcelId + '" placeholder="Enter Tracking No" class="border rounded px-2 py-1 text-xs w-28" />' +
+                            '<button onclick="adminUpdateTracking(\'' + parcelId + '\')" class="bg-blue-600 text-white px-2.5 py-1 rounded text-[10px] font-bold">Save</button>' +
+                        '</td>' +
+                        '<td class="p-3 text-center">' +
+                            '<button onclick="deleteOutgoingParcel(\'' + parcelId + '\')" class="bg-red-600 text-white px-2.5 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-trash"></i></button>' +
+                        '</td>' +
+                    '</tr>';
+                });
+                adminOutTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No outgoing parcel requests found.</td></tr>';
+            }
+
             const userKeyTbl = document.getElementById('userKeyTable');
             if(userKeyTbl && currentUser) {
                 const myKeys = keysList.filter(k => String(k.userName || k.user_name || '').trim().toLowerCase() === String(currentUser.name).trim().toLowerCase()).slice().reverse();
@@ -1899,34 +1932,6 @@
                     '</tr>';
                 });
                 adminCourierTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No couriers found.</td></tr>';
-            }
-
-            // ADMIN OUTGOING PARCELS TABLE (FIXED)
-            const adminOutgoingTbl = document.getElementById('adminOutgoingTable');
-            if(adminOutgoingTbl) {
-                let html = '';
-                outgoingParcelsList.slice().reverse().forEach(o => {
-                    const trackingNo = o.tracking_no || o.trackingNo || '';
-                    const isPending = !trackingNo || trackingNo === 'PENDING ADMIN ASSIGNMENT';
-                    html += '<tr>' +
-                        '<td class="p-3 font-bold text-xs">' + (o.user_name || o.userName) + '</td>' +
-                        '<td class="p-3 text-xs">' + o.date + '</td>' +
-                        '<td class="p-3 text-xs">' + (o.from_details || o.fromDetails) + '</td>' +
-                        '<td class="p-3 text-xs font-bold text-gray-800">' + (o.to_details || o.toDetails) + '</td>' +
-                        '<td class="p-3 text-xs font-semibold text-blue-600">' + (o.courier_company || o.courierCompany) + '</td>' +
-                        '<td class="p-3 font-mono text-xs text-emerald-700 font-bold">' + trackingNo + '</td>' +
-                        '<td class="p-3 text-center">' +
-                            '<div class="flex space-x-1 justify-center items-center">' +
-                                '<input type="text" id="trackInput_' + o.id + '" placeholder="Enter tracking no" value="' + (isPending ? '' : trackingNo) + '" class="border rounded px-2 py-1 text-xs w-32" />' +
-                                '<button onclick="adminUpdateTracking(\'' + o.id + '\')" class="bg-blue-600 text-white px-2.5 py-1 rounded text-xs font-bold">Save</button>' +
-                            '</div>' +
-                        '</td>' +
-                        '<td class="p-3 text-center">' +
-                            '<button onclick="deleteOutgoingParcel(\'' + o.id + '\')" class="bg-red-600 text-white px-2 py-1 rounded text-[11px] font-bold"><i class="fa-solid fa-trash"></i></button>' +
-                        '</td>' +
-                    '</tr>';
-                });
-                adminOutgoingTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No outgoing parcels pending.</td></tr>';
             }
 
             const userOrders = currentUser && currentUser.role === 'USER' ? orders.filter(o => (o.user_name === currentUser.name || o.user === currentUser.name)).slice().reverse() : orders.slice().reverse();
