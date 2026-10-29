@@ -673,6 +673,30 @@
                             </div>
                             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d">Assign & Send Live Courier</button>
                         </form>
+
+                        <!-- COURIER HANDOVER HISTORY TABLE -->
+                        <div class="pt-4 border-t border-gray-200">
+                            <h3 class="font-bold text-gray-800 text-xs mb-3 flex items-center"><i class="fa-solid fa-clock-rotate-left text-blue-600 mr-2"></i> Courier Handover History & Records</h3>
+                            <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-gray-600 text-[11px] uppercase border-b">
+                                            <th class="p-3">User Name</th>
+                                            <th class="p-3">Date</th>
+                                            <th class="p-3">Courier Company</th>
+                                            <th class="p-3 font-mono">Tracking No</th>
+                                            <th class="p-3">Route Details</th>
+                                            <th class="p-3 text-center">Photo</th>
+                                            <th class="p-3 text-center">Status</th>
+                                            <th class="p-3 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adminCourierTable" class="text-xs divide-y bg-white">
+                                        <tr><td colspan="8" class="p-4 text-center text-gray-400">No couriers assigned yet.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="tabOutgoing" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
@@ -1863,15 +1887,17 @@
                 }
             }
 
-            // ADMIN OUTGOING PARCELS TABLE (FIXED TRACKING NUMBER BUG)
+            // ADMIN OUTGOING PARCELS TABLE (FIXED: FOCUS & UNWANTED INPUT RESET PREVENTION)
             const adminOutTbl = document.getElementById('adminOutgoingTable');
             if(adminOutTbl) {
-                // Preserve unsaved input values during auto-refresh
+                const activeEl = document.activeElement;
+                const activeInputId = (activeEl && activeEl.id && activeEl.id.startsWith('trackInput_')) ? activeEl.id : null;
+                const activeSelectionStart = activeInputId ? activeEl.selectionStart : null;
+                const activeSelectionEnd = activeInputId ? activeEl.selectionEnd : null;
+
                 const activeTrackInputs = {};
                 document.querySelectorAll('[id^="trackInput_"]').forEach(inp => {
-                    if (inp.value) {
-                        activeTrackInputs[inp.id] = inp.value;
-                    }
+                    activeTrackInputs[inp.id] = inp.value;
                 });
 
                 let html = '';
@@ -1884,12 +1910,14 @@
                     const company = o.courier_company || o.courierCompany || '';
                     const tracking = o.tracking_no || o.trackingNo || '';
 
-                    const existingInputValue = activeTrackInputs['trackInput_' + parcelId] || '';
+                    const inputId = 'trackInput_' + parcelId;
+                    const existingInputValue = activeTrackInputs[inputId] !== undefined ? activeTrackInputs[inputId] : '';
                     const hasTracking = tracking && tracking !== '' && tracking !== 'PENDING ADMIN ASSIGNMENT';
+                    
                     const trackingActionHtml = hasTracking ? 
                         '<span class="font-bold text-emerald-700 font-mono text-xs">' + tracking + '</span>' :
                         '<div class="flex items-center justify-center space-x-1">' +
-                            '<input type="text" id="trackInput_' + parcelId + '" value="' + existingInputValue + '" placeholder="Enter Tracking No" class="border rounded px-2 py-1 text-xs w-28 bg-white" />' +
+                            '<input type="text" id="' + inputId + '" value="' + existingInputValue.replace(/"/g, '&quot;') + '" placeholder="Enter Tracking No" class="border rounded px-2 py-1 text-xs w-28 bg-white" />' +
                             '<button onclick="adminUpdateTracking(\'' + parcelId + '\')" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-[10px] font-bold">Save</button>' +
                         '</div>';
 
@@ -1906,7 +1934,18 @@
                         '</td>' +
                     '</tr>';
                 });
+
                 adminOutTbl.innerHTML = html || '<tr><td colspan="8" class="p-4 text-center text-gray-400">No outgoing parcel requests found.</td></tr>';
+
+                if (activeInputId) {
+                    const restoredInput = document.getElementById(activeInputId);
+                    if (restoredInput) {
+                        restoredInput.focus();
+                        if (activeSelectionStart !== null && activeSelectionEnd !== null) {
+                            try { restoredInput.setSelectionRange(activeSelectionStart, activeSelectionEnd); } catch(e) {}
+                        }
+                    }
+                }
             }
 
             const userKeyTbl = document.getElementById('userKeyTable');
