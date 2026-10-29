@@ -482,7 +482,6 @@
                         <button onclick="switchAdminTab('users')" id="tabUsersBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-users mr-2.5 w-4"></i>Registered Users Control</button>
                         <button onclick="switchAdminTab('courier')" id="tabCourierBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-truck-fast mr-2.5 w-4"></i>Assign Courier</button>
                         <button onclick="switchAdminTab('outgoing')" id="tabOutgoingBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-paper-plane mr-2.5 w-4"></i>Outgoing Parcels</button>
-                        <button onclick="switchAdminTab('gatepass')" id="tabGatepassBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-file-shield mr-2.5 w-4"></i>Gate Pass (NRGP/RGP)</button>
                         <button onclick="switchAdminTab('keys')" id="tabKeysBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-key mr-2.5 w-4"></i>Key Management</button>
                         <button onclick="switchAdminTab('complaints')" id="tabComplaintsBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-triangle-exclamation mr-2.5 w-4"></i>Complaints Management</button>
                         <button onclick="switchAdminTab('logs')" id="tabLogsBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-user-clock mr-2.5 w-4"></i>System Activity Logs</button>
@@ -696,64 +695,6 @@
                                 </thead>
                                 <tbody id="adminOutgoingTable" class="text-xs divide-y bg-white"></tbody>
                             </table>
-                        </div>
-                    </div>
-
-                    <!-- GATE PASS (NRGP & RGP) TAB -->
-                    <div id="tabGatepass" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-6">
-                        <div class="flex justify-between items-center border-b pb-3">
-                            <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-file-shield"></i></div> Gate Pass Generation (NRGP & RGP)</h2>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- NRGP Card -->
-                            <div class="bg-slate-50 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
-                                <h3 class="font-bold text-blue-700 text-sm flex items-center"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Non-Returnable Gate Pass (NRGP)</h3>
-                                <p class="text-xs text-gray-500">For items going out permanently (Finished Goods Sale, Scrap, Plant Transfer, etc.).</p>
-                                <div class="space-y-3">
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Company / Party Name</label>
-                                        <input type="text" id="nrgpParty" placeholder="e.g. Buyer / Client Name" class="w-full border rounded-xl p-2 text-xs bg-white" />
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Item Description & Qty</label>
-                                        <input type="text" id="nrgpItem" placeholder="e.g. Copper Scrap 100kg" class="w-full border rounded-xl p-2 text-xs bg-white" />
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Movement Type</label>
-                                        <select id="nrgpType" class="w-full border rounded-xl p-2 text-xs bg-white">
-                                            <option value="Finished Goods Sale">Finished Goods Sale</option>
-                                            <option value="Scrap Disposal">Scrap Disposal</option>
-                                            <option value="Sample / Gift">Sample / Gift</option>
-                                            <option value="Stock Plant-Transfer">Stock Plant-Transfer</option>
-                                            <option value="Asset Write-off">Asset Write-off</option>
-                                            <option value="Disposed Damage">Disposed Damage</option>
-                                        </select>
-                                    </div>
-                                    <button onclick="generateNRGP()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs btn-3d"><i class="fa-solid fa-print mr-1"></i> Generate & Print NRGP</button>
-                                </div>
-                            </div>
-
-                            <!-- RGP Card -->
-                            <div class="bg-slate-50 p-5 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
-                                <h3 class="font-bold text-emerald-700 text-sm flex items-center"><i class="fa-solid fa-rotate-left mr-2"></i> Returnable Gate Pass (RGP)</h3>
-                                <p class="text-xs text-gray-500">For items going out temporarily and returning back (Repair, Calibration, Job Work, etc.).</p>
-                                <div class="space-y-3">
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Vendor / Party Name</label>
-                                        <input type="text" id="rgpParty" placeholder="e.g. Repair Vendor Name" class="w-full border rounded-xl p-2 text-xs bg-white" />
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Item Description & Serial/Model</label>
-                                        <input type="text" id="rgpItem" placeholder="e.g. Testing Machine / Serial #1234" class="w-full border rounded-xl p-2 text-xs bg-white" />
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Expected Return Date</label>
-                                        <input type="date" id="rgpReturnDate" class="w-full border rounded-xl p-2 text-xs bg-white" />
-                                    </div>
-                                    <button onclick="generateRGP()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow"><i class="fa-solid fa-print mr-1"></i> Generate & Print RGP</button>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -1156,7 +1097,7 @@
         }
 
         function switchAdminTab(tab) {
-            ['requests', 'stock', 'userOrders', 'users', 'courier', 'outgoing', 'gatepass', 'keys', 'complaints', 'logs'].forEach(t => {
+            ['requests', 'stock', 'userOrders', 'users', 'courier', 'outgoing', 'keys', 'complaints', 'logs'].forEach(t => {
                 const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
                 const btnEl = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
                 if(el) el.classList.add('hidden');
@@ -1173,161 +1114,6 @@
                 targetBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
             }
             fetchAppState();
-        }
-
-        // GATE PASS GENERATION FUNCTIONS (NRGP & RGP)
-        function generateNRGP() {
-            const party = document.getElementById('nrgpParty').value.trim() || '---';
-            const item = document.getElementById('nrgpItem').value.trim() || '---';
-            const mType = document.getElementById('nrgpType').value;
-            const passNo = 'NRGP-' + Math.floor(1000 + Math.random() * 9000);
-            const currentDate = new Date().toISOString().split('T')[0];
-
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head><title>Non-Returnable Gate Pass (NRGP)</title></head>
-                <body style="font-family: monospace; font-size: 12px; padding: 20px;">
-                    <pre>
-================================================================================
-                                 [COMPANY NAME]
-                      [Company Address, City, State, Pin Code]
-                                CIN / GST No: ----------------
-================================================================================
-                          NON-RETURNABLE GATE PASS (NRGP)
-
-Pass No: ${passNo}                                Date: ${currentDate}
-Department: Operations                             Time Out: ____:____ AM/PM
-Sender Name/ID: ${currentUser ? currentUser.name : 'Admin'}                      Linked Ref Type: [ ] Invoice [ ]
-
---------------------------------------------------------------------------------
-1. CONSIGNEE / BUYER DETAILS
---------------------------------------------------------------------------------
-Dispatched To (Party Name): ${party}
-Delivery Address: ______________________________________________________________
-GSTIN of Receiving Party: ______________________________________________________
-
---------------------------------------------------------------------------------
-2. MANDATORY TAX / COMPLIANCE REFERENCES
---------------------------------------------------------------------------------
-Tax Invoice / Delivery Challan No: _________________ Date: ______/______/2026
-E-Way Bill Number (if applicable): _________________ Value (INR): ______________
-
---------------------------------------------------------------------------------
-3. LOGISTICS & TRANSPORTER DETAILS
---------------------------------------------------------------------------------
-Transporter Name: __________________________ LR / GR No: ______________________
-Vehicle Number: ____________________________ Driver Name: ____________________
-Driver Phone Number: _______________________
-
---------------------------------------------------------------------------------
-4. MATERIAL / ITEM DESCRIPTION
---------------------------------------------------------------------------------
-Sr. | Material / Item Description        | HSN Code | Qty | Unit | Total Value (₹)
-----|------------------------------------|----------|-----|------|----------------
- 1  | ${item.padEnd(34, ' ')} |          |  1  | pcs  |               
---------------------------------------------------------------------------------
-Movement Type: [X] ${mType}
-               [ ] Stock Plant-Transfer    [ ] Scrap Disposal  [ ] Sample / Gift
-                                           [ ] Asset Write-off [ ] Disposed Damage
-
---------------------------------------------------------------------------------
-5. AUTHORIZATIONS & SIGNATURES
---------------------------------------------------------------------------------
-
-
-___________________________     ___________________________     ________________
-   Prepared By (Store)             Department Head             Finance / Plant Head
-
---------------------------------------------------------------------------------
-6. SECURITY CHECKPOINT VERIFICATION (AT EXIT GATE)
---------------------------------------------------------------------------------
-Verified Invoice & E-Way Bill: [ ] Yes  [ ] No
-Gross/Weighbridge Weight (For Scrap): _______________ kg
-Security Guard Name & Sign: _____________________  Driver Signature: _____________
-                    </pre>
-                    <script>window.print();</script>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-        }
-
-        function generateRGP() {
-            const party = document.getElementById('rgpParty').value.trim() || '---';
-            const item = document.getElementById('rgpItem').value.trim() || '---';
-            const returnDate = document.getElementById('rgpReturnDate').value || '2026-12-31';
-            const passNo = 'RGP-' + Math.floor(1000 + Math.random() * 9000);
-            const currentDate = new Date().toISOString().split('T')[0];
-
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head><title>Returnable Gate Pass (RGP)</title></head>
-                <body style="font-family: monospace; font-size: 12px; padding: 20px;">
-                    <pre>
-================================================================================
-                                 [COMPANY NAME]
-                      [Company Address, City, State, Pin Code]
-                                CIN / GST No: ----------------
-================================================================================
-                            RETURNABLE GATE PASS (RGP)
-
-Pass No: ${passNo}                                Date: ${currentDate}
-Department: Operations                             Time Out: ____:____ AM/PM
-Requested By (Employee): ${currentUser ? currentUser.name : 'Admin'}             Expected Return Date: ${returnDate}
-
---------------------------------------------------------------------------------
-1. RECEIVER / VENDOR DETAILS
---------------------------------------------------------------------------------
-Sent To (Party/Vendor Name): ${party}
-Full Delivery Address: _________________________________________________________
-Contact Person Name & Phone: ___________________________________________________
-
---------------------------------------------------------------------------------
-2. LOGISTICS & TRANSPORTATION DETAILS
---------------------------------------------------------------------------------
-Mode of Transport: [ ] Courier  [ ] Company Vehicle  [ ] Third-Party Transport
-Vehicle Number: ____________________________ Driver Name: ____________________
-Driver License / Phone No: __________________ Challan/Document No: _______________
-
---------------------------------------------------------------------------------
-3. MATERIAL / ITEM DESCRIPTION
---------------------------------------------------------------------------------
-Sr. | Material / Item Description        | HSN Code | Qty | Unit | Serial No / Model
-----|------------------------------------|----------|-----|------|------------------
- 1  | ${item.padEnd(34, ' ')} |          |  1  | pcs  |                  
---------------------------------------------------------------------------------
-Purpose of Removal: [X] Repair & Service  [ ] Calibration  [ ] Demonstration
-                    [ ] Job Work          [ ] Loan         [ ] Others: _________
-
-Detailed Reason/Remarks: _______________________________________________________
-
---------------------------------------------------------------------------------
-4. AUTHORIZATIONS & SIGNATURES
---------------------------------------------------------------------------------
-
-
-___________________________     ___________________________     ________________
-   Prepared By (Staff)             Department Head             Plant / Admin Head
-
---------------------------------------------------------------------------------
-5. SECURITY CHECKPOINT VERIFICATION (AT EXIT GATE)
---------------------------------------------------------------------------------
-Actual Time Out: ______:______ AM/PM               Gate Keeper Name: ___________
-Security Guard Signature: ______________________   Driver Signature: ___________
-
-================================================================================
-*FOR INTERNAL SECURITY USE ONLY UPON RETURN*
-Actual Return Date: ______/______/2026              Actual Time In: ____:____ AM/PM
-Status of Material: [ ] Fully Returned  [ ] Partially Returned  [ ] Damaged
-Security Sign (Inward Gate): ___________________________________________________
-                    </pre>
-                    <script>window.print();</script>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
         }
 
         function handleOutgoingParcelSubmit(e) {
