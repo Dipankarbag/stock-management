@@ -192,24 +192,6 @@ async function initDB() {
             );
         `);
 
-        await db.query(`
-            DO $$ 
-            BEGIN 
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory' and column_name='unit') THEN
-                    ALTER TABLE inventory ADD COLUMN unit VARCHAR(20) DEFAULT 'pcs';
-                END IF;
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory' and column_name='received') THEN
-                    ALTER TABLE inventory ADD COLUMN received INT DEFAULT 0;
-                END IF;
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory' and column_name='issued') THEN
-                    ALTER TABLE inventory ADD COLUMN issued INT DEFAULT 0;
-                END IF;
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory' and column_name='opening') THEN
-                    ALTER TABLE inventory ADD COLUMN opening INT DEFAULT 0;
-                END IF;
-            END $$;
-        `);
-
         const adminCheck = await db.query("SELECT * FROM users WHERE role = 'ADMIN'");
         if (adminCheck.rows.length === 0) {
             await db.query(`
