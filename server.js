@@ -160,7 +160,7 @@ async function initDB() {
             CREATE TABLE IF NOT EXISTS material_inward (
                 id VARCHAR(50) PRIMARY KEY,
                 gate_no VARCHAR(50),
-                desc TEXT,
+                description TEXT,
                 qty VARCHAR(50),
                 party VARCHAR(100),
                 doc_no VARCHAR(100),
@@ -174,7 +174,7 @@ async function initDB() {
                 id VARCHAR(50) PRIMARY KEY,
                 type VARCHAR(20),
                 location VARCHAR(100),
-                desc TEXT,
+                description TEXT,
                 qty VARCHAR(50),
                 item_no VARCHAR(50),
                 requester VARCHAR(100),
@@ -654,7 +654,7 @@ app.delete('/api/outgoing/delete/:id', async (req, res) => {
     }
 });
 
-// NEW APIS FOR BILL TRACKING, MATERIAL INWARD, GATE PASS & FEATURE ACCESS
+// APIS FOR BILL TRACKING, MATERIAL INWARD, GATE PASS & FEATURE ACCESS
 app.post('/api/bills/add', async (req, res) => {
     const { id, recDate, vendor, handover, billNo, billDate, amount, remark, status, mode } = req.body;
     try {
@@ -696,7 +696,7 @@ app.post('/api/inward/add', async (req, res) => {
             }
         }
         const query = `
-            INSERT INTO material_inward (id, gate_no, desc, qty, party, doc_no, mode, receiver, photo, timestamp)
+            INSERT INTO material_inward (id, gate_no, description, qty, party, doc_no, mode, receiver, photo, timestamp)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING *;
         `;
@@ -733,7 +733,7 @@ app.post('/api/gatepass/add', async (req, res) => {
             }
         }
         const query = `
-            INSERT INTO gate_pass (id, type, location, desc, qty, item_no, requester, receiver_mobile, security, photo, approval)
+            INSERT INTO gate_pass (id, type, location, description, qty, item_no, requester, receiver_mobile, security, photo, approval)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             RETURNING *;
         `;
