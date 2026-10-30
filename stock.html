@@ -1407,7 +1407,17 @@
                 userFeatureAccess[userId] = { bill: false, inward: false, gate: false };
             }
             userFeatureAccess[userId][feature] = !userFeatureAccess[userId][feature];
-            renderAll();
+
+            fetch('/api/feature-access/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: userId,
+                    bill: userFeatureAccess[userId].bill,
+                    inward: userFeatureAccess[userId].inward,
+                    gate: userFeatureAccess[userId].gate
+                })
+            }).then(() => fetchAppState());
         }
 
         function handleOutgoingParcelSubmit(e) {
@@ -2043,6 +2053,10 @@
                     if(data.outgoingParcels) outgoingParcelsList = data.outgoingParcels;
                     if(data.keys) keysList = data.keys;
                     if(data.complaints) complaintsList = data.complaints;
+                    if(data.billTracking) billTrackingList = data.billTracking;
+                    if(data.materialInward) materialInwardList = data.materialInward;
+                    if(data.gatePass) gatePassList = data.gatePass;
+                    if(data.featureAccess) userFeatureAccess = data.featureAccess; // <--- Sync added
                     renderAll();
                 });
         }
@@ -2067,7 +2081,7 @@
 
             // Render User Navigation Access for 3 New Features based on Admin Permission
             if (currentUser && currentUser.role !== 'ADMIN') {
-                const access = userFeatureAccess[currentUser.userId] || { bill: false, inward: false, gate: false };
+                const access = userFeatureAccess[currentUser.user_id || currentUser.userId] || { bill: false, inward: false, gate: false };
                 document.getElementById('userTabBillBtn').classList.toggle('hidden', !access.bill);
                 document.getElementById('userTabInwardBtn').classList.toggle('hidden', !access.inward);
                 document.getElementById('userTabGateBtn').classList.toggle('hidden', !access.gate);
@@ -2079,7 +2093,7 @@
                 let html = '';
                 billTrackingList.slice().reverse().forEach(b => {
                     html += `<tr>
-                        <td class="p-3">${b.recDate}</td><td class="p-3 font-bold">${b.vendor}</td><td class="p-3">${b.handover}</td><td class="p-3">${b.billNo}</td><td class="p-3">${b.billDate}</td><td class="p-3 text-blue-600 font-bold">${b.amount}</td><td class="p-3">${b.remark}</td><td class="p-3 text-center"><span class="px-2 py-1 rounded text-[10px] font-bold ${b.status==='Paid'?'bg-green-100 text-green-800':'bg-amber-100 text-amber-800'}">${b.status}</span></td><td class="p-3">${b.mode}</td>
+                        <td class="p-3">${b.recDate || b.rec_date}</td><td class="p-3 font-bold">${b.vendor}</td><td class="p-3">${b.handover}</td><td class="p-3">${b.billNo || b.bill_no}</td><td class="p-3">${b.billDate || b.bill_date}</td><td class="p-3 text-blue-600 font-bold">${b.amount}</td><td class="p-3">${b.remark}</td><td class="p-3 text-center"><span class="px-2 py-1 rounded text-[10px] font-bold ${b.status==='Paid'?'bg-green-100 text-green-800':'bg-amber-100 text-amber-800'}">${b.status}</span></td><td class="p-3">${b.mode}</td>
                         <td class="p-3 text-center"><button onclick="deleteBillRecord('${b.id}')" class="bg-red-600 text-white px-2 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-trash"></i></button></td>
                     </tr>`;
                 });
@@ -2091,7 +2105,7 @@
                 let html = '';
                 billTrackingList.slice().reverse().forEach(b => {
                     html += `<tr>
-                        <td class="p-3">${b.recDate}</td><td class="p-3 font-bold">${b.vendor}</td><td class="p-3">${b.handover}</td><td class="p-3">${b.billNo}</td><td class="p-3">${b.billDate}</td><td class="p-3 text-blue-600 font-bold">${b.amount}</td><td class="p-3">${b.remark}</td><td class="p-3 text-center"><span class="px-2 py-1 rounded text-[10px] font-bold ${b.status==='Paid'?'bg-green-100 text-green-800':'bg-amber-100 text-amber-800'}">${b.status}</span></td><td class="p-3">${b.mode}</td>
+                        <td class="p-3">${b.recDate || b.rec_date}</td><td class="p-3 font-bold">${b.vendor}</td><td class="p-3">${b.handover}</td><td class="p-3">${b.billNo || b.bill_no}</td><td class="p-3">${b.billDate || b.bill_date}</td><td class="p-3 text-blue-600 font-bold">${b.amount}</td><td class="p-3">${b.remark}</td><td class="p-3 text-center"><span class="px-2 py-1 rounded text-[10px] font-bold ${b.status==='Paid'?'bg-green-100 text-green-800':'bg-amber-100 text-amber-800'}">${b.status}</span></td><td class="p-3">${b.mode}</td>
                     </tr>`;
                 });
                 userBillTbl.innerHTML = html || '<tr><td colspan="9" class="p-4 text-center text-gray-400">No bill records available.</td></tr>';
@@ -2103,7 +2117,7 @@
                 let html = '';
                 materialInwardList.slice().reverse().forEach(i => {
                     html += `<tr>
-                        <td class="p-3 font-bold">${i.gateNo}</td><td class="p-3">${i.desc}</td><td class="p-3 text-center font-bold text-blue-600">${i.qty}</td><td class="p-3">${i.party}</td><td class="p-3">${i.docNo}</td><td class="p-3">${i.mode}</td><td class="p-3">${i.receiver}</td>
+                        <td class="p-3 font-bold">${i.gateNo || i.gate_no}</td><td class="p-3">${i.desc || i.description}</td><td class="p-3 text-center font-bold text-blue-600">${i.qty}</td><td class="p-3">${i.party}</td><td class="p-3">${i.docNo || i.doc_no}</td><td class="p-3">${i.mode}</td><td class="p-3">${i.receiver}</td>
                         <td class="p-3 text-center"><a href="${i.photo}" target="_blank"><img src="${i.photo}" class="w-8 h-8 object-cover rounded mx-auto border" /></a><div class="text-[9px] text-gray-400">${i.timestamp}</div></td>
                         <td class="p-3 text-center"><button onclick="deleteInwardRecord('${i.id}')" class="bg-red-600 text-white px-2 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-trash"></i></button></td>
                     </tr>`;
@@ -2116,7 +2130,7 @@
                 let html = '';
                 materialInwardList.slice().reverse().forEach(i => {
                     html += `<tr>
-                        <td class="p-3 font-bold">${i.gateNo}</td><td class="p-3">${i.desc}</td><td class="p-3 text-center font-bold text-blue-600">${i.qty}</td><td class="p-3">${i.party}</td><td class="p-3">${i.docNo}</td><td class="p-3">${i.mode}</td><td class="p-3">${i.receiver}</td>
+                        <td class="p-3 font-bold">${i.gateNo || i.gate_no}</td><td class="p-3">${i.desc || i.description}</td><td class="p-3 text-center font-bold text-blue-600">${i.qty}</td><td class="p-3">${i.party}</td><td class="p-3">${i.docNo || i.doc_no}</td><td class="p-3">${i.mode}</td><td class="p-3">${i.receiver}</td>
                         <td class="p-3 text-center"><a href="${i.photo}" target="_blank"><img src="${i.photo}" class="w-8 h-8 object-cover rounded mx-auto border" /></a><div class="text-[9px] text-gray-400">${i.timestamp}</div></td>
                     </tr>`;
                 });
@@ -2130,7 +2144,7 @@
                 gatePassList.slice().reverse().forEach(g => {
                     html += `<tr>
                         <td class="p-3"><span class="px-2 py-1 rounded text-[10px] font-bold ${g.type==='RGP'?'bg-purple-100 text-purple-800':'bg-blue-100 text-blue-800'}">${g.type}</span></td>
-                        <td class="p-3">${g.location}</td><td class="p-3">${g.desc}</td><td class="p-3 text-center font-bold">${g.qty}</td><td class="p-3">${g.itemNo}</td><td class="p-3">${g.requester}</td><td class="p-3">${g.receiverMobile}</td><td class="p-3">${g.security}</td>
+                        <td class="p-3">${g.location}</td><td class="p-3">${g.desc || g.description}</td><td class="p-3 text-center font-bold">${g.qty}</td><td class="p-3">${g.itemNo || g.item_no}</td><td class="p-3">${g.requester}</td><td class="p-3">${g.receiverMobile || g.receiver_mobile}</td><td class="p-3">${g.security}</td>
                         <td class="p-3 text-center"><a href="${g.photo}" target="_blank"><img src="${g.photo}" class="w-8 h-8 object-cover rounded mx-auto border" /></a></td>
                         <td class="p-3">${g.approval}</td>
                         <td class="p-3 text-center"><button onclick="deleteGatePassRecord('${g.id}')" class="bg-red-600 text-white px-2 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-trash"></i></button></td>
@@ -2145,7 +2159,7 @@
                 gatePassList.slice().reverse().forEach(g => {
                     html += `<tr>
                         <td class="p-3"><span class="px-2 py-1 rounded text-[10px] font-bold ${g.type==='RGP'?'bg-purple-100 text-purple-800':'bg-blue-100 text-blue-800'}">${g.type}</span></td>
-                        <td class="p-3">${g.location}</td><td class="p-3">${g.desc}</td><td class="p-3 text-center font-bold">${g.qty}</td><td class="p-3">${g.itemNo}</td><td class="p-3">${g.requester}</td><td class="p-3">${g.receiverMobile}</td><td class="p-3">${g.security}</td>
+                        <td class="p-3">${g.location}</td><td class="p-3">${g.desc || g.description}</td><td class="p-3 text-center font-bold">${g.qty}</td><td class="p-3">${g.itemNo || g.item_no}</td><td class="p-3">${g.requester}</td><td class="p-3">${g.receiverMobile || g.receiver_mobile}</td><td class="p-3">${g.security}</td>
                         <td class="p-3 text-center"><a href="${g.photo}" target="_blank"><img src="${g.photo}" class="w-8 h-8 object-cover rounded mx-auto border" /></a></td>
                         <td class="p-3">${g.approval}</td>
                     </tr>`;
@@ -2159,13 +2173,14 @@
                 let html = '';
                 usersList.forEach(u => {
                     if(u.role !== 'ADMIN') {
-                        const acc = userFeatureAccess[u.userId] || { bill: false, inward: false, gate: false };
+                        const uid = u.user_id || u.userId;
+                        const acc = userFeatureAccess[uid] || { bill: false, inward: false, gate: false };
                         html += `<tr>
                             <td class="p-3 font-bold">${u.name}</td>
                             <td class="p-3 text-blue-600">${u.email}</td>
-                            <td class="p-3 text-center"><input type="checkbox" ${acc.bill ? 'checked' : ''} onchange="toggleFeatureAccess('${u.userId}', 'bill')" class="w-4 h-4 cursor-pointer"></td>
-                            <td class="p-3 text-center"><input type="checkbox" ${acc.inward ? 'checked' : ''} onchange="toggleFeatureAccess('${u.userId}', 'inward')" class="w-4 h-4 cursor-pointer"></td>
-                            <td class="p-3 text-center"><input type="checkbox" ${acc.gate ? 'checked' : ''} onchange="toggleFeatureAccess('${u.userId}', 'gate')" class="w-4 h-4 cursor-pointer"></td>
+                            <td class="p-3 text-center"><input type="checkbox" ${acc.bill ? 'checked' : ''} onchange="toggleFeatureAccess('${uid}', 'bill')" class="w-4 h-4 cursor-pointer"></td>
+                            <td class="p-3 text-center"><input type="checkbox" ${acc.inward ? 'checked' : ''} onchange="toggleFeatureAccess('${uid}', 'inward')" class="w-4 h-4 cursor-pointer"></td>
+                            <td class="p-3 text-center"><input type="checkbox" ${acc.gate ? 'checked' : ''} onchange="toggleFeatureAccess('${uid}', 'gate')" class="w-4 h-4 cursor-pointer"></td>
                         </tr>`;
                     }
                 });
