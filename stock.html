@@ -1054,6 +1054,13 @@
             const phone = document.getElementById('regPhone').value.trim();
             const password = document.getElementById('regPassword').value.trim();
 
+            // Client-side duplicate email check before API call
+            const duplicateUser = usersList.find(u => u.email && u.email.trim().toLowerCase() === email);
+            if (duplicateUser) {
+                alert("This Email ID is already registered! Multiple accounts with the same Email are not allowed.");
+                return;
+            }
+
             const newUser = {
                 userId: "USR-00" + Math.floor(100 + Math.random() * 900),
                 name, email, password, dept, phone, role: "USER", status: "ACTIVE"
@@ -1866,7 +1873,6 @@
 
             const userOutTbl = document.getElementById('userOutgoingTable');
             if(userOutTbl && currentUser) {
-                // Pending items on top sorting
                 const myOutgoing = outgoingParcelsList.filter(o => String(o.userName || o.user_name || '').trim().toLowerCase() === String(currentUser.name).trim().toLowerCase()).sort((a, b) => {
                     const aTrk = a.tracking_no || a.trackingNo;
                     const bTrk = b.tracking_no || b.trackingNo;
@@ -1898,7 +1904,6 @@
                 }
             }
 
-            // ADMIN OUTGOING PARCELS TABLE (PENDING TRACKING ON TOP)
             const adminOutTbl = document.getElementById('adminOutgoingTable');
             if(adminOutTbl) {
                 const activeTrackInputs = {};
@@ -1908,7 +1913,6 @@
                     }
                 });
 
-                // Sort: pending tracking items first
                 const sortedOutgoing = [...outgoingParcelsList].sort((a, b) => {
                     const aTrk = a.tracking_no || a.trackingNo;
                     const bTrk = b.tracking_no || b.trackingNo;
