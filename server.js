@@ -143,6 +143,53 @@ async function initDB() {
                 status VARCHAR(30) DEFAULT 'PENDING',
                 date VARCHAR(50)
             );
+
+            CREATE TABLE IF NOT EXISTS bill_tracking (
+                id VARCHAR(50) PRIMARY KEY,
+                rec_date VARCHAR(50),
+                vendor VARCHAR(100),
+                handover VARCHAR(100),
+                bill_no VARCHAR(100),
+                bill_date VARCHAR(50),
+                amount VARCHAR(50),
+                remark TEXT,
+                status VARCHAR(50),
+                mode VARCHAR(50)
+            );
+
+            CREATE TABLE IF NOT EXISTS material_inward (
+                id VARCHAR(50) PRIMARY KEY,
+                gate_no VARCHAR(50),
+                desc TEXT,
+                qty VARCHAR(50),
+                party VARCHAR(100),
+                doc_no VARCHAR(100),
+                mode VARCHAR(50),
+                receiver VARCHAR(100),
+                photo TEXT,
+                timestamp VARCHAR(100)
+            );
+
+            CREATE TABLE IF NOT EXISTS gate_pass (
+                id VARCHAR(50) PRIMARY KEY,
+                type VARCHAR(20),
+                location VARCHAR(100),
+                desc TEXT,
+                qty VARCHAR(50),
+                item_no VARCHAR(50),
+                requester VARCHAR(100),
+                receiver_mobile VARCHAR(100),
+                security VARCHAR(100),
+                photo TEXT,
+                approval VARCHAR(100)
+            );
+
+            CREATE TABLE IF NOT EXISTS feature_access (
+                user_id VARCHAR(50) PRIMARY KEY,
+                bill BOOLEAN DEFAULT FALSE,
+                inward BOOLEAN DEFAULT FALSE,
+                gate BOOLEAN DEFAULT FALSE
+            );
         `);
 
         await db.query(`
@@ -194,6 +241,17 @@ app.get('/api/state', async (req, res) => {
         const outgoing = await db.query('SELECT * FROM outgoing_parcels ORDER BY id DESC');
         const keys = await db.query('SELECT * FROM key_requests ORDER BY id DESC');
         const complaints = await db.query('SELECT * FROM complaints ORDER BY id DESC');
+        const bills = await db.query('SELECT * FROM bill_tracking ORDER BY id DESC');
+        const inward = await db.query('SELECT * FROM material_inward ORDER BY id DESC');
+        const gatePass = await db.query('SELECT * FROM gate_pass ORDER BY id DESC');
+        const access = await db.query('SELECT * FROM feature_access');
+
+        let formattedAccess = {};
+        if (access.rows) {
+            access.rows.forEach(row => {
+                formattedAccess[row.user_id] = { bill: row.bill, inward: row.inward, gate: row.gate };
+            });
+        }
 
         res.json({
             users: users.rows || [],
@@ -203,11 +261,15 @@ app.get('/api/state', async (req, res) => {
             couriers: couriers.rows || [],
             outgoingParcels: outgoing.rows || [],
             keys: keys.rows || [],
-            complaints: complaints.rows || []
+            complaints: complaints.rows || [],
+            billTracking: bills.rows || [],
+            materialInward: inward.rows || [],
+            gatePass: gatePass.rows || [],
+            featureAccess: formattedAccess
         });
     } catch (err) {
         console.error('State API Error:', err.message);
-        res.status(200).json({ users: [], inventory: [], orders: [], receivedLogs: [], couriers: [], outgoingParcels: [], keys: [], complaints: [] });
+        res.status(200).json({ users: [], inventory: [], orders: [], receivedLogs: [], couriers: [], outgoingParcels: [], keys: [], complaints: [], billTracking: [], materialInward: [], gatePass: [], featureAccess: {} });
     }
 });
 
@@ -562,7 +624,6 @@ app.post('/api/outgoing/request', async (req, res) => {
     }
 });
 
-// OUTGOING PARCEL TRACKING UPDATE (REFINED FOR RELIABLE PERSISTENCE)
 app.post('/api/outgoing/update-tracking', async (req, res) => {
     const { id, trackingNo, courierCompany } = req.body;
     try {
@@ -590,6 +651,124 @@ app.delete('/api/outgoing/delete/:id', async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+// NEW APIS FOR BILL TRACKING, MATERIAL INWARD, GATE PASS & FEATURE ACCESS
+app.post('/api/bills/add', async (req, res) => {
+    const { id, recDate, vendor, handover, billNo, billDate, amount, remark, status, mode } = req.body;
+    try {
+        const query = `
+            INSERT INTO bill_tracking (id, rec_date, vendor, handover, bill_no, bill_date, amount, remark, status, mode)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING *;
+        `;
+        const values = [id || `BILL-${Math.floor(1000+Math.random()*9000)}`, recDate, vendor, handover, billNo, billDate, amount, remark, status, mode];
+        const result = await db.query(query, values);
+        res.json({ success: true, bill: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.delete('/api/bills/delete/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query('DELETE FROM bill_tracking WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/inward/add', async (req, res) => {
+    const { id, gateNo, desc, qty, party, docNo, mode, receiver, photo, timestamp } = req.body;
+    try {
+        let savedPhotoPath = photo;
+        if (photo && typeof photo === 'string' && photo.startsWith('data:image')) {
+            const matches = photo.match(/^data:image\/([A-Za-z-+]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+                const base64Data = matches[2];
+                const fileName = `inward_${id || Date.now()}.png`;
+                const filePath = path.join(uploadDir, fileName);
+                fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
+                savedPhotoPath = `/uploads/${fileName}`;
+            }
+        }
+        const query = `
+            INSERT INTO material_inward (id, gate_no, desc, qty, party, doc_no, mode, receiver, photo, timestamp)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING *;
+        `;
+        const values = [id || `INW-${Math.floor(1000+Math.random()*9000)}`, gateNo, desc, qty, party, docNo, mode, receiver, savedPhotoPath, timestamp];
+        const result = await db.query(query, values);
+        res.json({ success: true, inward: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.delete('/api/inward/delete/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query('DELETE FROM material_inward WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/gatepass/add', async (req, res) => {
+    const { id, type, location, desc, qty, itemNo, requester, receiverMobile, security, photo, approval } = req.body;
+    try {
+        let savedPhotoPath = photo;
+        if (photo && typeof photo === 'string' && photo.startsWith('data:image')) {
+            const matches = photo.match(/^data:image\/([A-Za-z-+]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+                const base64Data = matches[2];
+                const fileName = `gatepass_${id || Date.now()}.png`;
+                const filePath = path.join(uploadDir, fileName);
+                fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
+                savedPhotoPath = `/uploads/${fileName}`;
+            }
+        }
+        const query = `
+            INSERT INTO gate_pass (id, type, location, desc, qty, item_no, requester, receiver_mobile, security, photo, approval)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            RETURNING *;
+        `;
+        const values = [id || `GP-${Math.floor(1000+Math.random()*9000)}`, type, location, desc, qty, itemNo, requester, receiverMobile, security, savedPhotoPath, approval];
+        const result = await db.query(query, values);
+        res.json({ success: true, gatePass: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.delete('/api/gatepass/delete/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query('DELETE FROM gate_pass WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/feature-access/update', async (req, res) => {
+    const { userId, bill, inward, gate } = req.body;
+    try {
+        const query = `
+            INSERT INTO feature_access (user_id, bill, inward, gate)
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (user_id) DO UPDATE SET bill = EXCLUDED.bill, inward = EXCLUDED.inward, gate = EXCLUDED.gate
+            RETURNING *;
+        `;
+        const values = [userId, bill || false, inward || false, gate || false];
+        const result = await db.query(query, values);
+        res.json({ success: true, access: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
