@@ -877,8 +877,8 @@ app.post('/api/inventory/stock-in', async (req, res) => {
     }
 });
 
-app.delete('/api/inventory/delete/:id', async (req, res) => {
-    const { id } = req.params;
+app.delete('/api/inventory/delete/:id', async (rowReq, res) => {
+    const { id } = rowReq.params;
     try {
         await db.query('DELETE FROM inventory WHERE item_id::text = $1::text', [String(id)]);
         res.json({ message: 'Item deleted successfully' });
