@@ -278,7 +278,6 @@
                                     </div>
                                     <div>
                                         <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Dispatch Date</label>
-                                        <!-- Chhota Dispatch Date Input Box -->
                                         <input type="date" id="outDate" class="border rounded-xl p-2 text-xs bg-white shadow-sm w-44" required />
                                     </div>
                                 </div>
@@ -1826,13 +1825,11 @@
         }
 
         function renderAll() {
-            // Dropdown values retain karne ke liye current values store kar rahe hain
             const currentSelectedCartItem = document.getElementById('cartItemSelect').value;
             const currentSelectedLedgerCat = document.getElementById('ledgerCategoryFilter').value;
             const currentSelectedUserFilter = document.getElementById('userFilterSelect').value;
             const currentSelectedCourierUser = document.getElementById('courierSelectUser').value;
 
-            // Preserve active focused input during auto-refresh intervals
             const activeElementId = document.activeElement ? document.activeElement.id : null;
 
             populateUserItemDropdown();
@@ -1840,7 +1837,6 @@
             populateUserDropdown();
             populateCourierUserDropdown();
 
-            // Values ko wapas restore kiya taaki dropdown reset na ho
             if(currentSelectedCartItem) document.getElementById('cartItemSelect').value = currentSelectedCartItem;
             if(currentSelectedLedgerCat) document.getElementById('ledgerCategoryFilter').value = currentSelectedLedgerCat;
             if(currentSelectedUserFilter) document.getElementById('userFilterSelect').value = currentSelectedUserFilter;
@@ -1870,7 +1866,17 @@
 
             const userOutTbl = document.getElementById('userOutgoingTable');
             if(userOutTbl && currentUser) {
-                const myOutgoing = outgoingParcelsList.filter(o => String(o.userName || o.user_name || '').trim().toLowerCase() === String(currentUser.name).trim().toLowerCase()).slice().reverse();
+                // Pending items on top sorting
+                const myOutgoing = outgoingParcelsList.filter(o => String(o.userName || o.user_name || '').trim().toLowerCase() === String(currentUser.name).trim().toLowerCase()).sort((a, b) => {
+                    const aTrk = a.tracking_no || a.trackingNo;
+                    const bTrk = b.tracking_no || b.trackingNo;
+                    const aPending = (!aTrk || aTrk === 'PENDING ADMIN ASSIGNMENT');
+                    const bPending = (!bTrk || bTrk === 'PENDING ADMIN ASSIGNMENT');
+                    if (aPending && !bPending) return -1;
+                    if (!aPending && bPending) return 1;
+                    return 0;
+                });
+
                 if(myOutgoing.length === 0) {
                     userOutTbl.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">No outgoing requests submitted.</td></tr>';
                 } else {
@@ -1892,7 +1898,7 @@
                 }
             }
 
-            // ADMIN OUTGOING PARCELS TABLE (WITH PERSISTENT TYPING/INPUT FOCUS & RED COLOR FOR PENDING TRACKING)
+            // ADMIN OUTGOING PARCELS TABLE (PENDING TRACKING ON TOP)
             const adminOutTbl = document.getElementById('adminOutgoingTable');
             if(adminOutTbl) {
                 const activeTrackInputs = {};
@@ -1902,8 +1908,19 @@
                     }
                 });
 
+                // Sort: pending tracking items first
+                const sortedOutgoing = [...outgoingParcelsList].sort((a, b) => {
+                    const aTrk = a.tracking_no || a.trackingNo;
+                    const bTrk = b.tracking_no || b.trackingNo;
+                    const aPending = (!aTrk || aTrk === '' || aTrk === 'PENDING ADMIN ASSIGNMENT');
+                    const bPending = (!bTrk || bTrk === '' || bTrk === 'PENDING ADMIN ASSIGNMENT');
+                    if (aPending && !bPending) return -1;
+                    if (!aPending && bPending) return 1;
+                    return 0;
+                });
+
                 let html = '';
-                outgoingParcelsList.slice().reverse().forEach(o => {
+                sortedOutgoing.forEach(o => {
                     const parcelId = o.id;
                     const uName = o.user_name || o.userName || '';
                     const date = o.date || '';
@@ -1955,7 +1972,11 @@
 
             const userKeyTbl = document.getElementById('userKeyTable');
             if(userKeyTbl && currentUser) {
-                const myKeys = keysList.filter(k => String(k.userName || k.user_name || '').trim().toLowerCase() === String(currentUser.name).trim().toLowerCase()).slice().reverse();
+                const myKeys = keysList.filter(k => String(k.userName || k.user_name || '').trim().toLowerCase() === String(currentUser.name).trim().toLowerCase()).sort((a, b) => {
+                    if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
+                    if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
+                    return 0;
+                });
                 if(myKeys.length === 0) {
                     userKeyTbl.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">No key requests found.</td></tr>';
                 } else {
@@ -1975,7 +1996,13 @@
 
             const userCompTbl = document.getElementById('userComplaintTable');
             if(userCompTbl && currentUser) {
-                const myComps = complaintsList.filter(c => String(c.userName || c.user_name || '').trim().toLowerCase() === String(currentUser.name).trim().toLowerCase()).slice().reverse();
+                const myComps = complaintsList.filter(c => String(c.userName || c.user_name || '').trim().toLowerCase() === String(currentUser.name).trim().toLowerCase()).sort((a, b) => {
+                    const aStat = a.status || 'PENDING';
+                    const bStat = b.status || 'PENDING';
+                    if (aStat === 'PENDING' && bStat !== 'PENDING') return -1;
+                    if (aStat !== 'PENDING' && bStat === 'PENDING') return 1;
+                    return 0;
+                });
                 if(myComps.length === 0) {
                     userCompTbl.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">No complaints submitted.</td></tr>';
                 } else {
@@ -2000,8 +2027,16 @@
 
             const adminCompTbl = document.getElementById('adminComplaintTable');
             if(adminCompTbl) {
+                const sortedComps = [...complaintsList].sort((a, b) => {
+                    const aStat = a.status || 'PENDING';
+                    const bStat = b.status || 'PENDING';
+                    if (aStat === 'PENDING' && bStat !== 'PENDING') return -1;
+                    if (aStat !== 'PENDING' && bStat === 'PENDING') return 1;
+                    return 0;
+                });
+
                 let html = '';
-                complaintsList.slice().reverse().forEach(c => {
+                sortedComps.forEach(c => {
                     const compId = c.complaint_id || c.complaintId || c.id;
                     const uName = c.user_name || c.userName || '';
                     const issue = c.issue || '';
@@ -2024,8 +2059,14 @@
 
             const adminKeyTbl = document.getElementById('adminKeyTable');
             if(adminKeyTbl) {
+                const sortedKeys = [...keysList].sort((a, b) => {
+                    if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
+                    if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
+                    return 0;
+                });
+
                 let html = '';
-                keysList.slice().reverse().forEach(k => {
+                sortedKeys.forEach(k => {
                     html += '<tr>' +
                         '<td class="p-3 font-mono text-xs text-blue-600">' + k.id + '</td>' +
                         '<td class="p-3 font-bold text-xs">' + (k.userName || k.user_name) + '</td>' +
