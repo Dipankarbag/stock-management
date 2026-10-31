@@ -665,6 +665,26 @@
                             <button onclick="exportUserOrdersCSV()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow">Export CSV</button>
                         </div>
 
+                        <div class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end shadow-inner mb-4">
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Filter By User</label>
+                                <select id="userFilterSelect" onchange="applyUserHistoryFilter()" class="w-full border rounded-xl p-2 text-xs font-semibold bg-white shadow-sm">
+                                    <option value="ALL">-- All Users --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">From Date</label>
+                                <input type="date" id="userOrderStartDate" onchange="applyUserHistoryFilter()" class="border rounded-xl p-2 text-xs bg-white shadow-sm w-44" />
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">To Date</label>
+                                <input type="date" id="userOrderEndDate" onchange="applyUserHistoryFilter()" class="border rounded-xl p-2 text-xs bg-white shadow-sm w-44" />
+                            </div>
+                            <div>
+                                <button onclick="resetUserHistoryFilters()" class="w-full bg-gray-200 text-gray-700 p-2 rounded-xl text-xs font-bold">Reset Filters</button>
+                            </div>
+                        </div>
+
                         <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                             <table class="w-full text-left border-collapse">
                                 <thead>
@@ -1319,16 +1339,20 @@
                 status: document.getElementById('billPayStatus').value,
                 mode: document.getElementById('billMode').value
             };
-            billTrackingList.push(bill);
-            e.target.reset();
-            renderAll();
-            alert("Bill recorded successfully!");
+            fetch('/api/bills/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bill)
+            }).then(() => {
+                e.target.reset();
+                fetchAppState();
+                alert("Bill recorded successfully!");
+            });
         }
 
         function deleteBillRecord(id) {
             if(confirm("Delete this bill record?")) {
-                billTrackingList = billTrackingList.filter(b => b.id !== id);
-                renderAll();
+                fetch('/api/bills/delete/' + id, { method: 'DELETE' }).then(() => fetchAppState());
             }
         }
 
@@ -1351,10 +1375,15 @@
                         photo: evt.target.result,
                         timestamp: nowStr
                     };
-                    materialInwardList.push(inward);
-                    e.target.reset();
-                    renderAll();
-                    alert("Material inward entry saved with timestamp!");
+                    fetch('/api/inward/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(inward)
+                    }).then(() => {
+                        e.target.reset();
+                        fetchAppState();
+                        alert("Material inward entry saved with timestamp!");
+                    });
                 };
                 reader.readAsDataURL(photoInput.files[0]);
             }
@@ -1362,8 +1391,7 @@
 
         function deleteInwardRecord(id) {
             if(confirm("Delete this inward record?")) {
-                materialInwardList = materialInwardList.filter(i => i.id !== id);
-                renderAll();
+                fetch('/api/inward/delete/' + id, { method: 'DELETE' }).then(() => fetchAppState());
             }
         }
 
@@ -1386,10 +1414,15 @@
                         photo: evt.target.result,
                         approval: document.getElementById('gpApproval').value.trim()
                     };
-                    gatePassList.push(pass);
-                    e.target.reset();
-                    renderAll();
-                    alert("Gate Pass generated successfully!");
+                    fetch('/api/gatepass/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(pass)
+                    }).then(() => {
+                        e.target.reset();
+                        fetchAppState();
+                        alert("Gate Pass generated successfully!");
+                    });
                 };
                 reader.readAsDataURL(photoInput.files[0]);
             }
@@ -1397,8 +1430,7 @@
 
         function deleteGatePassRecord(id) {
             if(confirm("Delete this gate pass record?")) {
-                gatePassList = gatePassList.filter(g => g.id !== id);
-                renderAll();
+                fetch('/api/gatepass/delete/' + id, { method: 'DELETE' }).then(() => fetchAppState());
             }
         }
 
@@ -2020,6 +2052,13 @@
             renderUserHistoryTableCustom(filtered);
         }
 
+        function resetUserHistoryFilters() {
+            document.getElementById('userFilterSelect').value = 'ALL';
+            document.getElementById('userOrderStartDate').value = '';
+            document.getElementById('userOrderEndDate').value = '';
+            renderUserHistoryTableCustom(orders);
+        }
+
         function renderUserHistoryTableCustom(list) {
             const tbl = document.getElementById('adminUserOrdersHistoryTable');
             if(!tbl) return;
@@ -2056,7 +2095,7 @@
                     if(data.billTracking) billTrackingList = data.billTracking;
                     if(data.materialInward) materialInwardList = data.materialInward;
                     if(data.gatePass) gatePassList = data.gatePass;
-                    if(data.featureAccess) userFeatureAccess = data.featureAccess; // <--- Sync added
+                    if(data.featureAccess) userFeatureAccess = data.featureAccess;
                     renderAll();
                 });
         }
@@ -2079,7 +2118,6 @@
             if(currentSelectedUserFilter) document.getElementById('userFilterSelect').value = currentSelectedUserFilter;
             if(currentSelectedCourierUser) document.getElementById('courierSelectUser').value = currentSelectedCourierUser;
 
-            // Render User Navigation Access for 3 New Features based on Admin Permission
             if (currentUser && currentUser.role !== 'ADMIN') {
                 const access = userFeatureAccess[currentUser.user_id || currentUser.userId] || { bill: false, inward: false, gate: false };
                 document.getElementById('userTabBillBtn').classList.toggle('hidden', !access.bill);
@@ -2167,7 +2205,6 @@
                 userGateTbl.innerHTML = html || '<tr><td colspan="10" class="p-4 text-center text-gray-400">No gate pass records found.</td></tr>';
             }
 
-            // Render Feature Access Control Table for Admin
             const adminFeatureTable = document.getElementById('adminFeatureAccessTable');
             if(adminFeatureTable) {
                 let html = '';
@@ -2187,7 +2224,6 @@
                 adminFeatureTable.innerHTML = html || '<tr><td colspan="5" class="p-4 text-center text-gray-400">No users found.</td></tr>';
             }
 
-            // Existing render logic preserved below...
             const userLiveTbl = document.getElementById('userLiveCourierTable');
             if(userLiveTbl && currentUser) {
                 const myCouriers = couriersList.filter(c => String(c.userName || c.user_name || '').trim().toLowerCase() === String(currentUser.name).trim().toLowerCase()).slice().reverse();
