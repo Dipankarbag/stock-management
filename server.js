@@ -209,7 +209,7 @@ async function initDB() {
 initDB();
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'stock_3.html'));
+    res.sendFile(path.join(__dirname, 'stock.html'));
 });
 
 // GET ALL STATE API
