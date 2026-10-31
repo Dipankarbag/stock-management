@@ -226,7 +226,8 @@
                         <button id="userTab2Btn" onclick="switchUserPage(2)" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-paper-plane mr-2.5 w-4"></i>Page 2: Outgoing Parcel</button>
                         <button id="userTab4Btn" onclick="switchUserPage(4)" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-key mr-2.5 w-4"></i>Page 4: Key Request</button>
                         <button id="userTab5Btn" onclick="switchUserPage(5)" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-triangle-exclamation mr-2.5 w-4"></i>Page 5: Complaints</button>
-                        <!-- New User Navigation Tabs for Assigned Features -->
+                        
+                        <!-- User Access Granted Navigation Tabs -->
                         <button id="userTabBillBtn" onclick="switchUserPage('bill')" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full hidden"><i class="fa-solid fa-file-invoice-dollar mr-2.5 w-4"></i>Bill Tracking</button>
                         <button id="userTabInwardBtn" onclick="switchUserPage('inward')" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full hidden"><i class="fa-solid fa-box-open mr-2.5 w-4"></i>Material Inward</button>
                         <button id="userTabGateBtn" onclick="switchUserPage('gate')" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full hidden"><i class="fa-solid fa-clipboard-user mr-2.5 w-4"></i>Gate Pass (RGP/NRGP)</button>
@@ -473,7 +474,7 @@
                         </div>
                     </div>
 
-                    <!-- USER VIEW: Bill Tracking -->
+                    <!-- USER ACCESS GRANTED: Bill Tracking -->
                     <div id="userPageBill" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
                         <h2 class="text-base font-bold text-gray-800 flex items-center">
                             <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-file-invoice-dollar"></i></div> Bill Tracking Entry & View
@@ -515,7 +516,7 @@
                         </div>
                     </div>
 
-                    <!-- USER VIEW: Material Inward -->
+                    <!-- USER ACCESS GRANTED: Material Inward -->
                     <div id="userPageInward" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
                         <h2 class="text-base font-bold text-gray-800 flex items-center">
                             <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-box-open"></i></div> Material Inward Entry & View
@@ -555,7 +556,7 @@
                         </div>
                     </div>
 
-                    <!-- USER VIEW: Gate Pass (RGP/NRGP) -->
+                    <!-- USER ACCESS GRANTED: Gate Pass (RGP/NRGP) -->
                     <div id="userPageGate" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
                         <h2 class="text-base font-bold text-gray-800 flex items-center">
                             <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-clipboard-user"></i></div> Gate Pass Entry & View (RGP / NRGP)
@@ -615,10 +616,12 @@
                         <button onclick="switchAdminTab('keys')" id="tabKeysBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-key mr-2.5 w-4"></i>Key Management</button>
                         <button onclick="switchAdminTab('complaints')" id="tabComplaintsBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-triangle-exclamation mr-2.5 w-4"></i>Complaints Management</button>
                         
-                        <!-- NEW ADMIN TABS FOR ADDED FEATURES -->
+                        <!-- ADMIN MANAGEMENT TABS -->
                         <button onclick="switchAdminTab('billTracking')" id="tabBillTrackingBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-file-invoice-dollar mr-2.5 w-4"></i>Bill Tracking</button>
                         <button onclick="switchAdminTab('materialInward')" id="tabMaterialInwardBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-box-open mr-2.5 w-4"></i>Material Inward</button>
                         <button onclick="switchAdminTab('gatePass')" id="tabGatePassBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-clipboard-user mr-2.5 w-4"></i>Gate Pass (RGP/NRGP)</button>
+                        
+                        <!-- FEATURE ACCESS CONTROL TAB FOR ADMIN -->
                         <button onclick="switchAdminTab('featureAccess')" id="tabFeatureAccessBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-user-gear mr-2.5 w-4"></i>Feature Access Control</button>
 
                         <button onclick="switchAdminTab('logs')" id="tabLogsBtn" class="py-2.5 px-3.5 rounded-xl text-gray-600 hover:bg-gray-100 transition flex items-center text-left w-full"><i class="fa-solid fa-user-clock mr-2.5 w-4"></i>System Activity Logs</button>
@@ -981,9 +984,9 @@
                         </div>
                     </div>
 
-                    <!-- ADMIN TAB: Feature Access Control (3 Features Limit / Assign to Users) -->
+                    <!-- ADMIN TAB: Feature Access Control -->
                     <div id="tabFeatureAccess" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
-                        <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-user-gear"></i></div> Feature Access Control (3 Specific Features Assignment)</h2>
+                        <h2 class="text-base font-bold text-gray-800 flex items-center"><div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2 shadow-sm"><i class="fa-solid fa-user-gear"></i></div> Feature Access Control (Assign to Users)</h2>
                         <p class="text-xs text-gray-500">Admin yahan se select kar sakte hain ki kis user ko Bill Tracking, Material Inward, aur Gate Pass features ka access dena hai.</p>
                         <div class="overflow-x-auto rounded-xl border border-gray-200">
                             <table class="w-full text-left border-collapse">
@@ -1154,7 +1157,6 @@
         let keysList = [];
         let complaintsList = [];
 
-        // NEW LISTS FOR ADDED FEATURES
         let billTrackingList = [];
         let materialInwardList = [];
         let gatePassList = [];
@@ -1369,7 +1371,7 @@
             fetchAppState();
         }
 
-        // HANDLERS FOR BILL TRACKING, INWARD & GATE PASS
+        // HANDLERS FOR BILL TRACKING, MATERIAL INWARD & GATE PASS
         function handleBillSubmit(e) {
             e.preventDefault();
             const bill = {
