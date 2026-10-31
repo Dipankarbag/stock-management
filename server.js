@@ -49,7 +49,7 @@ function sendAutoEmail(toEmail, subject, message) {
     });
 }
 
-// Database Initializer (Safe for Old Data & Users)
+// Database Initializer (Safe: Does not overwrite or clear existing users/data)
 async function initDB() {
     try {
         await db.query(`
