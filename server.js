@@ -49,7 +49,7 @@ function sendAutoEmail(toEmail, subject, message) {
     });
 }
 
-// Database Initializer (Safe - keeps old user data intact)
+// Database Initializer (Safe - keeps old user data intact & ensures all tables exist)
 async function initDB() {
     try {
         await db.query(`
@@ -209,13 +209,13 @@ async function initDB() {
 initDB();
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'stock.html'));
+    res.sendFile(path.join(__dirname, 'stock_3.html'));
 });
 
 // GET ALL STATE API
 app.get('/api/state', async (req, res) => {
     try {
-        const users = await db.query('SELECT * FROM users');
+        const users = await db.query('SELECT * FROM users ORDER BY id ASC');
         const inventory = await db.query('SELECT * FROM inventory');
         const orders = await db.query('SELECT * FROM orders');
         const receivedLogs = await db.query('SELECT * FROM received_logs');
@@ -314,7 +314,7 @@ app.post('/api/users/register', async (req, res) => {
         const query = `
             INSERT INTO users (user_id, name, email, password, dept, phone, role, status)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name
+            ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, dept = EXCLUDED.dept, phone = EXCLUDED.phone
             RETURNING *;
         `;
         const values = [userId || `USR-${Math.floor(100+Math.random()*900)}`, name, email, password, dept, phone, role || 'USER', status || 'ACTIVE'];
