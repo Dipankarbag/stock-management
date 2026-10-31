@@ -49,7 +49,7 @@ function sendAutoEmail(toEmail, subject, message) {
     });
 }
 
-// Database Initializer (Safe: Does not overwrite or clear existing users/data)
+// Database Initializer (Safe - keeps old user data intact)
 async function initDB() {
     try {
         await db.query(`
@@ -201,7 +201,7 @@ async function initDB() {
             `);
         }
 
-        console.log('Database Tables Verified & Safe!');
+        console.log('Database Tables Verified & Ready!');
     } catch (err) {
         console.error('Init DB Error:', err.message);
     }
