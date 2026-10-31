@@ -474,10 +474,25 @@
                     </div>
 
                     <!-- USER VIEW: Bill Tracking -->
-                    <div id="userPageBill" class="card-3d p-5 sm:p-6 rounded-2xl hidden">
-                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
-                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-file-invoice-dollar"></i></div> Bill Tracking View
+                    <div id="userPageBill" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
+                        <h2 class="text-base font-bold text-gray-800 flex items-center">
+                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-file-invoice-dollar"></i></div> Bill Tracking Entry & View
                         </h2>
+                        <form onsubmit="handleUserBillSubmit(event)" class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 space-y-3 shadow-inner">
+                            <h3 class="font-bold text-xs text-gray-700">Add / Record New Bill</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div><label class="text-[10px] font-bold uppercase">Received Date</label><input type="date" id="userBillRecDate" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Vendor Name</label><input type="text" id="userBillVendor" placeholder="Vendor Name" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Handover To</label><input type="text" id="userBillHandover" placeholder="Handover Person" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Bill No</label><input type="text" id="userBillNo" placeholder="Bill No" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Bill Date</label><input type="date" id="userBillDate" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Bill Amount</label><input type="number" id="userBillAmount" placeholder="Amount" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Action Remark</label><input type="text" id="userBillRemark" placeholder="Remark" class="w-full border rounded p-2 text-xs bg-white"></div>
+                                <div><label class="text-[10px] font-bold uppercase">Payment Status</label><select id="userBillPayStatus" class="w-full border rounded p-2 text-xs bg-white"><option value="Pending">Pending</option><option value="Paid">Paid</option></select></div>
+                                <div><label class="text-[10px] font-bold uppercase">Mode</label><select id="userBillMode" class="w-full border rounded p-2 text-xs bg-white"><option value="Cash">Cash</option><option value="NEFT">NEFT</option><option value="CHQ">CHQ</option></select></div>
+                            </div>
+                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded text-xs font-bold btn-3d">Save Bill Record</button>
+                        </form>
                         <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                             <table class="w-full text-left border-collapse">
                                 <thead>
@@ -501,10 +516,24 @@
                     </div>
 
                     <!-- USER VIEW: Material Inward -->
-                    <div id="userPageInward" class="card-3d p-5 sm:p-6 rounded-2xl hidden">
-                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
-                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-box-open"></i></div> Material Inward View
+                    <div id="userPageInward" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
+                        <h2 class="text-base font-bold text-gray-800 flex items-center">
+                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-box-open"></i></div> Material Inward Entry & View
                         </h2>
+                        <form onsubmit="handleUserInwardSubmit(event)" class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 space-y-3 shadow-inner">
+                            <h3 class="font-bold text-xs text-gray-700">Add Material Inward Entry</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div><label class="text-[10px] font-bold uppercase">Gate No</label><input type="text" id="userInGateNo" placeholder="Gate No" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Description</label><input type="text" id="userInDesc" placeholder="Description" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Quantity</label><input type="number" id="userInQty" placeholder="Quantity" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Name of Party</label><input type="text" id="userInParty" placeholder="Party Name" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Document Number</label><input type="text" id="userInDocNo" placeholder="Doc Number" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Mode</label><select id="userInMode" class="w-full border rounded p-2 text-xs bg-white"><option value="Bill">Bill</option><option value="Challan">Challan</option></select></div>
+                                <div><label class="text-[10px] font-bold uppercase">Receiver Name</label><input type="text" id="userInReceiver" placeholder="Receiver Name" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Photo (Timestamp)</label><input type="file" id="userInPhoto" accept="image/*" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                            </div>
+                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded text-xs font-bold btn-3d">Save Inward Entry</button>
+                        </form>
                         <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                             <table class="w-full text-left border-collapse">
                                 <thead>
@@ -527,10 +556,26 @@
                     </div>
 
                     <!-- USER VIEW: Gate Pass (RGP/NRGP) -->
-                    <div id="userPageGate" class="card-3d p-5 sm:p-6 rounded-2xl hidden">
-                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center">
-                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-clipboard-user"></i></div> Gate Pass View (RGP / NRGP)
+                    <div id="userPageGate" class="card-3d p-5 sm:p-6 rounded-2xl hidden space-y-4">
+                        <h2 class="text-base font-bold text-gray-800 flex items-center">
+                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl mr-2.5 shadow-sm"><i class="fa-solid fa-clipboard-user"></i></div> Gate Pass Entry & View (RGP / NRGP)
                         </h2>
+                        <form onsubmit="handleUserGatePassSubmit(event)" class="bg-slate-50/80 p-4 rounded-2xl border border-gray-200 space-y-3 shadow-inner">
+                            <h3 class="font-bold text-xs text-gray-700">Create Gate Pass</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div><label class="text-[10px] font-bold uppercase">Type</label><select id="userGpType" class="w-full border rounded p-2 text-xs bg-white"><option value="NRGP">NRGP</option><option value="RGP">RGP</option></select></div>
+                                <div><label class="text-[10px] font-bold uppercase">To Location</label><input type="text" id="userGpLocation" placeholder="To Location" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Goods Description</label><input type="text" id="userGpDesc" placeholder="Goods Description" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Quantity</label><input type="number" id="userGpQty" placeholder="Quantity" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Item Number</label><input type="text" id="userGpItemNo" placeholder="Item Number" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Requester Name</label><input type="text" id="userGpRequester" placeholder="Requester Name" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Receiver & Mobile</label><input type="text" id="userGpReceiverMobile" placeholder="Receiver Name & Mobile" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Security Check By Name</label><input type="text" id="userGpSecurity" placeholder="Security Name" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Approval Name</label><input type="text" id="userGpApproval" placeholder="Approval Name" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                                <div><label class="text-[10px] font-bold uppercase">Item Photo</label><input type="file" id="userGpPhoto" accept="image/*" class="w-full border rounded p-2 text-xs bg-white" required></div>
+                            </div>
+                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded text-xs font-bold btn-3d">Generate Gate Pass</button>
+                        </form>
                         <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                             <table class="w-full text-left border-collapse">
                                 <thead>
@@ -968,7 +1013,7 @@
         </div>
     </div>
 
-    <!-- MODALS (Existing preserved) -->
+    <!-- MODALS -->
     <div id="issuedDetailsModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="card-3d bg-white p-6 rounded-2xl w-full max-w-2xl border border-gray-200 space-y-4">
             <div class="flex justify-between items-center border-b pb-3">
@@ -1324,7 +1369,7 @@
             fetchAppState();
         }
 
-        // HANDLERS FOR NEW FEATURES
+        // HANDLERS FOR BILL TRACKING, INWARD & GATE PASS
         function handleBillSubmit(e) {
             e.preventDefault();
             const bill = {
@@ -1338,6 +1383,31 @@
                 remark: document.getElementById('billRemark').value.trim(),
                 status: document.getElementById('billPayStatus').value,
                 mode: document.getElementById('billMode').value
+            };
+            fetch('/api/bills/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bill)
+            }).then(() => {
+                e.target.reset();
+                fetchAppState();
+                alert("Bill recorded successfully!");
+            });
+        }
+
+        function handleUserBillSubmit(e) {
+            e.preventDefault();
+            const bill = {
+                id: 'BILL-' + Math.floor(1000 + Math.random() * 9000),
+                recDate: document.getElementById('userBillRecDate').value,
+                vendor: document.getElementById('userBillVendor').value.trim(),
+                handover: document.getElementById('userBillHandover').value.trim(),
+                billNo: document.getElementById('userBillNo').value.trim(),
+                billDate: document.getElementById('userBillDate').value,
+                amount: document.getElementById('userBillAmount').value.trim(),
+                remark: document.getElementById('userBillRemark').value.trim(),
+                status: document.getElementById('userBillPayStatus').value,
+                mode: document.getElementById('userBillMode').value
             };
             fetch('/api/bills/add', {
                 method: 'POST',
@@ -1389,6 +1459,39 @@
             }
         }
 
+        function handleUserInwardSubmit(e) {
+            e.preventDefault();
+            const photoInput = document.getElementById('userInPhoto');
+            if(photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const nowStr = new Date().toLocaleString();
+                    const inward = {
+                        id: 'INW-' + Math.floor(1000 + Math.random() * 9000),
+                        gateNo: document.getElementById('userInGateNo').value.trim(),
+                        desc: document.getElementById('userInDesc').value.trim(),
+                        qty: document.getElementById('userInQty').value.trim(),
+                        party: document.getElementById('userInParty').value.trim(),
+                        docNo: document.getElementById('userInDocNo').value.trim(),
+                        mode: document.getElementById('userInMode').value,
+                        receiver: document.getElementById('userInReceiver').value.trim(),
+                        photo: evt.target.result,
+                        timestamp: nowStr
+                    };
+                    fetch('/api/inward/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(inward)
+                    }).then(() => {
+                        e.target.reset();
+                        fetchAppState();
+                        alert("Material inward entry saved with timestamp!");
+                    });
+                };
+                reader.readAsDataURL(photoInput.files[0]);
+            }
+        }
+
         function deleteInwardRecord(id) {
             if(confirm("Delete this inward record?")) {
                 fetch('/api/inward/delete/' + id, { method: 'DELETE' }).then(() => fetchAppState());
@@ -1413,6 +1516,39 @@
                         security: document.getElementById('gpSecurity').value.trim(),
                         photo: evt.target.result,
                         approval: document.getElementById('gpApproval').value.trim()
+                    };
+                    fetch('/api/gatepass/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(pass)
+                    }).then(() => {
+                        e.target.reset();
+                        fetchAppState();
+                        alert("Gate Pass generated successfully!");
+                    });
+                };
+                reader.readAsDataURL(photoInput.files[0]);
+            }
+        }
+
+        function handleUserGatePassSubmit(e) {
+            e.preventDefault();
+            const photoInput = document.getElementById('userGpPhoto');
+            if(photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const pass = {
+                        id: 'GP-' + Math.floor(1000 + Math.random() * 9000),
+                        type: document.getElementById('userGpType').value,
+                        location: document.getElementById('userGpLocation').value.trim(),
+                        desc: document.getElementById('userGpDesc').value.trim(),
+                        qty: document.getElementById('userGpQty').value.trim(),
+                        itemNo: document.getElementById('userGpItemNo').value.trim(),
+                        requester: document.getElementById('userGpRequester').value.trim(),
+                        receiverMobile: document.getElementById('userGpReceiverMobile').value.trim(),
+                        security: document.getElementById('userGpSecurity').value.trim(),
+                        photo: evt.target.result,
+                        approval: document.getElementById('userGpApproval').value.trim()
                     };
                     fetch('/api/gatepass/add', {
                         method: 'POST',
