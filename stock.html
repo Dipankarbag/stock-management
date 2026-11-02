@@ -808,7 +808,7 @@
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Parcel Photo (Max 6MB)</label>
+                                <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Parcel Photo (Max 200KB)</label>
                                 <input type="file" id="courierPhoto" accept="image/*" onchange="validatePhotoSize(this)" class="w-full border rounded-xl p-2 text-xs bg-white shadow-sm" required />
                             </div>
                             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs btn-3d">Assign & Send Live Courier</button>
@@ -1182,8 +1182,8 @@
                     }
                     fetchAppState();
                 } catch (e) {
-                    localStorage.removeItem('stockFlowUser')
-               }
+                    localStorage.removeItem('stockFlowUser');
+                }
             }
         });
 
@@ -1381,6 +1381,27 @@
     // Latest state refresh karein
     fetchAppState();
 }
+       
+
+        function switchAdminTab(tab) {
+            ['requests', 'stock', 'userOrders', 'users', 'courier', 'outgoing', 'keys', 'complaints', 'billTracking', 'materialInward', 'gatePass', 'featureAccess', 'logs'].forEach(t => {
+                const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+                const btnEl = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
+                if(el) el.classList.add('hidden');
+                if(btnEl) {
+                    btnEl.classList.remove('active-tab');
+                    btnEl.classList.add('text-gray-600', 'hover:bg-gray-100');
+                }
+            });
+            const target = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+            const targetBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1) + 'Btn');
+            if(target) target.classList.remove('hidden');
+            if(targetBtn) {
+                targetBtn.classList.add('active-tab');
+                targetBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+            }
+            fetchAppState();
+        }
 
         // HANDLERS FOR BILL TRACKING, MATERIAL INWARD & GATE PASS
         function handleBillSubmit(e) {
@@ -1842,8 +1863,8 @@
 
         function validatePhotoSize(input) {
             if (input.files && input.files[0]) {
-                if (input.files[0].size / 1024 > 6000) {
-                    alert("File size exceeds 6MB limit!");
+                if (input.files[0].size / 1024 > 200) {
+                    alert("File size exceeds 200KB limit!");
                     input.value = "";
                 }
             }
