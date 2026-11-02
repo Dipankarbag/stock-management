@@ -1331,44 +1331,55 @@
         }
 
         function switchUserPage(pageNum) {
-            [1, 2, 3, 4, 5, 'bill', 'inward', 'gate'].forEach(p => {
-                const pageEl = document.getElementById('userPage' + p);
-                const btnEl = document.getElementById('userTab' + (typeof p === 'number' ? p : p.charAt(0).toUpperCase() + p.slice(1)) + 'Btn');
-                if(pageEl) pageEl.classList.add('hidden');
-                if(btnEl) {
-                    btnEl.classList.remove('user-active-tab');
-                    btnEl.classList.add('text-gray-600', 'hover:bg-gray-100');
-                }
-            });
+    // 1. Sabhi user content divs ko hide karein
+    const allUserPages = ['userPage1', 'userPage2', 'userPage3', 'userPage4', 'userPage5', 'userPageBill', 'userPageInward', 'userPageGate'];
+    allUserPages.forEach(id => {
+        const pageEl = document.getElementById(id);
+        if (pageEl) pageEl.classList.add('hidden');
+    });
 
-            const activePage = document.getElementById('userPage' + pageNum);
-            const activeBtn = document.getElementById('userTab' + (typeof pageNum === 'number' ? pageNum : pageNum.charAt(0).toUpperCase() + pageNum.slice(1)) + 'Btn');
-            if(activePage) activePage.classList.remove('hidden');
-            if(activeBtn) {
-                activeBtn.classList.add('user-active-tab');
-                activeBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
-            }
-            fetchAppState();
+    // 2. Sabhi navigation buttons ka active style remove karein
+    const allUserBtns = ['userTab1Btn', 'userTab2Btn', 'userTab3Btn', 'userTab4Btn', 'userTab5Btn', 'userTabBillBtn', 'userTabInwardBtn', 'userTabGateBtn'];
+    allUserBtns.forEach(id => {
+        const btnEl = document.getElementById(id);
+        if (btnEl) {
+            btnEl.classList.remove('user-active-tab');
+            btnEl.classList.add('text-gray-600', 'hover:bg-gray-100');
         }
+    });
 
-        function switchAdminTab(tab) {
-            ['requests', 'stock', 'userOrders', 'users', 'courier', 'outgoing', 'keys', 'complaints', 'billTracking', 'materialInward', 'gatePass', 'featureAccess', 'logs'].forEach(t => {
-                const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
-                const btnEl = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
-                if(el) el.classList.add('hidden');
-                if(btnEl) {
-                    btnEl.classList.remove('active-tab');
-                    btnEl.classList.add('text-gray-600', 'hover:bg-gray-100');
-                }
-            });
-            const target = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
-            const targetBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1) + 'Btn');
-            if(target) target.classList.remove('hidden');
-            if(targetBtn) {
-                targetBtn.classList.add('active-tab');
-                targetBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
-            }
-            fetchAppState();
+    // 3. Current active page id determine karein
+    let targetPageId = '';
+    let targetBtnId = '';
+
+    if (typeof pageNum === 'number') {
+        targetPageId = 'userPage' + pageNum;
+        targetBtnId = 'userTab' + pageNum + 'Btn';
+    } else if (pageNum === 'bill') {
+        targetPageId = 'userPageBill';
+        targetBtnId = 'userTabBillBtn';
+    } else if (pageNum === 'inward') {
+        targetPageId = 'userPageInward';
+        targetBtnId = 'userTabInwardBtn';
+    } else if (pageNum === 'gate') {
+        targetPageId = 'userPageGate';
+        targetBtnId = 'userTabGateBtn';
+    }
+
+    // 4. Target page ko show karein aur button ko highlight karein
+    const activePage = document.getElementById(targetPageId);
+    const activeBtn = document.getElementById(targetBtnId);
+
+    if (activePage) {
+        activePage.classList.remove('hidden');
+    }
+    if (activeBtn) {
+        activeBtn.classList.add('user-active-tab');
+        activeBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+    }
+
+    // Latest state refresh karein
+    fetchAppState();
         }
 
         // HANDLERS FOR BILL TRACKING, MATERIAL INWARD & GATE PASS
