@@ -1182,8 +1182,8 @@
                     }
                     fetchAppState();
                 } catch (e) {
-                    localStorage.removeItem('stockFlowUser');
-                }
+                    localStorage.removeItem('stockFlowUser')
+               }
             }
         });
 
@@ -1330,7 +1330,7 @@
             }
         }
 
-        function switchUserPage(pageNum) {
+       function switchUserPage(pageNum) {
     // 1. Sabhi user content divs ko hide karein
     const allUserPages = ['userPage1', 'userPage2', 'userPage3', 'userPage4', 'userPage5', 'userPageBill', 'userPageInward', 'userPageGate'];
     allUserPages.forEach(id => {
@@ -1380,7 +1380,7 @@
 
     // Latest state refresh karein
     fetchAppState();
-        }
+}
 
         // HANDLERS FOR BILL TRACKING, MATERIAL INWARD & GATE PASS
         function handleBillSubmit(e) {
