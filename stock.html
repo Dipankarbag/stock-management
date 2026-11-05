@@ -2509,15 +2509,16 @@
             }
 
             if (activeElementId) {
-                const elToFocus = document.getElementById(activeElementId);
-                if (elToFocus && typeof elToFocus.focus === 'function') {
-                    elToFocus.focus();
-                    if (typeof elToFocus.setSelectionRange === 'function') {
-                        const len = elToFocus.value.length;
-                        elToFocus.setSelectionRange(len, len);
-                    }
-                }
-            }
+    const elToFocus = document.getElementById(activeElementId);
+    if (elToFocus && typeof elToFocus.focus === 'function') {
+        elToFocus.focus();
+        const type = elToFocus.type;
+        if (type !== 'date' && type !== 'file' && type !== 'number' && typeof elToFocus.setSelectionRange === 'function') {
+            const len = elToFocus.value.length;
+            elToFocus.setSelectionRange(len, len);
+        }
+    }
+}
 
             const userKeyTbl = document.getElementById('userKeyTable');
             if(userKeyTbl && currentUser) {
